@@ -17,6 +17,8 @@ class Initializer {
 	 */
 	public static function init() {
 		Admin::init();
+		Nodes::init();
+		Webhook::init();
 	}
 
 }

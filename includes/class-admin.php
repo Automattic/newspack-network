@@ -18,8 +18,6 @@ class Admin {
 	 */
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
-
-		Admin\Sites::init();
 	}
 
 	/**
@@ -29,8 +27,8 @@ class Admin {
 	 */
 	public static function add_admin_menu() {
 		$page_suffix = add_menu_page(
-			__( 'Newspack Hub', 'newspack-multibranded-site' ),
-			__( 'Newspack Hub', 'newspack-multibranded-site' ),
+			__( 'Newspack Hub', 'newspack-network-hub' ),
+			__( 'Newspack Hub', 'newspack-network-hub' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( __CLASS__, 'render_page' )
@@ -42,12 +40,12 @@ class Admin {
 	/**
 	 * Adds a child admin page to the main Newspack Hub admin page
 	 *
-	 * @param string $title The menu title
-	 * @param string $slug The menu slug.
+	 * @param string   $title The menu title.
+	 * @param string   $slug The menu slug.
 	 * @param callable $callback The function to be called to output the content for this page.
 	 * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
 	 */
-	public static function add_submenu_page($title, $slug, $callback) {
+	public static function add_submenu_page( $title, $slug, $callback ) {
 		return add_submenu_page(
 			self::PAGE_SLUG,
 			$title,
