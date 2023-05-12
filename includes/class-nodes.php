@@ -55,6 +55,26 @@ class Nodes {
 	}
 
 	/**
+	 * Get all nodes
+	 *
+	 * @return ?Node
+	 */
+	public static function get_all_nodes() {
+		$nodes  = get_posts(
+			[
+				'post_type'      => self::POST_TYPE_SLUG,
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			]
+		);
+		$result = [];
+		foreach ( $nodes as $id ) {
+			$result[] = new Node( $id );
+		}
+		return $result;
+	}
+
+	/**
 	 * Disable Rich text editing from the editor
 	 *
 	 * @param array  $settings The settings to be filtered.
