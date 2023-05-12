@@ -28,6 +28,30 @@ class Reader_Registered extends Abstract_Incoming_Event {
 	 * @return void
 	 */
 	public function post_process() {
-		// @TODO create the user.
+		$email = $this->get_email();
+		if ( ! $email ) {
+			return;
+		}
+		$existing_user = get_user_by( 'email', $email );
+
+		if ( $existing_user ) {
+			return;
+		}
+
+		$user_id = wp_insert_user(
+			[
+				'user_email' => $email,
+				'user_login' => $email,
+				'user_pass'  => wp_generate_password(),
+				'role'       => 'network_reader',
+			]
+		);
+
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		add_user_meta( $user_id, 'newspack_hub_node_id', $this->get_node_id() );
+		
 	}
 }

@@ -112,12 +112,12 @@ abstract class Abstract_Incoming_Event {
 	}
 
 	/**
-	 * Returns the site URL for this event
+	 * Returns the Node ID for this event
 	 *
 	 * @return string
 	 */
-	public function get_site() {
-		return $this->node->get_url();
+	public function get_node_id() {
+		return $this->node->get_id();
 	}
 
 	/**

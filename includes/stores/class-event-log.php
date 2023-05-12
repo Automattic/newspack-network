@@ -28,7 +28,7 @@ class Event_Log {
 		$insert = $wpdb->insert( //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			Database::get_table_name(),
 			[
-				'site'        => $event->get_site(),
+				'node_id'     => $event->get_node_id(),
 				'action_name' => $event->get_action_name(),
 				'email'       => $event->get_email(),
 				'data'        => wp_json_encode( $event->get_data() ),

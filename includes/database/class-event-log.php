@@ -64,10 +64,10 @@ class Event_Log {
 		global $wpdb;
 		$table_name      = self::get_table_name();
 		$charset_collate = $wpdb->get_charset_collate();
-		$sql             = "CREATE TABLE $table_name (
+		$sql             = "CREATE TABLE IF NOT EXISTS $table_name (
             id int(11) NOT NULL AUTO_INCREMENT,
             action_name varchar(100) NOT NULL,
-            site varchar(255) NOT NULL,
+            node_id int(11) NOT NULL,
             email varchar(100) NULL,
             data text NOT NULL,
             timestamp int(11) NOT NULL,
