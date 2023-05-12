@@ -7,6 +7,7 @@
 
 namespace Newspack_Hub\Admin;
 
+use Newspack_Hub\Accepted_Actions;
 use Newspack_Hub\Admin;
 use Newspack_Hub\Nodes;
 use Newspack_Hub\Stores\Event_Log as Event_Log_Store;
@@ -89,7 +90,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 		}
 		$current_action = $_GET['action_name'] ?? '';
 		$current_node   = $_GET['node_id'] ?? '';
-		$all_actions    = array_keys( Event_Log_Store::get_registered_event_log_items() );
+		$all_actions    = array_keys( Accepted_Actions::ACTIONS );
 		$all_nodes      = Nodes::get_all_nodes();
 		?>
 

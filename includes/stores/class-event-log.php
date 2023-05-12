@@ -7,6 +7,7 @@
 
 namespace Newspack_Hub\Stores;
 
+use Newspack_Hub\Accepted_Actions;
 use Newspack_Hub\Debugger;
 use Newspack_Hub\Node;
 use Newspack_Hub\Incoming_Events\Abstract_Incoming_Event;
@@ -16,17 +17,6 @@ use Newspack_Hub\Database\Event_Log as Database;
  * Class to handle Event Log Store
  */
 class Event_Log {
-
-	/**
-	 * Get the registered event_log_items
-	 *
-	 * @return array Array where the keys are the supported events and the values are the Incoming Events class names
-	 */
-	public static function get_registered_event_log_items() {
-		return [
-			'reader_registered' => 'Reader_Registered',
-		];
-	}
 
 	/**
 	 * Get event log items
@@ -52,10 +42,10 @@ class Event_Log {
 		$results = [];
 
 		foreach ( $db as $item ) {
-			if ( empty( self::get_registered_event_log_items()[ $item->action_name ] ) ) {
+			if ( empty( Accepted_Actions::ACTIONS[ $item->action_name ] ) ) {
 				continue;
 			}
-			$class_name = 'Newspack_Hub\\Stores\\Event_Log_Items\\' . self::get_registered_event_log_items()[ $item->action_name ];
+			$class_name = 'Newspack_Hub\\Stores\\Event_Log_Items\\' . Accepted_Actions::ACTIONS[ $item->action_name ];
 			$results[]  = new $class_name(
 				[
 					'id'          => $item->id,

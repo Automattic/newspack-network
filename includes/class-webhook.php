@@ -7,6 +7,10 @@
 
 namespace Newspack_Hub;
 
+use WP_REST_Response;
+use WP_REST_Request;
+use WP_REST_Server;
+
 /**
  * Class to handle the Webhook
  */
@@ -39,29 +43,17 @@ class Webhook {
 	}
 
 	/**
-	 * Get the registered incoming_events
-	 *
-	 * @return array Array where the keys are the supported events and the values are the Incoming Events class names
-	 */
-	public static function get_registered_incoming_events() {
-		return [
-			'reader_registered' => 'Reader_Registered',
-		];
-	}
-
-	/**
 	 * Handle the webhook
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return void
-	 * @TODO: return proper error codes on failure
+	 * @return WP_REST_Response
 	 */
 	public static function handle_webhook( $request ) {
 		$site            = $request['site'];
 		$data            = $request['data'];
 		$action          = $request['action'];
 		$timestamp       = $request['timestamp'];
-		$incoming_events = self::get_registered_incoming_events();
+		$incoming_events = Accepted_Actions::ACTIONS;
 		
 		Debugger::log( 'Webhook received' );
 		Debugger::log( $site );
@@ -75,27 +67,27 @@ class Webhook {
 			empty( $action ) ||
 			! array_key_exists( $action, $incoming_events )
 		) {
-			return;
+			return new WP_REST_Response( array( 'error' => 'Bad request.' ), 400 );
 		}
 
 		$node = Nodes::get_node_by_url( $site );
 
 		if ( ! $node ) {
 			Debugger::log( 'Node not found.' );
-			return;
+			return new WP_REST_Response( array( 'error' => 'Bad request. Site not registered in this Hub.' ), 403 );
 		}
 
 		$verified_data = $node->verify_signed_message( $data );
 		if ( ! $verified_data ) {
 			Debugger::log( 'Signature check failed' );
-			return;
+			return new WP_REST_Response( array( 'error' => 'Invalid Signature.' ), 403 );
 		}
 
 		$verified_data = json_decode( $verified_data );
 
 		if ( empty( $verified_data ) ) {
 			Debugger::log( 'Invalid data' );
-			return;
+			return new WP_REST_Response( array( 'error' => 'Bad request. Invalid Data.' ), 400 );
 		}
 
 		Debugger::log( 'Successfully verified data' );
@@ -106,6 +98,8 @@ class Webhook {
 		$incoming_event = new $incoming_event_class( $node, $verified_data, $timestamp );
 
 		$incoming_event->process();
+
+		return new WP_REST_Response( 'success' );
 		
 	}
 }
