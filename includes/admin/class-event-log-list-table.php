@@ -133,7 +133,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 			case 'action_name':
 				return $item->get_action_name();
 			case 'data':
-				return $item->get_raw_data();
+				return '<code>' . $item->get_raw_data() . '</code>';
 			default:
 				return '';
 		}
