@@ -52,6 +52,7 @@ class Reader_Registered extends Abstract_Incoming_Event {
 		}
 
 		add_user_meta( $user_id, 'newspack_hub_node_id', $this->get_node_id() );
+		add_user_meta( $user_id, 'newspack_hub_remote_id', $this->data->user_id ?? '' );
 		
 	}
 }
