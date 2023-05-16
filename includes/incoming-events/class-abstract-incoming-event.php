@@ -7,6 +7,7 @@
 
 namespace Newspack_Hub\Incoming_Events;
 
+use Newspack_Hub\Accepted_Actions;
 use Newspack_Hub\Debugger;
 use Newspack_Hub\Node;
 use Newspack_Hub\Stores\Event_Log;
@@ -15,13 +16,6 @@ use Newspack_Hub\Stores\Event_Log;
  * Class to handle the plugin admin pages
  */
 abstract class Abstract_Incoming_Event {
-
-	/**
-	 * The action name. Child classes should set this.
-	 *
-	 * @var string
-	 */
-	public $action_name;
 
 	/**
 	 * The Node object for this event
@@ -108,7 +102,9 @@ abstract class Abstract_Incoming_Event {
 	 * @return string
 	 */
 	public function get_action_name() {
-		return $this->action_name;
+		$class      = new \ReflectionClass( $this );
+		$class_name = $class->getShortName();
+		return array_search( $class_name, Accepted_Actions::ACTIONS );
 	}
 
 	/**

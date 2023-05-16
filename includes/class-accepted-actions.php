@@ -20,6 +20,8 @@ class Accepted_Actions {
 	 * @var array Array where the keys are the supported events and the values are the Incoming Events class names
 	 */
 	const ACTIONS = [
-		'reader_registered' => 'Reader_Registered',
+		'reader_registered'                  => 'Reader_Registered',
+		// 'newspack_node_order_changed'        => 'Order_Changed',
+		'newspack_node_subscription_changed' => 'Subscription_Changed',
 	];
 }

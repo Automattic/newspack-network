@@ -19,6 +19,7 @@ class Initializer {
 		Admin::init();
 		Nodes::init();
 		Webhook::init();
+		Database\Subscriptions::init();
 
 		register_activation_hook( NEWSPACK_HUB_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}

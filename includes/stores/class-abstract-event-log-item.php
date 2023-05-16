@@ -74,7 +74,7 @@ abstract class Abstract_Event_Log_Item {
 	 */
 	public function __construct( $args ) {
 		$this->id          = (int) $args['id'] ?? 0;
-		$this->node        = $args['node'] instanceof Node ? $args['node'] : new Node();
+		$this->node        = $args['node'] instanceof Node ? $args['node'] : new Node( 0 );
 		$this->email       = $args['email'] ?? '';
 		$this->action_name = $args['action_name'] ?? '';
 		$this->data        = $args['data'] ?? '';

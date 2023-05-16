@@ -91,7 +91,6 @@ class Event_Log_List_Table extends \WP_List_Table {
 		$current_action = $_GET['action_name'] ?? '';
 		$current_node   = $_GET['node_id'] ?? '';
 		$all_actions    = array_keys( Accepted_Actions::ACTIONS );
-		$all_nodes      = Nodes::get_all_nodes();
 		?>
 
 		<select name="action_name" id="action_name">
@@ -101,12 +100,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 			<?php endforeach; ?>
 		</select>
 
-		<select name="node_id" id="node_id">
-			<option value=""><?php _e( 'All Nodes', 'newspack-network-hub' ); ?></option>
-			<?php foreach ( $all_nodes as $node ) : ?>
-				<option value="<?php echo esc_attr( $node->get_id() ); ?>" <?php selected( $current_node, $node->get_id() ); ?>><?php echo esc_html( $node->get_url() ); ?></option>
-			<?php endforeach; ?>
-		</select>
+		<?php Nodes::nodes_dropdown( $current_node ); ?>
 
 		<input type="submit" name="filter_action" class="button" value="<?php esc_attr_e( 'Filter', 'newspack-network-hub' ); ?>">
 

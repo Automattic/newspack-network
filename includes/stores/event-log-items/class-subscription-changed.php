@@ -7,13 +7,12 @@
 
 namespace Newspack_Hub\Stores\Event_Log_Items;
 
-use Newspack_Hub\Node;
 use Newspack_Hub\Stores\Abstract_Event_Log_Item;
 
 /**
  * Class to handle the Reader Registered Event Log Item
  */
-class Reader_Registered extends Abstract_Event_Log_Item {
+class Subscription_Changed extends Abstract_Event_Log_Item {
 
 	/**
 	 * Gets a summary for this event
@@ -22,9 +21,11 @@ class Reader_Registered extends Abstract_Event_Log_Item {
 	 */
 	public function get_summary() {
 		return sprintf(
-			/* translators: 1: email 2: site url */
-			__( 'New reader registered with email %1$s on %2$s', 'newspack-network-hub' ),
-			$this->get_email(),
+			/* translators: 1: Subscription ID 2: Previous status, 3: New status, 4: site url */
+			__( 'Subscription #%1$d updated its status from %2$s to %3$s on %4$s', 'newspack-network-hub' ),
+			$this->get_data()->id,
+			$this->get_data()->status_before,
+			$this->get_data()->status_after,
 			$this->get_node_url()
 		);
 	}

@@ -16,13 +16,6 @@ use Newspack_Hub\Stores\Event_Log;
 class Reader_Registered extends Abstract_Incoming_Event {
 	
 	/**
-	 * The action name.
-	 *
-	 * @var string
-	 */
-	public $action_name = 'reader_registered';
-	
-	/**
 	 * Processes the event
 	 *
 	 * @return void

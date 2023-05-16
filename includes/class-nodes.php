@@ -194,6 +194,24 @@ class Nodes {
 	}
 
 	/**
+	 * Outputs a dropdow for Node selection
+	 *
+	 * @param string $current_node The selected node id.
+	 * @return void
+	 */
+	public static function nodes_dropdown( $current_node = '' ) {
+		$all_nodes = self::get_all_nodes();
+		?>
+		<select name="node_id" id="node_id">
+			<option value=""><?php _e( 'All Nodes', 'newspack-network-hub' ); ?></option>
+			<?php foreach ( $all_nodes as $node ) : ?>
+				<option value="<?php echo esc_attr( $node->get_id() ); ?>" <?php selected( $current_node, $node->get_id() ); ?>><?php echo esc_html( $node->get_url() ); ?></option>
+			<?php endforeach; ?>
+		</select>
+		<?php
+	}
+
+	/**
 	 * Outputs metabox content
 	 *
 	 * @param WP_Post $post The current post.

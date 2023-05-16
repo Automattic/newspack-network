@@ -31,7 +31,7 @@ class Node {
 			$node = get_post( $node );
 		}
 
-		if ( ! $node instanceof WP_Post ) {
+		if ( ! $node instanceof WP_Post || Nodes::POST_TYPE_SLUG !== $node->post_type ) {
 			return false;
 		}
 
@@ -55,7 +55,7 @@ class Node {
 	 * @return ?string
 	 */
 	public function get_url() {
-		return get_post_meta( $this->post->ID, 'node-url', true );
+		return get_post_meta( $this->get_id(), 'node-url', true );
 	}
 
 	/**
@@ -64,7 +64,7 @@ class Node {
 	 * @return ?string
 	 */
 	public function get_private_key() {
-		return get_post_meta( $this->post->ID, 'private-key', true );
+		return get_post_meta( $this->get_id(), 'private-key', true );
 	}
 
 	/**
@@ -73,7 +73,34 @@ class Node {
 	 * @return ?string
 	 */
 	public function get_public_key() {
-		return get_post_meta( $this->post->ID, 'public-key', true );
+		return get_post_meta( $this->get_id(), 'public-key', true );
+	}
+
+	/**
+	 * Returns the Node's Authorization Header to be used in REST request to it
+	 *
+	 * @return ?string
+	 */
+	public function get_authorization_header() {
+		return 'Basic ' . base64_encode( $this->get_app_user() . ':' . $this->get_app_pass() );
+	}
+
+	/**
+	 * Returns the Node's App User
+	 *
+	 * @return ?string
+	 */
+	public function get_app_user() {
+		return get_post_meta( $this->get_id(), 'app-user', true );
+	}
+
+	/**
+	 * Returns the Node's App Pass
+	 *
+	 * @return ?string
+	 */
+	public function get_app_pass() {
+		return get_post_meta( $this->get_id(), 'app-pass', true );
 	}
 
 	/**

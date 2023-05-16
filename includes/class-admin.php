@@ -20,6 +20,7 @@ class Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
 
 		Admin\Event_Log::init();
+		Admin\Subscriptions::init();
 	}
 
 	/**
