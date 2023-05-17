@@ -244,7 +244,7 @@ class Nodes {
 
 		<div class="misc-pub-section">
 			<h3>Application Password</h3>
-	
+
 			<p>
 				Please inform a user and a application password for the hub to retrieve data from this node.
 			</p>
