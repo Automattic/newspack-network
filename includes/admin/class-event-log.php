@@ -21,6 +21,7 @@ class Event_Log {
 	 */
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
 	}
 	
 	/**
@@ -30,6 +31,25 @@ class Event_Log {
 	 */
 	public static function add_admin_menu() {
 		Admin::add_submenu_page( __( 'Event Log', 'newspack-network-hub' ), self::PAGE_SLUG, [ __CLASS__, 'render_page' ] );
+	}
+
+	/**
+	 * Enqueues the admin styles.
+	 *
+	 * @return void
+	 */
+	public static function admin_enqueue_scripts() {
+		$page_slug = Admin::PAGE_SLUG . '_page_' . self::PAGE_SLUG;
+		if ( get_current_screen()->id !== $page_slug ) {
+			return;
+		}
+		
+		wp_enqueue_style(
+			'newspack-hub-event-log',
+			plugins_url( 'css/event-log.css', __FILE__ ),
+			[],
+			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/admin/css/event-log.css' )
+		);
 	}
 
 	/**

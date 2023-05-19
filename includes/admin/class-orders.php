@@ -29,7 +29,7 @@ class Orders extends Woo {
 		$columns['order']                     = __( 'Order', 'newspack-network-hub' );
 		$columns['date']                      = __( 'Date', 'newspack-network-hub' );
 		$columns['status']                    = __( 'Status', 'newspack-network-hub' );
-		$columns['subscription_relationship'] = __( 'x', 'newspack-network-hub' );
+		$columns['subscription_relationship'] = __( 'Subscription Relationship', 'newspack-network-hub' );
 		$columns['total']                     = __( 'Total', 'newspack-network-hub' );
 		return $columns;
 
@@ -76,10 +76,27 @@ class Orders extends Woo {
 				);
 				break;
 			case 'subscription_relationship':
-				echo $item->get_subscription_relationship(); // phpcs:ignore
+				if ( 'parent' === $item->get_subscription_relationship() ) {
+					$class = 'subscription_parent_order tips';
+					$label = __( 'Parent Order', 'newspack-network-hub' );
+				} elseif ( 'renewal' === $item->get_subscription_relationship() ) {
+					$class = 'subscription_renewal_order tips';
+					$label = __( 'Renewal Order', 'newspack-network-hub' );
+				} elseif ( 'renewal' === $item->get_subscription_relationship() ) {
+					$class = 'subscription_renewal_order tips';
+					$label = __( 'Renewal Order', 'newspack-network-hub' );
+				} elseif ( 'resubscribe' === $item->get_subscription_relationship() ) {
+					$class = 'subscription_resubscribe_order tips';
+					$label = __( 'Resubscribe Order', 'newspack-network-hub' );
+				} else {
+					$class = 'normal_order';
+					$label = __( 'Normal Order', 'newspack-network-hub' );
+				}
+				echo '<span class="' . esc_attr( $class ) . '"></span>';
+				echo esc_html( $label );
 				break;
 			case 'total':
-				echo $item->get_formatted_total();
+				echo esc_html( $item->get_formatted_total() );
 				break;
 		}
 

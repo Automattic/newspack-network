@@ -72,12 +72,12 @@ abstract class Woo {
 		if ( 'edit.php' !== $pagenow || ! in_array( get_post_type(), self::$post_types, true ) ) {
 			return;
 		}
-		
+
 		wp_enqueue_style(
-			'newspack-hub-subscriptions',
-			plugins_url( 'css/subscriptions.css', __FILE__ ),
+			'newspack-hub-woo-cpts',
+			plugins_url( 'css/woo-cpts.css', __FILE__ ),
 			[],
-			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/incldes/admin/css/subscription.css' )
+			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/admin/css/woo-cpts.css' )
 		);
 	}
 
