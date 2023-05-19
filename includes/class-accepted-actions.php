@@ -21,7 +21,7 @@ class Accepted_Actions {
 	 */
 	const ACTIONS = [
 		'reader_registered'                  => 'Reader_Registered',
-		// 'newspack_node_order_changed'        => 'Order_Changed',
+		'newspack_node_order_changed'        => 'Order_Changed',
 		'newspack_node_subscription_changed' => 'Subscription_Changed',
 	];
 }

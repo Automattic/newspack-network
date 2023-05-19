@@ -15,7 +15,34 @@ use Newspack_Hub\Incoming_Events\Subscription_Changed;
 /**
  * Class to handle Woocommerce Subscriptions Store
  */
-class Subscriptions {
+class Subscriptions extends Woo_Store {
+
+	/**
+	 * Gets the post type slug
+	 *
+	 * @return string
+	 */
+	protected static function get_post_type_slug() {
+		return Subscriptions_DB::POST_TYPE_SLUG;
+	}
+
+	/**
+	 * Gets the api endpoint prefix
+	 *
+	 * @return string
+	 */
+	protected static function get_api_endpoint_prefix() {
+		return 'subscriptions';
+	}
+
+	/**
+	 * Gets the name of the items class
+	 *
+	 * @return string
+	 */
+	protected static function get_item_class() {
+		return 'Subscription_Item';
+	}
 
 	/**
 	 * Persists a Subscription_Changed event by creating or updating a Subscription post.
@@ -33,7 +60,7 @@ class Subscriptions {
 		Debugger::log( 'Persisting subscription ' . $subscription_id );
 
 		$local_id          = self::get_local_id( $subscription );
-		$subscription_data = self::fetch_subscription_data( $subscription );
+		$subscription_data = self::fetch_remote_data( $subscription );
 
 		Debugger::log( 'Local ID: ' . $local_id );
 
@@ -78,90 +105,4 @@ class Subscriptions {
 
 	}
 
-	/**
-	 * Returns the local post ID for a given Subscription_Changed event.
-	 *
-	 * If there's no local post for the given Subscription_Changed event, creates one.
-	 *
-	 * @param Subscription_Changed $subscription The Subscription_Changed event.
-	 * @return int The local post ID.
-	 */
-	protected static function get_local_id( Subscription_Changed $subscription ) {
-		$subscription_id = $subscription->get_id();
-		$stored          = get_posts(
-			[
-				'post_type'      => Subscriptions_DB::POST_TYPE_SLUG,
-				'post_status'    => 'any',
-				'meta_key'       => 'remote_id',
-				'meta_value'     => $subscription_id, //phpcs:ignore
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-			]
-		);
-		if ( ! empty( $stored ) ) {
-			return $stored[0];
-		}
-		return self::create_subscription( $subscription );
-	}
-
-	/**
-	 * Creates a local post for a given Subscription_Changed event.
-	 *
-	 * @param Subscription_Changed $subscription The Subscription_Changed event.
-	 * @return int The local post ID.
-	 */
-	protected static function create_subscription( Subscription_Changed $subscription ) {
-		$subscription_id = $subscription->get_id();
-		$user_id         = 0;
-		$user            = get_user_by( 'email', $subscription->get_email() );
-		if ( $user instanceof \WP_User ) {
-			$user_id = $user->ID;
-		}
-		$post_arr = [
-			'post_type'   => Subscriptions_DB::POST_TYPE_SLUG,
-			'post_status' => $subscription->get_status_after(),
-			'post_title'  => '#' . $subscription_id,
-			'post_author' => $user_id,
-		];
-		$post_id  = wp_insert_post( $post_arr );
-
-		add_post_meta( $post_id, 'remote_id', $subscription_id );
-		add_post_meta( $post_id, 'node_id', $subscription->get_node_id() );
-		add_post_meta( $post_id, 'user_email', $subscription->get_email() );
-		add_post_meta( $post_id, 'user_name', $subscription->get_user_name() );
-
-		return $post_id;
-	}
-
-
-	/**
-	 * Fetches subscription data from the API.
-	 *
-	 * @param Subscription_Changed $subscription The Subscription_Changed event.
-	 * @return object The subscription data.
-	 */
-	protected static function fetch_subscription_data( Subscription_Changed $subscription ) {
-
-		$subscription_id = $subscription->get_id();
-		
-		$endpoint = sprintf( '%s/wp-json/wc/v3/subscriptions/%d', $subscription->get_node()->get_url(), $subscription_id );
-
-		$response = wp_remote_get( // phpcs:ignore
-			$endpoint,
-			[
-				'headers' => [
-					'Authorization' => $subscription->get_node()->get_authorization_header(),
-				],
-			]
-		);
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			return;
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-
-		return json_decode( $body );
-
-	}
 }
