@@ -5,10 +5,10 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Database;
+namespace Newspack_Network\Hub\Database;
 
-use Newspack_Hub\Admin;
-use Newspack_Hub\Debugger;
+use Newspack_Network\Hub\Admin;
+use Newspack_Network\Debugger;
 
 /**
  * Class to handle the ubscriptions post type registration

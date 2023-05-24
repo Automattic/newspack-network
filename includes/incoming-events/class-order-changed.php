@@ -5,9 +5,9 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Incoming_Events;
+namespace Newspack_Network\Incoming_Events;
 
-use Newspack_Hub\Stores\Orders;
+use Newspack_Network\Hub\Stores\Orders;
 
 /**
  * Class to handle the Order Changed Incoming Event

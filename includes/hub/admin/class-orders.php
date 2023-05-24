@@ -5,11 +5,11 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Admin;
+namespace Newspack_Network\Hub\Admin;
 
-use Newspack_Hub\Admin;
-use Newspack_Hub\Nodes;
-use Newspack_Hub\Stores\Woo_Item;
+use Newspack_Network\Hub\Admin;
+use Newspack_Network\Hub\Nodes;
+use Newspack_Network\Hub\Stores\Woo_Item;
 
 /**
  * Class to handle the Orders admin page by customizing the Custom Post type screen

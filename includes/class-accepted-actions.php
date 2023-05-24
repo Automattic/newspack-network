@@ -5,7 +5,7 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub;
+namespace Newspack_Network;
 
 /**
  * This class holds the actions this Hub will accept from other sites.

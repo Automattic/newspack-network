@@ -5,9 +5,9 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Stores;
+namespace Newspack_Network\Hub\Stores;
 
-use Newspack_Hub\Incoming_Events\Woo_Item_Changed;
+use Newspack_Network\Incoming_Events\Woo_Item_Changed;
 
 /**
  * Class to handle Woocommerce Generic Woo items store for orders and subscriptions

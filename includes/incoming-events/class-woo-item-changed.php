@@ -5,7 +5,7 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Incoming_Events;
+namespace Newspack_Network\Incoming_Events;
 
 /**
  * Class to handle the Generic Woo Changed Incoming Event for Subscription and Orders

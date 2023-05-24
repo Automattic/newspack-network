@@ -5,7 +5,7 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub;
+namespace Newspack_Network\Hub;
 
 /**
  * Class to handle the plugin admin pages

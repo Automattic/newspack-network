@@ -5,9 +5,9 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Incoming_Events;
+namespace Newspack_Network\Incoming_Events;
 
-use Newspack_Hub\Stores\Subscriptions;
+use Newspack_Network\Hub\Stores\Subscriptions;
 
 /**
  * Class to handle the Subscription Changed Incoming Event

@@ -5,10 +5,10 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Incoming_Events;
+namespace Newspack_Network\Incoming_Events;
 
-use Newspack_Hub\Node;
-use Newspack_Hub\Stores\Event_Log;
+use Newspack_Network\Hub\Node;
+use Newspack_Network\Hub\Stores\Event_Log;
 
 /**
  * Class to handle the Registered Incoming Event

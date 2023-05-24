@@ -5,11 +5,11 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Stores;
+namespace Newspack_Network\Hub\Stores;
 
-use Newspack_Hub\Debugger;
-use Newspack_Hub\Node;
-use Newspack_Hub\Database\Orders as Orders_DB;
+use Newspack_Network\Debugger;
+use Newspack_Network\Hub\Node;
+use Newspack_Network\Hub\Database\Orders as Orders_DB;
 use WP_Post;
 
 /**

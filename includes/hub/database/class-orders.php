@@ -5,10 +5,10 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Database;
+namespace Newspack_Network\Hub\Database;
 
-use Newspack_Hub\Admin;
-use Newspack_Hub\Debugger;
+use Newspack_Network\Hub\Admin;
+use Newspack_Network\Debugger;
 
 /**
  * Class to handle the ubscriptions post type registration
@@ -92,13 +92,13 @@ class Orders {
 	 */
 	public static function register_post_statuses() {
 		$subscription_statuses = array(
-			'pending'        => _x( 'Pending', 'Order status', 'newspack-network-hub' ),
-			'active'         => _x( 'Active', 'Order status', 'newspack-network-hub' ),
-			'on-hold'        => _x( 'On hold', 'Order status', 'newspack-network-hub' ),
-			'cancelled'      => _x( 'Cancelled', 'Order status', 'newspack-network-hub' ),
-			'switched'       => _x( 'Switched', 'Order status', 'newspack-network-hub' ),
-			'expired'        => _x( 'Expired', 'Order status', 'newspack-network-hub' ),
-			'pending-cancel' => _x( 'Pending Cancellation', 'Order status', 'newspack-network-hub' ),
+			'pending'    => _x( 'Pending', 'Order status', 'newspack-network-hub' ),
+			'processing' => _x( 'Processing', 'Order status', 'newspack-network-hub' ),
+			'completed'  => _x( 'Completed', 'Order status', 'newspack-network-hub' ),
+			'on-hold'    => _x( 'On hold', 'Order status', 'newspack-network-hub' ),
+			'cancelled'  => _x( 'Cancelled', 'Order status', 'newspack-network-hub' ),
+			'refunded'   => _x( 'Refunded', 'Order status', 'newspack-network-hub' ),
+			'failed'     => _x( 'Failed', 'Order status', 'newspack-network-hub' ),
 		);
 		foreach ( $subscription_statuses as $status => $label ) {
 			register_post_status(

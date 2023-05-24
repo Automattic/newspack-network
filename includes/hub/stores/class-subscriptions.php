@@ -5,12 +5,11 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Stores;
+namespace Newspack_Network\Hub\Stores;
 
-use Newspack_Hub\Accepted_Actions;
-use Newspack_Hub\Debugger;
-use Newspack_Hub\Database\Subscriptions as Subscriptions_DB;
-use Newspack_Hub\Incoming_Events\Subscription_Changed;
+use Newspack_Network\Debugger;
+use Newspack_Network\Incoming_Events\Subscription_Changed;
+use Newspack_Network\Hub\Database\Subscriptions as Subscriptions_DB;
 
 /**
  * Class to handle Woocommerce Subscriptions Store

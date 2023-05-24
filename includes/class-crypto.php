@@ -5,7 +5,7 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub;
+namespace Newspack_Network;
 
 /**
  * Class with basic crypto methods

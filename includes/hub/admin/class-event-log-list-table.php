@@ -5,12 +5,12 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Admin;
+namespace Newspack_Network\Hub\Admin;
 
-use Newspack_Hub\Accepted_Actions;
-use Newspack_Hub\Admin;
-use Newspack_Hub\Nodes;
-use Newspack_Hub\Stores\Event_Log as Event_Log_Store;
+use Newspack_Network\Accepted_Actions;
+use Newspack_Network\Hub\Admin;
+use Newspack_Network\Hub\Nodes;
+use Newspack_Network\Hub\Stores\Event_Log as Event_Log_Store;
 
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';

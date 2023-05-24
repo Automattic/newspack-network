@@ -5,7 +5,9 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub;
+namespace Newspack_Network\Hub;
+
+use Newspack_Network\Crypto;
 
 /**
  * Class to handle Nodes post type

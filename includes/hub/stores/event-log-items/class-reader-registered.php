@@ -5,10 +5,10 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Stores\Event_Log_Items;
+namespace Newspack_Network\Hub\Stores\Event_Log_Items;
 
-use Newspack_Hub\Node;
-use Newspack_Hub\Stores\Abstract_Event_Log_Item;
+use Newspack_Network\Hub\Node;
+use Newspack_Network\Hub\Stores\Abstract_Event_Log_Item;
 
 /**
  * Class to handle the Reader Registered Event Log Item

@@ -29,4 +29,4 @@ load_plugin_textdomain( 'newspack-hub', false, dirname( plugin_basename( __FILE_
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-Newspack_Hub\Initializer::init();
+Newspack_Network\Initializer::init();

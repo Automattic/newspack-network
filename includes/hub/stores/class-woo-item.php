@@ -5,10 +5,9 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Stores;
+namespace Newspack_Network\Hub\Stores;
 
-use Newspack_Hub\Debugger;
-use Newspack_Hub\Node;
+use Newspack_Network\Hub\Node;
 use WP_Post;
 
 /**

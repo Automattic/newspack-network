@@ -5,8 +5,10 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub;
+namespace Newspack_Network\Hub;
 
+use Newspack_Network\Accepted_Actions;
+use Newspack_Network\Debugger;
 use WP_REST_Response;
 use WP_REST_Request;
 use WP_REST_Server;
@@ -93,7 +95,7 @@ class Webhook {
 		Debugger::log( 'Successfully verified data' );
 		Debugger::log( $verified_data );
 
-		$incoming_event_class = 'Newspack_Hub\\Incoming_Events\\' . $incoming_events[ $action ];
+		$incoming_event_class = 'Newspack_Network\\Incoming_Events\\' . $incoming_events[ $action ];
 
 		$incoming_event = new $incoming_event_class( $node, $verified_data, $timestamp );
 

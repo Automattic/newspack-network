@@ -5,9 +5,9 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Database;
+namespace Newspack_Network\Hub\Database;
 
-use Newspack_Hub\Debugger;
+use Newspack_Network\Debugger;
 
 /**
  * Class to handle the plugin admin pages

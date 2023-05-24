@@ -5,9 +5,9 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Admin;
+namespace Newspack_Network\Hub\Admin;
 
-use Newspack_Hub\Admin;
+use Newspack_Network\Hub\Admin;
 
 /**
  * Class to handle the Event log admin page
@@ -48,7 +48,7 @@ class Event_Log {
 			'newspack-hub-event-log',
 			plugins_url( 'css/event-log.css', __FILE__ ),
 			[],
-			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/admin/css/event-log.css' )
+			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/hub/admin/css/event-log.css' )
 		);
 	}
 

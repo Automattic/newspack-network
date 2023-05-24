@@ -5,11 +5,11 @@
  * @package Newspack
  */
 
-namespace Newspack_Hub\Admin;
+namespace Newspack_Network\Hub\Admin;
 
-use Newspack_Hub\Admin;
-use Newspack_Hub\Nodes;
-use Newspack_Hub\Stores\Woo_Item;
+use Newspack_Network\Hub\Admin;
+use Newspack_Network\Hub\Nodes;
+use Newspack_Network\Hub\Stores\Woo_Item;
 
 /**
  * Class to handle the Woo admin pages by customizing the Custom Post type screens
@@ -77,7 +77,7 @@ abstract class Woo {
 			'newspack-hub-woo-cpts',
 			plugins_url( 'css/woo-cpts.css', __FILE__ ),
 			[],
-			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/admin/css/woo-cpts.css' )
+			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/hub/admin/css/woo-cpts.css' )
 		);
 	}
 
