@@ -48,4 +48,25 @@ class Crypto {
 
 		return $verified;
 	}
+
+	/**
+	 * Sign a message
+	 *
+	 * @param string $message The message to be signed.
+	 * @param string $private_key The private key to sign the message with.
+	 * @return string|WP_Error The signed message or WP_Error if the message could not be signed.
+	 */
+	public static function sign_message( $message, $private_key ) {
+		
+		if ( ! $private_key || ! is_string( $private_key ) ) {
+			return false;
+		}
+
+		try {
+			$signed = sodium_crypto_sign( $message, sodium_base642bin( $private_key, SODIUM_BASE64_VARIANT_ORIGINAL ) );
+			return sodium_bin2base64( $signed, SODIUM_BASE64_VARIANT_ORIGINAL );
+		} catch ( \Exception $e ) {
+			return new \WP_Error( 'newspack-network-node-webhook-signing-error', $e->getMessage() );
+		}
+	}
 }
