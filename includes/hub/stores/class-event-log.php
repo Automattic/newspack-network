@@ -11,6 +11,7 @@ use Newspack_Network\Accepted_Actions;
 use Newspack_Network\Debugger;
 use Newspack_Network\Incoming_Events\Abstract_Incoming_Event;
 use Newspack_Network\Hub\Node;
+use Newspack_Network\Hub\Nodes;
 use Newspack_Network\Hub\Database\Event_Log as Database;
 
 /**
@@ -84,7 +85,10 @@ class Event_Log {
 	 * 
 	 *      @type string $search Search string to search for in the event log. It will search in the email, action_name and data fields.
 	 *      @type int $node_id The ID of the node to filter by.
+	 *      @type int $excluded_node_id The ID of the node to exclude from results.
+	 *      @type int $id_greater_than Retrieve events with ID greater than this value.
 	 *      @type string $action_name The name of the action to filter by.
+	 *      @type array $action_name_in List of action names to include in the results.
 	 * }
 	 * @return string The WHERE clause for the query.
 	 */
@@ -96,8 +100,26 @@ class Event_Log {
 			$where .= $wpdb->prepare( ' AND node_id = %d', $args['node_id'] );
 		}
 
+		if ( ! empty( $args['excluded_node_id'] ) ) {
+			$where .= $wpdb->prepare( ' AND node_id <> %d', $args['excluded_node_id'] );
+		}
+
+		if ( ! empty( $args['id_greater_than'] ) ) {
+			$where .= $wpdb->prepare( ' AND id > %d', $args['id_greater_than'] );
+		}
+
 		if ( ! empty( $args['action_name'] ) ) {
 			$where .= $wpdb->prepare( ' AND action_name = %s', $args['action_name'] );
+		}
+
+		if ( ! empty( $args['action_name_in'] ) && is_array( $args['action_name_in'] ) ) {
+			$escaped_actions = array_map(
+				function( $a ) {
+					return "'" . esc_sql( $a ) . "'";
+				},
+				$args['action_name_in']
+			);
+			$where          .= ' AND action_name IN (' . implode( ',', $escaped_actions ) . ')';
 		}
 
 		if ( ! empty( $args['search'] ) ) {
@@ -118,10 +140,18 @@ class Event_Log {
 	public static function persist( Abstract_Incoming_Event $event ) {
 		global $wpdb;
 		Debugger::log( 'Persisting Event' );
+
+		$node = Nodes::get_node_by_url( $site );
+
+		if ( ! $node ) {
+			Debugger::log( 'Node not found.' );
+			return false;
+		}
+
 		$insert = $wpdb->insert( //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			Database::get_table_name(),
 			[
-				'node_id'     => $event->get_node_id(),
+				'node_id'     => $node->get_id(),
 				'action_name' => $event->get_action_name(),
 				'email'       => $event->get_email(),
 				'data'        => wp_json_encode( $event->get_data() ),

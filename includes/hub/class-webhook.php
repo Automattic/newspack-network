@@ -97,7 +97,7 @@ class Webhook {
 
 		$incoming_event_class = 'Newspack_Network\\Incoming_Events\\' . $incoming_events[ $action ];
 
-		$incoming_event = new $incoming_event_class( $node, $verified_data, $timestamp );
+		$incoming_event = new $incoming_event_class( $site, $verified_data, $timestamp );
 
 		$incoming_event->process();
 

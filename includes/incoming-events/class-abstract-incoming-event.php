@@ -41,12 +41,12 @@ abstract class Abstract_Incoming_Event {
 	/**
 	 * Constructs a new Incoming Event
 	 *
-	 * @param Node  $node      The Node object for this event.
-	 * @param array $data      The data for this event.
-	 * @param int   $timestamp The timestamp for this event.
+	 * @param string $site      The origin site URL.
+	 * @param array  $data      The data for this event.
+	 * @param int    $timestamp The timestamp for this event.
 	 */
-	public function __construct( Node $node, $data, $timestamp ) {
-		$this->node      = $node;
+	public function __construct( $site, $data, $timestamp ) {
+		$this->site      = $site;
 		$this->data      = $data;
 		$this->timestamp = $timestamp;
 	}
@@ -70,12 +70,12 @@ abstract class Abstract_Incoming_Event {
 	abstract public function post_process();
 
 	/**
-	 * Returns the Node object for this event
+	 * Returns the site for this event
 	 *
-	 * @return Node
+	 * @return string
 	 */
-	public function get_node() {
-		return $this->node;
+	public function get_site() {
+		return $this->site;
 	}
 
 	/**
@@ -105,15 +105,6 @@ abstract class Abstract_Incoming_Event {
 		$class      = new \ReflectionClass( $this );
 		$class_name = $class->getShortName();
 		return array_search( $class_name, Accepted_Actions::ACTIONS );
-	}
-
-	/**
-	 * Returns the Node ID for this event
-	 *
-	 * @return string
-	 */
-	public function get_node_id() {
-		return $this->node->get_id();
 	}
 
 	/**

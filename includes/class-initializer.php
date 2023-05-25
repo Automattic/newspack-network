@@ -19,6 +19,7 @@ class Initializer {
 		Hub\Admin::init();
 		Hub\Nodes::init();
 		Hub\Webhook::init();
+		Hub\Pull_Endpoint::init();
 		Hub\Database\Subscriptions::init();
 		Hub\Database\Orders::init();
 
@@ -26,6 +27,7 @@ class Initializer {
 		Node\Settings::init();
 		Node\Webhook::init();
 		Node\Data_Listeners::init();
+		Node\Pulling::init();
 
 		register_activation_hook( NEWSPACK_HUB_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}

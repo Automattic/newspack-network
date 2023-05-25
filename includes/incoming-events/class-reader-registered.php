@@ -44,8 +44,17 @@ class Reader_Registered extends Abstract_Incoming_Event {
 			return $user_id;
 		}
 
-		add_user_meta( $user_id, 'newspack_hub_node_id', $this->get_node_id() );
-		add_user_meta( $user_id, 'newspack_hub_remote_id', $this->data->user_id ?? '' );
+		add_user_meta( $user_id, 'newspack_remote_site', $this->get_site() );
+		add_user_meta( $user_id, 'newspack_remote_id', $this->data->user_id ?? '' );
 		
+	}
+
+	/**
+	 * Process event in Node
+	 *
+	 * @return void
+	 */
+	public function process_in_node() {
+		$this->post_process();
 	}
 }
