@@ -98,7 +98,7 @@ abstract class Woo_Store {
 		$post_id  = wp_insert_post( $post_arr );
 
 		add_post_meta( $post_id, 'remote_id', $woo_item_id );
-		add_post_meta( $post_id, 'node_id', $woo_item->get_node_id() );
+		add_post_meta( $post_id, 'node_id', $woo_item->get_node()->get_id() );
 		add_post_meta( $post_id, 'user_email', $woo_item->get_email() );
 		add_post_meta( $post_id, 'user_name', $woo_item->get_user_name() );
 

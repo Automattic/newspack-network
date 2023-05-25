@@ -9,6 +9,7 @@ namespace Newspack_Network\Incoming_Events;
 
 use Newspack_Network\Accepted_Actions;
 use Newspack_Network\Debugger;
+use Newspack_Network\Hub\Nodes;
 use Newspack_Network\Hub\Node;
 use Newspack_Network\Hub\Stores\Event_Log;
 
@@ -115,5 +116,14 @@ abstract class Abstract_Incoming_Event {
 	public function get_email() {
 		return $this->data->email ?? '';
 	}
-	
+
+	/**
+	 * Get this event's Node object. Will only work on the Hub
+	 *
+	 * @return ?Node
+	 */
+	public function get_node() {
+		return Nodes::get_node_by_url( $this->site );
+	}
+
 }
