@@ -123,7 +123,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 			case 'summary':
 				return $item->get_summary();
 			case 'node':
-				return $item->get_node_url();
+				return $item->get_node_url() ? $item->get_node_url() : '-';
 			case 'action_name':
 				return $item->get_action_name();
 			case 'data':

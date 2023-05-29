@@ -199,13 +199,18 @@ class Nodes {
 	 * Outputs a dropdow for Node selection
 	 *
 	 * @param string $current_node The selected node id.
+	 * @param string $name The name of the select element.
+	 * @param string $empty_label The label for the empty option.
 	 * @return void
 	 */
-	public static function nodes_dropdown( $current_node = '' ) {
+	public static function nodes_dropdown( $current_node = '', $name = 'node_id', $empty_label = '' ) {
+		if ( empty( $empty_label ) ) {
+			$empty_label = __( 'All Nodes', 'newspack-network' );
+		}
 		$all_nodes = self::get_all_nodes();
 		?>
-		<select name="node_id" id="node_id">
-			<option value=""><?php _e( 'All Nodes', 'newspack-network-hub' ); ?></option>
+		<select name="<?php echo esc_attr( $name ); ?>" id="node_id">
+			<option value=""><?php echo esc_html( $empty_label ); ?></option>
 			<?php foreach ( $all_nodes as $node ) : ?>
 				<option value="<?php echo esc_attr( $node->get_id() ); ?>" <?php selected( $current_node, $node->get_id() ); ?>><?php echo esc_html( $node->get_url() ); ?></option>
 			<?php endforeach; ?>

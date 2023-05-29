@@ -141,11 +141,11 @@ class Event_Log {
 		global $wpdb;
 		Debugger::log( 'Persisting Event' );
 
-		$node = Nodes::get_node_by_url( $site );
+		$node    = Nodes::get_node_by_url( $event->get_site() );
+		$node_id = 0;
 
-		if ( ! $node ) {
-			Debugger::log( 'Node not found.' );
-			return false;
+		if ( $node_id ) {
+			$node->get_id();
 		}
 
 		$insert = $wpdb->insert( //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
