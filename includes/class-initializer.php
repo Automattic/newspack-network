@@ -28,6 +28,7 @@ class Initializer {
 		Node\Webhook::init();
 		Node\Data_Listeners::init();
 		Node\Pulling::init();
+		Node\Canonical_Url::init();
 
 		register_activation_hook( NEWSPACK_HUB_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
