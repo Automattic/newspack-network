@@ -31,15 +31,6 @@ class Pulling {
 	const LAST_PROCESSED_EVENT_OPTION_NAME = 'newspack_node_last_processed_action';
 
 	/**
-	 * Stores the action names that the Node will pull from the Hub
-	 *
-	 * This is a subset of the actions defined in the Accepted_Actions class
-	 *
-	 * @var array
-	 */
-	const ACCEPTED_ACTIONS = [ 'reader_registered', 'canonical_url_updated' ];
-
-	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
@@ -101,7 +92,7 @@ class Pulling {
 	public static function get_request_params() {
 		$params = [
 			'last_processed_id' => self::get_last_processed_id(),
-			'actions'           => self::ACCEPTED_ACTIONS,
+			'actions'           => Accepted_Actions::ACTIONS_THAT_NODES_PULL,
 			'site'              => get_bloginfo( 'url' ),
 		];
 		return self::sign_params( $params );

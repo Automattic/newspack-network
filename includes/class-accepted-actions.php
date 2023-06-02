@@ -17,6 +17,14 @@ class Accepted_Actions {
 	/**
 	 * Get the accepted actions
 	 *
+	 * Actions are both events fired from the Newspack Data Events API and the events that are stored in the hub's Event Log. They share the same name.
+	 *
+	 * In the Node, the webhooks will be fired once one of these events is triggered and they will be sent to the Hub.
+	 *
+	 * In the Hub, the plugin will also listen to these events, but they will be stored directly in the Event Log table.
+	 *
+	 * Then, the Nodes will pull the events from the hub and process them locally.
+	 *
 	 * @var array Array where the keys are the supported events and the values are the Incoming Events class names
 	 */
 	const ACTIONS = [
@@ -24,5 +32,17 @@ class Accepted_Actions {
 		'newspack_node_order_changed'        => 'Order_Changed',
 		'newspack_node_subscription_changed' => 'Subscription_Changed',
 		'canonical_url_updated'              => 'Canonical_Url_Updated',
+	];
+
+	/**
+	 * The list of actions that Nodes will pull from the Hub
+	 *
+	 * A subset of the actions above. Nodes are not interested in all events. Some of them are only used to populate the centralized dashboards in the Hub.
+	 *
+	 * @var array
+	 */
+	const ACTIONS_THAT_NODES_PULL = [
+		'reader_registered',
+		'canonical_url_updated',
 	];
 }

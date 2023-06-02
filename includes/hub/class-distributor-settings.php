@@ -7,6 +7,7 @@
 
 namespace Newspack_Network\Hub;
 
+use Newspack\Data_Events;
 use Newspack_Network\Accepted_Actions;
 
 /**
@@ -38,7 +39,19 @@ class Distributor_Settings {
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_menu' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
-		add_action( 'update_option_' . self::CANONICAL_NODE_OPTION_NAME, [ __CLASS__, 'update_option' ], 10, 3 );
+		add_action( 'init', [ __CLASS__, 'register_listeners' ] );
+	}
+
+	/**
+	 * Register the listeners to the Newspack Data Events API
+	 *
+	 * @return void
+	 */
+	public static function register_listeners() {
+		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
+			return;
+		}
+		Data_Events::register_listener( 'update_option_' . self::CANONICAL_NODE_OPTION_NAME, 'canonical_url_updated', [ __CLASS__, 'dispatch_canonical_url_updated_event' ] );
 	}
 
 	/**
@@ -166,22 +179,19 @@ class Distributor_Settings {
 	 * @param mixed  $old_value The old value.
 	 * @param mixed  $value The new value.
 	 * @param string $option The option name.
-	 * @return void
+	 * @return array
 	 */
-	public static function update_option( $old_value, $value, $option ) {
+	public static function dispatch_canonical_url_updated_event( $old_value, $value, $option ) {
 		$node     = new Node( $value );
 		$node_url = $node->get_url();
 		if ( ! $node_url ) {
 			$node_url = '';
 		}
 
-		$data = [
+		return [
 			'url' => $node_url,
 		];
 
-		$incoming_event_class = 'Newspack_Network\\Incoming_Events\\' . Accepted_Actions::ACTIONS['canonical_url_updated'];
-		$incoming_event       = new $incoming_event_class( get_bloginfo( 'url' ), $data, time() );
-		$incoming_event->process();
 	}
 
 }

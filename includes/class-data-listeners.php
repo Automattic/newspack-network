@@ -1,11 +1,11 @@
 <?php
 /**
- * Newspack Node Data Listeners.
+ * Newspack Network Data Listeners.
  *
  * @package Newspack
  */
 
-namespace Newspack_Network\Node;
+namespace Newspack_Network;
 
 use Newspack\Data_Events;
 

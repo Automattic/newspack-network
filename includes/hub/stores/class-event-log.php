@@ -144,14 +144,14 @@ class Event_Log {
 		$node    = Nodes::get_node_by_url( $event->get_site() );
 		$node_id = 0;
 
-		if ( $node_id ) {
-			$node->get_id();
+		if ( $node instanceof Node ) {
+			$node_id = $node->get_id();
 		}
 
 		$insert = $wpdb->insert( //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			Database::get_table_name(),
 			[
-				'node_id'     => $node->get_id(),
+				'node_id'     => $node_id,
 				'action_name' => $event->get_action_name(),
 				'email'       => $event->get_email(),
 				'data'        => wp_json_encode( $event->get_data() ),
