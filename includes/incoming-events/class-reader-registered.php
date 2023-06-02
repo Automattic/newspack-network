@@ -7,6 +7,7 @@
 
 namespace Newspack_Network\Incoming_Events;
 
+use Newspack_Network\Debugger;
 use Newspack_Network\Hub\Node;
 use Newspack_Network\Hub\Stores\Event_Log;
 
@@ -22,12 +23,14 @@ class Reader_Registered extends Abstract_Incoming_Event {
 	 */
 	public function post_process() {
 		$email = $this->get_email();
+		Debugger::log( 'Processing reader_registered with email: ' . $email );
 		if ( ! $email ) {
 			return;
 		}
 		$existing_user = get_user_by( 'email', $email );
 
 		if ( $existing_user ) {
+			Debugger::log( 'User already exists' );
 			return;
 		}
 
@@ -41,8 +44,11 @@ class Reader_Registered extends Abstract_Incoming_Event {
 		);
 
 		if ( is_wp_error( $user_id ) ) {
+			Debugger::log( 'Error creating user: ' . $user_id->get_error_message() );
 			return $user_id;
 		}
+
+		Debugger::log( 'User created with ID: ' . $user_id );
 
 		add_user_meta( $user_id, 'newspack_remote_site', $this->get_site() );
 		add_user_meta( $user_id, 'newspack_remote_id', $this->data->user_id ?? '' );

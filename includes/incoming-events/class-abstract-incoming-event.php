@@ -42,13 +42,13 @@ abstract class Abstract_Incoming_Event {
 	/**
 	 * Constructs a new Incoming Event
 	 *
-	 * @param string $site      The origin site URL.
-	 * @param array  $data      The data for this event.
-	 * @param int    $timestamp The timestamp for this event.
+	 * @param string       $site      The origin site URL.
+	 * @param array|object $data      The data for this event.
+	 * @param int          $timestamp The timestamp for this event.
 	 */
 	public function __construct( $site, $data, $timestamp ) {
 		$this->site      = $site;
-		$this->data      = $data;
+		$this->data      = (object) $data;
 		$this->timestamp = $timestamp;
 	}
 

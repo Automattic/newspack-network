@@ -94,6 +94,8 @@ class Pull_Endpoint {
 			],
 			2
 		);
+
+		Debugger::log( count( $events ) . ' events found' );
 		
 		$response_body = array_map(
 			function( $event ) {
