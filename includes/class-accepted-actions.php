@@ -23,5 +23,6 @@ class Accepted_Actions {
 		'reader_registered'                  => 'Reader_Registered',
 		'newspack_node_order_changed'        => 'Order_Changed',
 		'newspack_node_subscription_changed' => 'Subscription_Changed',
+		'canonical_url_updated'              => 'Canonical_Url_Updated',
 	];
 }

@@ -37,7 +37,7 @@ class Pulling {
 	 *
 	 * @var array
 	 */
-	const ACCEPTED_ACTIONS = [ 'reader_registered' ];
+	const ACCEPTED_ACTIONS = [ 'reader_registered', 'canonical_url_updated' ];
 
 	/**
 	 * Initialize hooks.
@@ -155,21 +155,24 @@ class Pulling {
 		$response = self::make_request();
 		Debugger::log( 'Pulled data response:' );
 		Debugger::log( $response );
+		if ( is_wp_error( $response ) ) {
+			Debugger::log( 'Error pulling data' );
+			Debugger::log( $response->get_error_message() );
+			return;
+		}
 		$response = json_decode( $response, true );
 		if ( ! is_array( $response ) ) {
 			return;
 		}
 
-
 		foreach ( $response as $event ) {
-
 			$action    = $event['action'] ?? false;
 			$site      = $event['site'] ?? false;
 			$data      = $event['data'] ?? false;
 			$timestamp = $event['timestamp'] ?? false;
 			$id        = $event['id'] ?? false;
 
-			if ( ! $action || ! $site || ! $id || ! $data || ! $timestamp ) {
+			if ( ! $action || ! $id || ! $data || ! $timestamp ) {
 				continue;
 			}
 
