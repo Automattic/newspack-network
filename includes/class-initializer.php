@@ -16,20 +16,25 @@ class Initializer {
 	 * Runs the initialization.
 	 */
 	public static function init() {
-		Hub\Admin::init();
-		Hub\Nodes::init();
-		Hub\Webhook::init();
-		Hub\Pull_Endpoint::init();
-		Hub\Event_Listeners::init();
-		Hub\Database\Subscriptions::init();
-		Hub\Database\Orders::init();
+		Admin::init();
 
-		Node\Admin::init();
-		Node\Settings::init();
-		if ( Node\Settings::get_hub_url() ) {
-			Node\Webhook::init();
-			Node\Pulling::init();
-			Node\Canonical_Url::init();
+		if ( Site_Role::is_hub() ) {
+			Hub\Admin::init();
+			Hub\Nodes::init();
+			Hub\Webhook::init();
+			Hub\Pull_Endpoint::init();
+			Hub\Event_Listeners::init();
+			Hub\Database\Subscriptions::init();
+			Hub\Database\Orders::init();
+		}
+
+		if ( Site_Role::is_node() ) {
+			Node\Settings::init();
+			if ( Node\Settings::get_hub_url() ) {
+				Node\Webhook::init();
+				Node\Pulling::init();
+				Node\Canonical_Url::init();
+			}
 		}
 		
 		Data_Listeners::init();

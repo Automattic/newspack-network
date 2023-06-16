@@ -8,6 +8,7 @@
 namespace Newspack_Network\Hub\Database;
 
 use Newspack_Network\Hub\Admin;
+use Newspack_Network\Admin as Network_Admin;
 use Newspack_Network\Debugger;
 
 /**
@@ -76,7 +77,7 @@ class Orders {
 			'hierarchical'     => false,
 			'public'           => false,
 			'show_ui'          => true,
-			'show_in_menu'     => Admin::PAGE_SLUG,
+			'show_in_menu'     => Network_Admin::PAGE_SLUG,
 			'can_export'       => false,
 			'capability_type'  => 'post',
 			'show_in_rest'     => false,

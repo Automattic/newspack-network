@@ -8,6 +8,7 @@
 namespace Newspack_Network\Hub;
 
 use Newspack_Network\Crypto;
+use Newspack_Network\Admin as Network_Admin;
 
 /**
  * Class to handle Nodes post type
@@ -137,7 +138,7 @@ class Nodes {
 			'hierarchical'         => false,
 			'public'               => false,
 			'show_ui'              => true,
-			'show_in_menu'         => Admin::PAGE_SLUG,
+			'show_in_menu'         => Network_Admin::PAGE_SLUG,
 			'can_export'           => false,
 			'capability_type'      => 'page',
 			'show_in_rest'         => false,

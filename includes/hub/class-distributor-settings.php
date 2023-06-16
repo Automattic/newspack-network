@@ -9,6 +9,7 @@ namespace Newspack_Network\Hub;
 
 use Newspack\Data_Events;
 use Newspack_Network\Accepted_Actions;
+use Newspack_Network\Admin as Network_Admin;
 
 /**
  * Class to handle Node settings page
@@ -69,7 +70,7 @@ class Distributor_Settings {
 	 * @return void
 	 */
 	public static function add_menu() {
-		Admin::add_submenu_page( __( 'Distributor Settings', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
+		Network_Admin::add_submenu_page( __( 'Distributor Settings', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
 	}
 
 	/**

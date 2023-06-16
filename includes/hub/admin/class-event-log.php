@@ -7,7 +7,7 @@
 
 namespace Newspack_Network\Hub\Admin;
 
-use Newspack_Network\Hub\Admin;
+use Newspack_Network\Admin as Network_Admin;
 
 /**
  * Class to handle the Event log admin page
@@ -30,7 +30,7 @@ class Event_Log {
 	 * @return void
 	 */
 	public static function add_admin_menu() {
-		Admin::add_submenu_page( __( 'Event Log', 'newspack-network-hub' ), self::PAGE_SLUG, [ __CLASS__, 'render_page' ] );
+		Network_Admin::add_submenu_page( __( 'Event Log', 'newspack-network-hub' ), self::PAGE_SLUG, [ __CLASS__, 'render_page' ] );
 	}
 
 	/**
@@ -39,7 +39,7 @@ class Event_Log {
 	 * @return void
 	 */
 	public static function admin_enqueue_scripts() {
-		$page_slug = Admin::PAGE_SLUG . '_page_' . self::PAGE_SLUG;
+		$page_slug = Network_Admin::PAGE_SLUG . '_page_' . self::PAGE_SLUG;
 		if ( get_current_screen()->id !== $page_slug ) {
 			return;
 		}
