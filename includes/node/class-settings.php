@@ -7,6 +7,8 @@
 
 namespace Newspack_Network\Node;
 
+use Newspack_Network\Admin;
+
 /**
  * Class to handle Node settings page
  */
