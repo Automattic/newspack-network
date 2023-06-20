@@ -26,16 +26,16 @@ class Subscriptions extends Woo {
 		unset( $columns['cb'] );
 		unset( $columns['title'] );
 		unset( $columns['date'] );
-		$columns['status']            = __( 'Status', 'newspack-network-hub' );
-		$columns['subscription']      = __( 'Subscription', 'newspack-network-hub' );
-		$columns['items']             = __( 'Items', 'newspack-network-hub' );
-		$columns['total']             = __( 'Total', 'newspack-network-hub' );
-		$columns['start_date']        = __( 'Start Date', 'newspack-network-hub' );
-		$columns['trial_end_date']    = __( 'Trial End', 'newspack-network-hub' );
-		$columns['next_payment_date'] = __( 'Next Payment', 'newspack-network-hub' );
-		$columns['last_payment_date'] = __( 'Last Order Date', 'newspack-network-hub' );
-		$columns['end_date']          = __( 'End Date', 'newspack-network-hub' );
-		$columns['orders']            = __( 'Orders', 'newspack-network-hub' );
+		$columns['status']            = __( 'Status', 'newspack-network' );
+		$columns['subscription']      = __( 'Subscription', 'newspack-network' );
+		$columns['items']             = __( 'Items', 'newspack-network' );
+		$columns['total']             = __( 'Total', 'newspack-network' );
+		$columns['start_date']        = __( 'Start Date', 'newspack-network' );
+		$columns['trial_end_date']    = __( 'Trial End', 'newspack-network' );
+		$columns['next_payment_date'] = __( 'Next Payment', 'newspack-network' );
+		$columns['last_payment_date'] = __( 'Last Order Date', 'newspack-network' );
+		$columns['end_date']          = __( 'End Date', 'newspack-network' );
+		$columns['orders']            = __( 'Orders', 'newspack-network' );
 		return $columns;
 
 	}

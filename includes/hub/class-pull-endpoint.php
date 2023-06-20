@@ -33,7 +33,7 @@ class Pull_Endpoint {
 	 */
 	public static function register_routes() {
 		register_rest_route(
-			'newspack-hub/v1',
+			'newspack-network/v1',
 			'/pull',
 			[
 				[

@@ -118,7 +118,7 @@ class Pulling {
 	 * @return array|\WP_Error
 	 */
 	public static function make_request() {
-		$url      = trailingslashit( Settings::get_hub_url() ) . 'wp-json/newspack-hub/v1/pull';
+		$url      = trailingslashit( Settings::get_hub_url() ) . 'wp-json/newspack-network/v1/pull';
 		$params   = self::get_request_params();
 		$response = wp_remote_post(
 			$url,

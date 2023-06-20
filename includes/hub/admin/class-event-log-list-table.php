@@ -29,12 +29,12 @@ class Event_Log_List_Table extends \WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = [
-			'id'          => __( 'ID', 'newspack-network-hub' ),
-			'date'        => __( 'Date', 'newspack-network-hub' ),
-			'summary'     => __( 'Summary', 'newspack-network-hub' ),
-			'node'        => __( 'Node', 'newspack-network-hub' ),
-			'action_name' => __( 'Action name', 'newspack-network-hub' ),
-			'data'        => __( 'Data', 'newspack-network-hub' ),
+			'id'          => __( 'ID', 'newspack-network' ),
+			'date'        => __( 'Date', 'newspack-network' ),
+			'summary'     => __( 'Summary', 'newspack-network' ),
+			'node'        => __( 'Node', 'newspack-network' ),
+			'action_name' => __( 'Action name', 'newspack-network' ),
+			'data'        => __( 'Data', 'newspack-network' ),
 		];
 		return $columns;
 	}
@@ -94,7 +94,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 		?>
 
 		<select name="action_name" id="action_name">
-			<option value=""><?php _e( 'All Actions', 'newspack-network-hub' ); ?></option>
+			<option value=""><?php _e( 'All Actions', 'newspack-network' ); ?></option>
 			<?php foreach ( $all_actions as $action ) : ?>
 				<option value="<?php echo esc_attr( $action ); ?>" <?php selected( $current_action, $action ); ?>><?php echo esc_html( $action ); ?></option>
 			<?php endforeach; ?>
@@ -102,7 +102,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 
 		<?php Nodes::nodes_dropdown( $current_node ); ?>
 
-		<input type="submit" name="filter_action" class="button" value="<?php esc_attr_e( 'Filter', 'newspack-network-hub' ); ?>">
+		<input type="submit" name="filter_action" class="button" value="<?php esc_attr_e( 'Filter', 'newspack-network' ); ?>">
 
 		<?php
 	}

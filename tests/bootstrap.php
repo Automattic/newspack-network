@@ -23,7 +23,7 @@ require_once "{$newspack_network_hub_test_dir}/includes/functions.php";
  * Manually load the plugin being tested.
  */
 function newspack_network_hub_manually_load_plugin() {
-	require dirname( dirname( __FILE__ ) ) . '/newspack-hub.php';
+	require dirname( dirname( __FILE__ ) ) . '/newspack-network.php';
 }
 
 tests_add_filter( 'muplugins_loaded', 'newspack_network_hub_manually_load_plugin' );

@@ -1,7 +1,7 @@
 {
-	"name": "newspack-hub",
+	"name": "newspack-network",
 	"version": "0.1.0",
-	"description": "The Newspack Hub plugin.",
+	"description": "The Newspack Network plugin.",
 	"license": "GPL-3.0",
 	"browserslist": [
 		"extends @wordpress/browserslist-config"
@@ -42,10 +42,10 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Automattic/newspack-hub.git"
+		"url": "git+https://github.com/Automattic/newspack-network.git"
 	},
 	"bugs": {
-		"url": "https://github.com/Automattic/newspack-hub/issues"
+		"url": "https://github.com/Automattic/newspack-network/issues"
 	},
-	"homepage": "https://github.com/Automattic/newspack-hub#readme"
+	"homepage": "https://github.com/Automattic/newspack-network#readme"
 }

@@ -14,7 +14,7 @@ use Newspack_Network\Admin as Network_Admin;
  */
 class Event_Log {
 
-	const PAGE_SLUG = 'newspack-hub-event-log';
+	const PAGE_SLUG = 'newspack-network-event-log';
 
 	/**
 	 * Runs the initialization.
@@ -30,7 +30,7 @@ class Event_Log {
 	 * @return void
 	 */
 	public static function add_admin_menu() {
-		Network_Admin::add_submenu_page( __( 'Event Log', 'newspack-network-hub' ), self::PAGE_SLUG, [ __CLASS__, 'render_page' ] );
+		Network_Admin::add_submenu_page( __( 'Event Log', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render_page' ] );
 	}
 
 	/**
@@ -45,10 +45,10 @@ class Event_Log {
 		}
 		
 		wp_enqueue_style(
-			'newspack-hub-event-log',
+			'newspack-network-event-log',
 			plugins_url( 'css/event-log.css', __FILE__ ),
 			[],
-			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/hub/admin/css/event-log.css' )
+			filemtime( NEWSPACK_NETWORK_PLUGIN_DIR . '/includes/hub/admin/css/event-log.css' )
 		);
 	}
 
@@ -61,7 +61,7 @@ class Event_Log {
 
 		$table = new Event_Log_List_Table();
 
-		echo '<div class="wrap"><h2>', esc_html( __( 'Event Log', 'newspack-network-hub' ) ), '</h2>';
+		echo '<div class="wrap"><h2>', esc_html( __( 'Event Log', 'newspack-network' ) ), '</h2>';
 		echo '<form method="get">';
 		echo '<input type="hidden" name="page" value="' . esc_attr( self::PAGE_SLUG ) . '" />';
 		

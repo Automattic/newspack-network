@@ -27,7 +27,7 @@ class Webhook {
 	 *
 	 * @var string
 	 */
-	const ENDPOINT_SUFFIX = 'wp-json/newspack-hub/v1/webhook';
+	const ENDPOINT_SUFFIX = 'wp-json/newspack-network/v1/webhook';
 
 	/**
 	 * Runs the initialization.

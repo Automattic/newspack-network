@@ -74,10 +74,10 @@ abstract class Woo {
 		}
 
 		wp_enqueue_style(
-			'newspack-hub-woo-cpts',
+			'newspack-network-woo-cpts',
 			plugins_url( 'css/woo-cpts.css', __FILE__ ),
 			[],
-			filemtime( NEWSPACK_HUB_PLUGIN_DIR . '/includes/hub/admin/css/woo-cpts.css' )
+			filemtime( NEWSPACK_NETWORK_PLUGIN_DIR . '/includes/hub/admin/css/woo-cpts.css' )
 		);
 	}
 

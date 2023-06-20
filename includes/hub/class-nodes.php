@@ -102,37 +102,37 @@ class Nodes {
 	public static function register_post_type() {
 
 		$labels = array(
-			'name'                  => _x( 'Nodes', 'Post Type General Name', 'newspack-network-hub' ),
-			'singular_name'         => _x( 'Node', 'Post Type Singular Name', 'newspack-network-hub' ),
-			'menu_name'             => __( 'Nodes', 'newspack-network-hub' ),
-			'name_admin_bar'        => __( 'Nodes', 'newspack-network-hub' ),
-			'archives'              => __( 'Nodes', 'newspack-network-hub' ),
-			'attributes'            => __( 'Nodes', 'newspack-network-hub' ),
-			'parent_item_colon'     => __( 'Parent Node', 'newspack-network-hub' ),
-			'all_items'             => __( 'Nodes', 'newspack-network-hub' ),
-			'add_new_item'          => __( 'Add new Node', 'newspack-network-hub' ),
-			'add_new'               => __( 'Add New', 'newspack-network-hub' ),
-			'new_item'              => __( 'New Node', 'newspack-network-hub' ),
-			'edit_item'             => __( 'Edit Node', 'newspack-network-hub' ),
-			'update_item'           => __( 'Update Node', 'newspack-network-hub' ),
-			'view_item'             => __( 'View Node', 'newspack-network-hub' ),
-			'view_items'            => __( 'View Nodes', 'newspack-network-hub' ),
-			'search_items'          => __( 'Search Node', 'newspack-network-hub' ),
-			'not_found'             => __( 'Not found', 'newspack-network-hub' ),
-			'not_found_in_trash'    => __( 'Not found in Trash', 'newspack-network-hub' ),
-			'featured_image'        => __( 'Featured Image', 'newspack-network-hub' ),
-			'set_featured_image'    => __( 'Set featured image', 'newspack-network-hub' ),
-			'remove_featured_image' => __( 'Remove featured image', 'newspack-network-hub' ),
-			'use_featured_image'    => __( 'Use as featured image', 'newspack-network-hub' ),
-			'insert_into_item'      => __( 'Insert into item', 'newspack-network-hub' ),
-			'uploaded_to_this_item' => __( 'Uploaded to this item', 'newspack-network-hub' ),
-			'items_list'            => __( 'Items list', 'newspack-network-hub' ),
-			'items_list_navigation' => __( 'Items list navigation', 'newspack-network-hub' ),
-			'filter_items_list'     => __( 'Filter items list', 'newspack-network-hub' ),
+			'name'                  => _x( 'Nodes', 'Post Type General Name', 'newspack-network' ),
+			'singular_name'         => _x( 'Node', 'Post Type Singular Name', 'newspack-network' ),
+			'menu_name'             => __( 'Nodes', 'newspack-network' ),
+			'name_admin_bar'        => __( 'Nodes', 'newspack-network' ),
+			'archives'              => __( 'Nodes', 'newspack-network' ),
+			'attributes'            => __( 'Nodes', 'newspack-network' ),
+			'parent_item_colon'     => __( 'Parent Node', 'newspack-network' ),
+			'all_items'             => __( 'Nodes', 'newspack-network' ),
+			'add_new_item'          => __( 'Add new Node', 'newspack-network' ),
+			'add_new'               => __( 'Add New', 'newspack-network' ),
+			'new_item'              => __( 'New Node', 'newspack-network' ),
+			'edit_item'             => __( 'Edit Node', 'newspack-network' ),
+			'update_item'           => __( 'Update Node', 'newspack-network' ),
+			'view_item'             => __( 'View Node', 'newspack-network' ),
+			'view_items'            => __( 'View Nodes', 'newspack-network' ),
+			'search_items'          => __( 'Search Node', 'newspack-network' ),
+			'not_found'             => __( 'Not found', 'newspack-network' ),
+			'not_found_in_trash'    => __( 'Not found in Trash', 'newspack-network' ),
+			'featured_image'        => __( 'Featured Image', 'newspack-network' ),
+			'set_featured_image'    => __( 'Set featured image', 'newspack-network' ),
+			'remove_featured_image' => __( 'Remove featured image', 'newspack-network' ),
+			'use_featured_image'    => __( 'Use as featured image', 'newspack-network' ),
+			'insert_into_item'      => __( 'Insert into item', 'newspack-network' ),
+			'uploaded_to_this_item' => __( 'Uploaded to this item', 'newspack-network' ),
+			'items_list'            => __( 'Items list', 'newspack-network' ),
+			'items_list_navigation' => __( 'Items list navigation', 'newspack-network' ),
+			'filter_items_list'     => __( 'Filter items list', 'newspack-network' ),
 		);
 		$args   = array(
-			'label'                => __( 'Nodes', 'newspack-network-hub' ),
-			'description'          => __( 'Newspack Nodes', 'newspack-network-hub' ),
+			'label'                => __( 'Nodes', 'newspack-network' ),
+			'description'          => __( 'Newspack Nodes', 'newspack-network' ),
 			'labels'               => $labels,
 			'supports'             => array( 'title' ),
 			'hierarchical'         => false,
@@ -156,7 +156,7 @@ class Nodes {
 	 */
 	public static function add_metabox( $post ) {
 		add_meta_box(
-			'newspack-hub-metabox',
+			'newspack-network-metabox',
 			__( 'Node details' ),
 			[ __CLASS__, 'metabox_content' ],
 			self::POST_TYPE_SLUG,
@@ -174,7 +174,7 @@ class Nodes {
 	public static function posts_columns( $columns ) {
 		unset( $columns['date'] );
 		unset( $columns['stats'] );
-		$columns['links'] = __( 'Useful links', 'newspack-network-hub' );
+		$columns['links'] = __( 'Useful links', 'newspack-network' );
 		return $columns;
 
 	}
