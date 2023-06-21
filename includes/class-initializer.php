@@ -39,7 +39,7 @@ class Initializer {
 		
 		Data_Listeners::init();
 
-		register_activation_hook( NEWSPACK_HUB_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
+		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
 
 	/**
@@ -48,7 +48,7 @@ class Initializer {
 	 * @return void
 	 */
 	public static function activation_hook() {
-		add_role( 'network_reader', __( 'Network Reader', 'newspack-hub' ) ); // phpcs:ignore
+		add_role( 'network_reader', __( 'Network Reader', 'newspack-network' ) ); // phpcs:ignore
 	}
 
 }

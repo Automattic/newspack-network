@@ -111,6 +111,21 @@ abstract class Woo_Item {
 	}
 
 	/**
+	 * Returns the Item's Node Url
+	 *
+	 * If the Node is not found, returns the local URL.
+	 *
+	 * @return ?string
+	 */
+	public function get_node_url() {
+		$node = $this->get_node();
+		if ( empty( $node->get_id() ) ) {
+			return get_bloginfo( 'url' );
+		}
+		return $node->get_url();
+	}
+
+	/**
 	 * Returns the Item's user_email
 	 *
 	 * @return ?string
@@ -171,7 +186,7 @@ abstract class Woo_Item {
 	 */
 	public function get_edit_link() {
 		$remote_id = $this->get_remote_id();
-		$node_url  = $this->get_node()->get_url();
+		$node_url  = $this->get_node_url();
 		if ( ! $remote_id || ! $node_url ) {
 			return;
 		}

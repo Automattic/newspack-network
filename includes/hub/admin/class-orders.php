@@ -26,11 +26,11 @@ class Orders extends Woo {
 		unset( $columns['cb'] );
 		unset( $columns['title'] );
 		unset( $columns['date'] );
-		$columns['order']                     = __( 'Order', 'newspack-network-hub' );
-		$columns['date']                      = __( 'Date', 'newspack-network-hub' );
-		$columns['status']                    = __( 'Status', 'newspack-network-hub' );
-		$columns['subscription_relationship'] = __( 'Subscription Relationship', 'newspack-network-hub' );
-		$columns['total']                     = __( 'Total', 'newspack-network-hub' );
+		$columns['order']                     = __( 'Order', 'newspack-network' );
+		$columns['date']                      = __( 'Date', 'newspack-network' );
+		$columns['status']                    = __( 'Status', 'newspack-network' );
+		$columns['subscription_relationship'] = __( 'Subscription Relationship', 'newspack-network' );
+		$columns['total']                     = __( 'Total', 'newspack-network' );
 		return $columns;
 
 	}
@@ -54,8 +54,8 @@ class Orders extends Woo {
 					$item->get_edit_link(),
 					$item->get_title(),
 					$item->get_user_name(),
-					$item->get_node()->get_url(),
-					$item->get_node()->get_url()
+					$item->get_node_url(),
+					$item->get_node_url()
 				);
 				echo $output; // phpcs:ignore
 				break;
@@ -78,19 +78,19 @@ class Orders extends Woo {
 			case 'subscription_relationship':
 				if ( 'parent' === $item->get_subscription_relationship() ) {
 					$class = 'subscription_parent_order tips';
-					$label = __( 'Parent Order', 'newspack-network-hub' );
+					$label = __( 'Parent Order', 'newspack-network' );
 				} elseif ( 'renewal' === $item->get_subscription_relationship() ) {
 					$class = 'subscription_renewal_order tips';
-					$label = __( 'Renewal Order', 'newspack-network-hub' );
+					$label = __( 'Renewal Order', 'newspack-network' );
 				} elseif ( 'renewal' === $item->get_subscription_relationship() ) {
 					$class = 'subscription_renewal_order tips';
-					$label = __( 'Renewal Order', 'newspack-network-hub' );
+					$label = __( 'Renewal Order', 'newspack-network' );
 				} elseif ( 'resubscribe' === $item->get_subscription_relationship() ) {
 					$class = 'subscription_resubscribe_order tips';
-					$label = __( 'Resubscribe Order', 'newspack-network-hub' );
+					$label = __( 'Resubscribe Order', 'newspack-network' );
 				} else {
 					$class = 'normal_order';
-					$label = __( 'Normal Order', 'newspack-network-hub' );
+					$label = __( 'Normal Order', 'newspack-network' );
 				}
 				echo '<span class="' . esc_attr( $class ) . '"></span>';
 				echo esc_html( $label );

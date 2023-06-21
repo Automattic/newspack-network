@@ -1,2 +1,2 @@
-# newspack-hub
-The Newspack Hub
+# newspack-network
+The Newspack Network
