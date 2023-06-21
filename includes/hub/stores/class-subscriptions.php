@@ -59,7 +59,7 @@ class Subscriptions extends Woo_Store {
 		Debugger::log( 'Persisting subscription ' . $subscription_id );
 
 		$local_id          = self::get_local_id( $subscription );
-		$subscription_data = self::fetch_remote_data( $subscription );
+		$subscription_data = self::fetch_data_from_api( $subscription );
 
 		Debugger::log( 'Local ID: ' . $local_id );
 
@@ -90,6 +90,7 @@ class Subscriptions extends Woo_Store {
 
 		delete_post_meta( $local_id, 'line_items' );
 		foreach ( $subscription_data->line_items as $line_item ) {
+			$line_item = (object) $line_item;
 			add_post_meta(
 				$local_id, 
 				'line_items', 

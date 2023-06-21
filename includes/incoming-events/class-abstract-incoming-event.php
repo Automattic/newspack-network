@@ -118,12 +118,33 @@ abstract class Abstract_Incoming_Event {
 	}
 
 	/**
+	 * Returns whether this event was triggered in the local site
+	 *
+	 * Happens when the Hub listen to events triggered on itself
+	 *
+	 * @return boolean
+	 */
+	public function is_local() {
+		return get_bloginfo( 'url' ) === $this->site;
+	}
+
+	/**
 	 * Get this event's Node object. Will only work on the Hub
 	 *
 	 * @return ?Node
 	 */
 	public function get_node() {
 		return Nodes::get_node_by_url( $this->site );
+	}
+
+	/**
+	 * Get this event's Node ID. Will return 0 if the Node is not found
+	 *
+	 * @return int
+	 */
+	public function get_node_id() {
+		$node = $this->get_node();
+		return $node ? $node->get_id() : 0;
 	}
 
 }

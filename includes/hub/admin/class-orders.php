@@ -54,8 +54,8 @@ class Orders extends Woo {
 					$item->get_edit_link(),
 					$item->get_title(),
 					$item->get_user_name(),
-					$item->get_node()->get_url(),
-					$item->get_node()->get_url()
+					$item->get_node_url(),
+					$item->get_node_url()
 				);
 				echo $output; // phpcs:ignore
 				break;

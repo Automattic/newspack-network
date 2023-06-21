@@ -212,6 +212,7 @@ class Nodes {
 		?>
 		<select name="<?php echo esc_attr( $name ); ?>" id="node_id">
 			<option value=""><?php echo esc_html( $empty_label ); ?></option>
+			<option value="0" <?php selected( $current_node, '0' ); ?>><?php echo esc_html( __( 'Hub (this site)', 'newspack-network' ) ); ?></option>
 			<?php foreach ( $all_nodes as $node ) : ?>
 				<option value="<?php echo esc_attr( $node->get_id() ); ?>" <?php selected( $current_node, $node->get_id() ); ?>><?php echo esc_html( $node->get_url() ); ?></option>
 			<?php endforeach; ?>

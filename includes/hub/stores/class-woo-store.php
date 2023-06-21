@@ -8,6 +8,8 @@
 namespace Newspack_Network\Hub\Stores;
 
 use Newspack_Network\Incoming_Events\Woo_Item_Changed;
+use WP_REST_Request;
+use WP_REST_Server;
 
 /**
  * Class to handle Woocommerce Generic Woo items store for orders and subscriptions
@@ -73,7 +75,7 @@ abstract class Woo_Store {
 		if ( ! empty( $stored ) ) {
 			return $stored[0];
 		}
-		return self::create_subscription( $woo_item );
+		return self::create_item( $woo_item );
 	}
 
 	/**
@@ -82,7 +84,7 @@ abstract class Woo_Store {
 	 * @param Woo_Item_Changed $woo_item The Woo_Item_Changed event.
 	 * @return int The local post ID.
 	 */
-	protected static function create_subscription( Woo_Item_Changed $woo_item ) {
+	protected static function create_item( Woo_Item_Changed $woo_item ) {
 		$woo_item_id = $woo_item->get_id();
 		$user_id     = 0;
 		$user        = get_user_by( 'email', $woo_item->get_email() );
@@ -98,7 +100,7 @@ abstract class Woo_Store {
 		$post_id  = wp_insert_post( $post_arr );
 
 		add_post_meta( $post_id, 'remote_id', $woo_item_id );
-		add_post_meta( $post_id, 'node_id', $woo_item->get_node()->get_id() );
+		add_post_meta( $post_id, 'node_id', $woo_item->get_node_id() );
 		add_post_meta( $post_id, 'user_email', $woo_item->get_email() );
 		add_post_meta( $post_id, 'user_name', $woo_item->get_user_name() );
 
@@ -109,10 +111,16 @@ abstract class Woo_Store {
 	/**
 	 * Fetches subscription data from the API.
 	 *
+	 * Note that the format of the output can be slightly different if fetch_data_from_local_api is called. Objects inside arrays (like line_items) can be arrays, and meta data can be WC_Meta_Data objects.
+	 *
 	 * @param Woo_Item_Changed $woo_item The Woo_Item_Changed event.
 	 * @return object The subscription data.
 	 */
-	protected static function fetch_remote_data( Woo_Item_Changed $woo_item ) {
+	protected static function fetch_data_from_api( Woo_Item_Changed $woo_item ) {
+
+		if ( $woo_item->is_local() ) {
+			return self::fetch_data_from_local_api( $woo_item );
+		}
 
 		$woo_item_id = $woo_item->get_id();
 		
@@ -136,4 +144,29 @@ abstract class Woo_Store {
 		return json_decode( $body );
 
 	}
+
+	/**
+	 * Fetches data from the local API.
+	 *
+	 * @param Woo_Item_Changed $woo_item The Woo_Item_Changed event.
+	 * @return object The subscription data.
+	 */
+	protected static function fetch_data_from_local_api( Woo_Item_Changed $woo_item ) {
+		
+		$woo_item_id = $woo_item->get_id();
+
+		$endpoint = sprintf( '/wc/v3/%s/%d', static::get_api_endpoint_prefix(), $woo_item_id );
+
+		$request = new WP_REST_Request(
+			'GET',
+			$endpoint
+		);
+		
+		add_filter( 'woocommerce_rest_check_permissions', '__return_true' );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( 'woocommerce_rest_check_permissions', '__return_true' );
+
+		return (object) $response->get_data();
+	}
+
 }

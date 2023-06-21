@@ -158,7 +158,7 @@ abstract class Woo {
 			return null;
 		}
 		
-		if ( empty( $_GET['node_id'] ) ) {
+		if ( empty( $_GET['node_id'] ) && '0' !== $_GET['node_id'] ) { // zero is a valid value.
 			return null;
 		}
 		$query->query_vars['meta_query'][] = [

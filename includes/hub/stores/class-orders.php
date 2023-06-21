@@ -59,7 +59,7 @@ class Orders extends Woo_Store {
 		Debugger::log( 'Persisting order ' . $order_id );
 
 		$local_id   = self::get_local_id( $order );
-		$order_data = self::fetch_remote_data( $order );
+		$order_data = self::fetch_data_from_api( $order );
 
 		Debugger::log( 'Local ID: ' . $local_id );
 

@@ -80,8 +80,8 @@ class Subscriptions extends Woo {
 					$item->get_edit_link(),
 					$item->get_title(),
 					$item->get_user_name(),
-					$item->get_node()->get_url(),
-					$item->get_node()->get_url()
+					$item->get_node_url(),
+					$item->get_node_url()
 				);
 				echo $output; // phpcs:ignore
 				break;
@@ -93,7 +93,7 @@ class Subscriptions extends Woo {
 						'<a href="%s" target="_blank">%s</a><br />',
 						sprintf(
 							'%s/wp-admin/post.php?post=%d&action=edit',
-							$item->get_node()->get_url(),
+							$item->get_node_url(),
 							$line_item['product_id'] ?? ''
 						),
 						$line_item['name'] ?? ''
@@ -104,7 +104,7 @@ class Subscriptions extends Woo {
 			case 'orders':
 				$link = sprintf(
 					'%s/wp-admin/edit.php?post_status=all&post_type=shop_order&_subscription_related_orders=%d',
-					$item->get_node()->get_url(), 
+					$item->get_node_url(), 
 					$item->get_remote_id()
 				);
 				printf( '<a href="%s" target="blank">%s</a>', $link, $item->get_payment_count() ); // phpcs:ignore
