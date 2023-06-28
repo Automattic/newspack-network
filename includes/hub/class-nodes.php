@@ -40,6 +40,7 @@ class Nodes {
 	 * @return ?Node
 	 */
 	public static function get_node_by_url( $url ) {
+		$url   = untrailingslashit( $url );
 		$nodes = get_posts(
 			[
 				'post_type'      => self::POST_TYPE_SLUG,
@@ -301,7 +302,7 @@ class Nodes {
 		}
 
 		if ( ! empty( $_POST['newspack-node-url'] ) && filter_var( $_POST['newspack-node-url'], FILTER_VALIDATE_URL ) ) {
-			update_post_meta( $post_id, 'node-url', sanitize_text_field( $_POST['newspack-node-url'] ) );
+			update_post_meta( $post_id, 'node-url', sanitize_text_field( untrailingslashit( $_POST['newspack-node-url'] ) ) );
 		}
 
 		if ( isset( $_POST['newspack-node-app-user'] ) ) {
