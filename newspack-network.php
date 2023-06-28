@@ -24,6 +24,11 @@ if ( ! defined( 'NEWSPACK_NETWORK_PLUGIN_FILE' ) ) {
 	define( 'NEWSPACK_NETWORK_PLUGIN_FILE', __FILE__ );
 }
 
+/**
+ * The role added by Newspack Network plugin for readers propagated from other sites.
+ */
+define( 'NEWSPACK_NETWORK_READER_ROLE', 'network_reader' );
+
 // Load language files.
 load_plugin_textdomain( 'newspack-network', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 

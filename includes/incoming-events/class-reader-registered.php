@@ -39,7 +39,7 @@ class Reader_Registered extends Abstract_Incoming_Event {
 				'user_email' => $email,
 				'user_login' => $email,
 				'user_pass'  => wp_generate_password(),
-				'role'       => 'network_reader',
+				'role'       => NEWSPACK_NETWORK_READER_ROLE,
 			]
 		);
 
