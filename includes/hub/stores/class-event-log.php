@@ -96,11 +96,19 @@ class Event_Log {
 		global $wpdb;
 		$where = '';
 
-		if ( ! empty( $args['node_id'] ) || '0' === (string) $args['node_id'] ) {
+		// remove empty values.
+		$args = array_filter(
+			$args,
+			function( $v ) {
+				return is_array( $v ) || strlen( (string) $v ); // Zero is a valid value for node id, thus we don't use empty().
+			}
+		);
+
+		if ( isset( $args['node_id'] ) ) {
 			$where .= $wpdb->prepare( ' AND node_id = %d', $args['node_id'] );
 		}
 
-		if ( ! empty( $args['excluded_node_id'] ) ) {
+		if ( isset( $args['excluded_node_id'] ) ) {
 			$where .= $wpdb->prepare( ' AND node_id <> %d', $args['excluded_node_id'] );
 		}
 
