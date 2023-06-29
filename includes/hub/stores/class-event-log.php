@@ -63,6 +63,18 @@ class Event_Log {
 	}
 
 	/**
+	 * Gets a list of all the emails in the event log
+	 *
+	 * @return array
+	 */
+	public static function get_all_emails() {
+		global $wpdb;
+		$table_name = Database::get_table_name();
+		$query      = "SELECT DISTINCT email FROM $table_name ORDER BY email";
+		return $wpdb->get_col( $query ); //phpcs:ignore
+	}
+
+	/**
 	 * Get the total number of items for a query
 	 *
 	 * @param array $args See {@see self::build_where_clause()} for supported arguments.
@@ -87,6 +99,7 @@ class Event_Log {
 	 *      @type int $node_id The ID of the node to filter by.
 	 *      @type int $excluded_node_id The ID of the node to exclude from results.
 	 *      @type int $id_greater_than Retrieve events with ID greater than this value.
+	 *      @type string $email The email of the event to filter by.
 	 *      @type string $action_name The name of the action to filter by.
 	 *      @type array $action_name_in List of action names to include in the results.
 	 * }
@@ -114,6 +127,10 @@ class Event_Log {
 
 		if ( ! empty( $args['id_greater_than'] ) ) {
 			$where .= $wpdb->prepare( ' AND id > %d', $args['id_greater_than'] );
+		}
+
+		if ( ! empty( $args['email'] ) ) {
+			$where .= $wpdb->prepare( ' AND email = %s', $args['email'] );
 		}
 
 		if ( ! empty( $args['action_name'] ) ) {

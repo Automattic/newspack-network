@@ -58,6 +58,10 @@ class Event_Log_List_Table extends \WP_List_Table {
 		if ( isset( $_GET['node_id'] ) ) { 
 			$args['node_id'] = sanitize_text_field( $_GET['node_id'] );
 		}
+
+		if ( isset( $_GET['email'] ) ) { 
+			$args['email'] = sanitize_text_field( $_GET['email'] );
+		}
         // phpcs:enable WordPress.Security.NonceVerification.Recommended
 		
 		$columns               = $this->get_columns();
@@ -90,13 +94,22 @@ class Event_Log_List_Table extends \WP_List_Table {
 		}
 		$current_action = $_GET['action_name'] ?? '';
 		$current_node   = $_GET['node_id'] ?? '';
+		$current_email  = $_GET['email'] ?? '';
 		$all_actions    = array_keys( Accepted_Actions::ACTIONS );
+		$all_emails     = Event_Log_Store::get_all_emails();
 		?>
 
 		<select name="action_name" id="action_name">
 			<option value=""><?php _e( 'All Actions', 'newspack-network' ); ?></option>
 			<?php foreach ( $all_actions as $action ) : ?>
 				<option value="<?php echo esc_attr( $action ); ?>" <?php selected( $current_action, $action ); ?>><?php echo esc_html( $action ); ?></option>
+			<?php endforeach; ?>
+		</select>
+
+		<select name="email" id="email">
+			<option value=""><?php _e( 'All users', 'newspack-network' ); ?></option>
+			<?php foreach ( $all_emails as $email ) : ?>
+				<option value="<?php echo esc_attr( $email ); ?>" <?php selected( $current_email, $email ); ?>><?php echo esc_html( $email ); ?></option>
 			<?php endforeach; ?>
 		</select>
 

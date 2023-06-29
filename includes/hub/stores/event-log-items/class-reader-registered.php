@@ -21,11 +21,12 @@ class Reader_Registered extends Abstract_Event_Log_Item {
 	 * @return string
 	 */
 	public function get_summary() {
+		$url = empty( $this->get_node_id() ) ? get_bloginfo( 'url' ) : $this->get_node_url();
 		return sprintf(
 			/* translators: 1: email 2: site url */
 			__( 'New reader registered with email %1$s on %2$s', 'newspack-network' ),
 			$this->get_email(),
-			$this->get_node_url()
+			$url
 		);
 	}
 }

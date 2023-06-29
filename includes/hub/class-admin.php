@@ -19,6 +19,7 @@ class Admin {
 		Admin\Event_Log::init();
 		Admin\Subscriptions::init();
 		Admin\Orders::init();
+		Admin\Users::init();
 		Distributor_Settings::init();
 	}
 

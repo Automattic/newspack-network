@@ -109,10 +109,19 @@ abstract class Abstract_Event_Log_Item {
 	/**
 	 * Gets the Node URL associated with the Event Log Item.
 	 * 
-	 * @return Node
+	 * @return string
 	 */
 	public function get_node_url() {
 		return $this->node->get_url();
+	}
+
+	/**
+	 * Gets the Node ID associated with the Event Log Item.
+	 * 
+	 * @return int
+	 */
+	public function get_node_id() {
+		return $this->node->get_id();
 	}
 
 	/**
