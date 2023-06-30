@@ -55,11 +55,13 @@ class Webhook {
 		$data            = $request['data'];
 		$action          = $request['action'];
 		$timestamp       = $request['timestamp'];
+		$nonce           = $request['nonce'];
 		$incoming_events = Accepted_Actions::ACTIONS;
 		
 		Debugger::log( 'Webhook received' );
 		Debugger::log( $site );
 		Debugger::log( $data );
+		Debugger::log( $nonce );
 		Debugger::log( $action );
 		Debugger::log( $timestamp );
 
@@ -67,6 +69,7 @@ class Webhook {
 			empty( $data ) || 
 			empty( $timestamp ) ||
 			empty( $action ) ||
+			empty( $nonce ) ||
 			! array_key_exists( $action, $incoming_events )
 		) {
 			return new WP_REST_Response( array( 'error' => 'Bad request.' ), 400 );
@@ -79,7 +82,7 @@ class Webhook {
 			return new WP_REST_Response( array( 'error' => 'Bad request. Site not registered in this Hub.' ), 403 );
 		}
 
-		$verified_data = $node->verify_signed_message( $data );
+		$verified_data = $node->decrypt_message( $data, $nonce );
 		if ( ! $verified_data ) {
 			Debugger::log( 'Signature check failed' );
 			return new WP_REST_Response( array( 'error' => 'Invalid Signature.' ), 403 );

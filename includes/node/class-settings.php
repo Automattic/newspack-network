@@ -45,12 +45,12 @@ class Settings {
 	}
 
 	/**
-	 * Get the Private key setting
+	 * Get the Secret key setting
 	 *
 	 * @return ?string
 	 */
-	public static function get_private_key() {
-		return get_option( 'newspack_node_private_key' );
+	public static function get_secret_key() {
+		return get_option( 'newspack_node_secret_key' );
 	}
 
 	/**
@@ -71,7 +71,7 @@ class Settings {
 	public static function allowed_options( $allowed_options ) {
 		$allowed_options[ self::SETTINGS_SECTION ] = [
 			'newspack_node_hub_url',
-			'newspack_node_private_key',
+			'newspack_node_secret_key',
 		];
 		return $allowed_options;
 	}
@@ -100,11 +100,11 @@ class Settings {
 				],
 			],
 			[
-				'key'      => 'newspack_node_private_key',
-				'label'    => esc_html__( 'Private key', 'newspack-network-node' ),
-				'callback' => [ __CLASS__, 'private_key_callback' ],
+				'key'      => 'newspack_node_secret',
+				'label'    => esc_html__( 'Secret key', 'newspack-network-node' ),
+				'callback' => [ __CLASS__, 'secret_key_callback' ],
 				'args'     => [
-					'sanitize_callback' => [ __CLASS__, 'sanitize_private_key' ],
+					'sanitize_callback' => [ __CLASS__, 'sanitize_secret_key' ],
 				],
 			],
 		];
@@ -148,15 +148,15 @@ class Settings {
 	}
 
 	/**
-	 * The private_key setting callback
+	 * The secret_key setting callback
 	 *
 	 * @return void
 	 */
-	public static function private_key_callback() {
-		$content = get_option( 'newspack_node_private_key' );
+	public static function secret_key_callback() {
+		$content = get_option( 'newspack_node_secret_key' );
 		echo sprintf(
 			'<input type="text" name="%1$s" value="%2$s">',
-			'newspack_node_private_key',
+			'newspack_node_secret_key',
 			esc_html( $content )
 		);
 	}
@@ -186,18 +186,18 @@ class Settings {
 	}
 
 	/**
-	 * Tests if the string is a valid private key
+	 * Tests if the string is a valid secret key
 	 *
 	 * @param string $value The value to sanitize.
 	 * @return bool|string
 	 */
-	public static function sanitize_private_key( $value ) {
+	public static function sanitize_secret_key( $value ) {
 		$signed = Webhook::sign( 'test', $value );
 		if ( is_wp_error( $signed ) ) {
 			add_settings_error(
-				'newspack_node_private_key',
-				'newspack_node_private_key',
-				__( 'Invalid Private key:', 'newspack-network-node' ) . ' ' . $signed->get_error_message()
+				'newspack_node_secret_key',
+				'newspack_node_secret_key',
+				__( 'Invalid Secret key:', 'newspack-network-node' ) . ' ' . $signed->get_error_message()
 			);
 			return false;
 		}

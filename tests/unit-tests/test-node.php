@@ -62,24 +62,21 @@ class TestNode extends WP_UnitTestCase {
 		);
 
 		add_post_meta( $post_with, 'node-url', 'https://example.com' );
-		add_post_meta( $post_with, 'private-key', 'private-key' );
-		add_post_meta( $post_with, 'public-key', 'public-key' );
+		add_post_meta( $post_with, 'secret-key', 'secret-key' );
 
 		$node_with    = new Node( $post_with );
 		$node_without = new Node( $post_without );
 
 		$this->assertSame( $post_with, $node_with->get_id() );
 		$this->assertSame( 'https://example.com', $node_with->get_url() );
-		$this->assertSame( 'private-key', $node_with->get_private_key() );
-		$this->assertSame( 'public-key', $node_with->get_public_key() );
+		$this->assertSame( 'secret-key', $node_with->get_secret_key() );
 
 		$this->assertSame( $post_without, $node_without->get_id() );
 		$this->assertEmpty( $node_without->get_url() );
-		$this->assertEmpty( $node_without->get_private_key() );
-		$this->assertEmpty( $node_without->get_public_key() );
+		$this->assertEmpty( $node_without->get_secret_key() );
 	}
 
 	/**
-	 * The verify_signed_message is tested in testCrypto class
+	 * The decrypt_message is tested in testCrypto class
 	 */
 }

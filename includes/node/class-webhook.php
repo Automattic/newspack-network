@@ -77,13 +77,15 @@ class Webhook {
 			return $body;
 		}
 
-		$data = wp_json_encode( $body['data'] );
-		$data = self::sign( $data );
+		$data  = wp_json_encode( $body['data'] );
+		$nonce = Crypto::generate_nonce();
+		$data  = self::sign( $data, $nonce );
 		if ( is_wp_error( $data ) ) {
 			return $data;
 		}
-		$body['data'] = $data;
-		$body['site'] = get_bloginfo( 'url' );
+		$body['nonce'] = $nonce;
+		$body['data']  = $data;
+		$body['site']  = get_bloginfo( 'url' );
 
 		return $body;
 
@@ -93,18 +95,19 @@ class Webhook {
 	 * Signs the data
 	 *
 	 * @param string $data The data to be signed.
-	 * @param string $private_key The private key to use for signing. Default is to use the stored private key.
+	 * @param string $nonce The nonce to encrypt the message with, generated with Crypto::generate_nonce().
+	 * @param string $secret_key The secret key to use for signing. Default is to use the stored secret key.
 	 * @return WP_Error|string The signed data or error.
 	 */
-	public static function sign( $data, $private_key = null ) {
-		if ( ! $private_key ) {
-			$private_key = Settings::get_private_key();
+	public static function sign( $data, $nonce, $secret_key = null ) {
+		if ( ! $secret_key ) {
+			$secret_key = Settings::get_secret_key();
 		}
-		if ( empty( $private_key ) ) {
-			return new \WP_Error( 'newspack-network-node-webhook-signing-error', __( 'Missing Private key', 'newspack-network-node' ) );
+		if ( empty( $secret_key ) ) {
+			return new \WP_Error( 'newspack-network-node-webhook-signing-error', __( 'Missing Secret key', 'newspack-network-node' ) );
 		}
 
-		return Crypto::sign_message( $data, $private_key );
+		return Crypto::encrypt_message( $data, $secret_key, $nonce );
 
 	}
 

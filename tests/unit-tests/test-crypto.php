@@ -2,10 +2,10 @@
 /**
  * Class TestCrypto
  *
- * @package Newspack_Network_Hub
+ * @package Newspack_Network
  */
 
-use \Newspack_Hub\Crypto;
+use \Newspack_Network\Crypto;
 
 /**
  * Test the Node class.
@@ -13,26 +13,10 @@ use \Newspack_Hub\Crypto;
 class TestCrypto extends WP_UnitTestCase {
 
 	/**
-	 * Signs the data
-	 *
-	 * @param string $data The data to be signed.
-	 * @param string $private_key The private key to use for signing.
-	 * @return false|string The signed data or false.
-	 */
-	public function sign_message( $data, $private_key ) {
-		try {
-			$signed = sodium_crypto_sign( $data, sodium_base642bin( $private_key, SODIUM_BASE64_VARIANT_ORIGINAL ) );
-			return sodium_bin2base64( $signed, SODIUM_BASE64_VARIANT_ORIGINAL );
-		} catch ( \Exception $e ) {
-			return false;
-		}
-	}
-
-	/**
 	 * Test verify with empty key
 	 */
 	public function test_verify_empty_key() {
-		$verified = Crypto::verify_signed_message( 'test', '' );
+		$verified = Crypto::decrypt_message( 'test', '', 'asdasd' );
 		$this->assertFalse( $verified );
 	}
 
@@ -40,10 +24,10 @@ class TestCrypto extends WP_UnitTestCase {
 	 * Test verify with invalid key
 	 */
 	public function test_verify_invalid_key() {
-		$verified = Crypto::verify_signed_message( 'test', 'asdasd' );
+		$verified = Crypto::decrypt_message( 'test', 'asdasd', 'asd' );
 		$this->assertFalse( $verified );
 
-		$verified = Crypto::verify_signed_message( 'test', [ 'asdasd' ] );
+		$verified = Crypto::decrypt_message( 'test', [ 'asdasd' ], 'asd' );
 		$this->assertFalse( $verified );
 	}
 
@@ -51,19 +35,21 @@ class TestCrypto extends WP_UnitTestCase {
 	 * Test verify with wrong key
 	 */
 	public function test_verify_wrong_key() {
-		$keys1          = Crypto::generate_key_pair();
-		$keys2          = Crypto::generate_key_pair();
-		$signed_message = $this->sign_message( 'test', $keys1['private_key'] );
-		$this->assertFalse( Crypto::verify_signed_message( $signed_message, $keys2['public_key'] ) );
+		$keys1          = Crypto::generate_secret_key();
+		$keys2          = Crypto::generate_secret_key();
+		$nonce          = Crypto::generate_nonce();
+		$signed_message = Crypto::encrypt_message( 'test', $keys1, $nonce );
+		$this->assertFalse( Crypto::decrypt_message( $signed_message, $keys2, $nonce ) );
 	}
 
 	/**
 	 * Test verify with correct key
 	 */
 	public function test_verify_correct_key() {
-		$keys           = Crypto::generate_key_pair();
-		$signed_message = $this->sign_message( 'test', $keys['private_key'] );
-		$this->assertSame( 'test', Crypto::verify_signed_message( $signed_message, $keys['public_key'] ) );
+		$keys           = Crypto::generate_secret_key();
+		$nonce          = Crypto::generate_nonce();
+		$signed_message = Crypto::encrypt_message( 'test', $keys, $nonce );
+		$this->assertSame( 'test', Crypto::decrypt_message( $signed_message, $keys, $nonce ) );
 	}
 
 }
