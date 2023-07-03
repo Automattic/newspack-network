@@ -5,8 +5,8 @@
  * @package Newspack_Network_Hub
  */
 
-use \Newspack_Hub\Nodes;
-use \Newspack_Hub\Node;
+use \Newspack_Network\Hub\Nodes;
+use \Newspack_Network\Hub\Node;
 
 /**
  * Test the Node class.
