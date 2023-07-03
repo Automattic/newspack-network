@@ -56,6 +56,7 @@ class Pull_Endpoint {
 		$last_processed_id = $request['last_processed_id'];
 		$actions           = $request['actions'];
 		$signature         = $request['signature'];
+		$nonce             = $request['nonce'];
 		
 		Debugger::log( 'Pull request received' );
 		Debugger::log( $site );
@@ -64,6 +65,7 @@ class Pull_Endpoint {
 
 		if ( empty( $site ) || 
 			empty( $actions ) ||
+			empty( $nonce ) ||
 			empty( $signature )
 		) {
 			return new WP_REST_Response( array( 'error' => 'Bad request.' ), 400 );
@@ -76,7 +78,7 @@ class Pull_Endpoint {
 			return new WP_REST_Response( array( 'error' => 'Bad request. Site not registered in this Hub.' ), 403 );
 		}
 
-		$verified         = $node->verify_signed_message( $signature );
+		$verified         = $node->decrypt_message( $signature, $nonce );
 		$verified_message = json_decode( $verified );
 
 		if ( ! $verified || ! is_object( $verified_message ) || (int) $last_processed_id !== (int) $verified_message->last_processed_id ) {

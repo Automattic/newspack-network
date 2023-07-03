@@ -231,39 +231,21 @@ class Nodes {
 
 		wp_nonce_field( 'newspack_hub_save_node', 'newspack_hub_save_node_nonce' );
 
-		$node_url    = get_post_meta( $post->ID, 'node-url', true );
-		$public_key  = get_post_meta( $post->ID, 'public-key', true );
-		$private_key = get_post_meta( $post->ID, 'private-key', true );
-		$app_user    = get_post_meta( $post->ID, 'app-user', true );
-		$app_pass    = get_post_meta( $post->ID, 'app-pass', true );
+		$node_url   = get_post_meta( $post->ID, 'node-url', true );
+		$secret_key = get_post_meta( $post->ID, 'secret-key', true );
 
 		?>
 		<div class="misc-pub-section">
 			Node URL: <input type="text" name="newspack-node-url" value="<?php echo esc_attr( $node_url ); ?>" />
 		</div>
 
-		<?php if ( $public_key || $private_key ) : ?>
+		<?php if ( $secret_key ) : ?>
 
 			<div class="misc-pub-section">
-				Public Key: <?php echo esc_attr( $public_key ); ?>
-				<br/>
-				Private Key: <?php echo esc_attr( $private_key ); ?>
+				Secret Key: <?php echo esc_attr( $secret_key ); ?>
 			</div>
 
 		<?php endif; ?>
-
-		<div class="misc-pub-section">
-			<h3>Application Password</h3>
-
-			<p>
-				Please inform a user and a application password for the hub to retrieve data from this node.
-			</p>
-			User name: <input type="text" name="newspack-node-app-user" value="<?php echo esc_attr( $app_user ); ?>" />
-			<br/>
-			Application passowrd: <input type="text" name="newspack-node-app-pass" value="<?php echo esc_attr( $app_pass ); ?>" />
-		</div>
-
-
 		<?php
 	}
 
@@ -305,18 +287,10 @@ class Nodes {
 			update_post_meta( $post_id, 'node-url', sanitize_text_field( untrailingslashit( $_POST['newspack-node-url'] ) ) );
 		}
 
-		if ( isset( $_POST['newspack-node-app-user'] ) ) {
-			update_post_meta( $post_id, 'app-user', sanitize_text_field( $_POST['newspack-node-app-user'] ) );
-		}
-		if ( isset( $_POST['newspack-node-app-pass'] ) ) {
-			update_post_meta( $post_id, 'app-pass', sanitize_text_field( $_POST['newspack-node-app-pass'] ) );
-		}
-
-		$key = get_post_meta( $post_id, 'public-key', true );
+		$key = get_post_meta( $post_id, 'secret-key', true );
 		if ( ! $key ) {
-			$sign_pair = Crypto::generate_key_pair();
-			update_post_meta( $post_id, 'public-key', $sign_pair['public_key'] );
-			update_post_meta( $post_id, 'private-key', $sign_pair['private_key'] );
+			$secret_key = Crypto::generate_secret_key();
+			update_post_meta( $post_id, 'secret-key', $secret_key );
 		}
 
 	}

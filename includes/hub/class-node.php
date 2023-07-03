@@ -8,6 +8,7 @@
 namespace Newspack_Network\Hub;
 
 use Newspack_Network\Crypto;
+use Newspack_Network\Rest_Authenticaton;
 use WP_Post;
 
 /**
@@ -60,57 +61,32 @@ class Node {
 	}
 
 	/**
-	 * Returns the Node's Private key
+	 * Returns the Node's Secret key
 	 *
 	 * @return ?string
 	 */
-	public function get_private_key() {
-		return get_post_meta( $this->get_id(), 'private-key', true );
-	}
-
-	/**
-	 * Returns the Node's Public Key
-	 *
-	 * @return ?string
-	 */
-	public function get_public_key() {
-		return get_post_meta( $this->get_id(), 'public-key', true );
+	public function get_secret_key() {
+		return get_post_meta( $this->get_id(), 'secret-key', true );
 	}
 
 	/**
 	 * Returns the Node's Authorization Header to be used in REST request to it
 	 *
+	 * @param int $endpoint_id The ID of the endpoint to be accessed. IDs are defined in Newspack_Network\Rest_Authentication.
 	 * @return ?string
 	 */
-	public function get_authorization_header() {
-		return 'Basic ' . base64_encode( $this->get_app_user() . ':' . $this->get_app_pass() );
+	public function get_authorization_headers( $endpoint_id ) {
+		return Rest_Authenticaton::generate_signature_headers( $endpoint_id, $this->get_secret_key() );
 	}
 
 	/**
-	 * Returns the Node's App User
-	 *
-	 * @return ?string
-	 */
-	public function get_app_user() {
-		return get_post_meta( $this->get_id(), 'app-user', true );
-	}
-
-	/**
-	 * Returns the Node's App Pass
-	 *
-	 * @return ?string
-	 */
-	public function get_app_pass() {
-		return get_post_meta( $this->get_id(), 'app-pass', true );
-	}
-
-	/**
-	 * Verifies that a signed message was signed with this Node's private key
+	 * Verifies that a signed message was signed with this Node's secret key
 	 *
 	 * @param string $message The message to be verified.
+	 * @param string $nonce The nonce to decrypt the message with.
 	 * @return string|false The verified message or false if the message could not be verified.
 	 */
-	public function verify_signed_message( $message ) {
-		return Crypto::verify_signed_message( $message, $this->get_public_key() );
+	public function decrypt_message( $message, $nonce ) {
+		return Crypto::decrypt_message( $message, $this->get_secret_key(), $nonce );
 	}
 }

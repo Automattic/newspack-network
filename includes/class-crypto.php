@@ -17,56 +17,62 @@ class Crypto {
 	 *
 	 * @return array An array with the private and public keys
 	 */
-	public static function generate_key_pair() {
-		$sign_pair   = sodium_crypto_sign_seed_keypair( random_bytes( SODIUM_CRYPTO_SIGN_SEEDBYTES ) );
-		$private_key = sodium_bin2base64( sodium_crypto_sign_secretkey( $sign_pair ), SODIUM_BASE64_VARIANT_ORIGINAL );
-		$public_key  = sodium_bin2base64( sodium_crypto_sign_publickey( $sign_pair ), SODIUM_BASE64_VARIANT_ORIGINAL );
-		return [
-			'private_key' => $private_key,
-			'public_key'  => $public_key,
-		];
+	public static function generate_secret_key() {
+		$key = sodium_crypto_aead_xchacha20poly1305_ietf_keygen();
+		return bin2hex( $key );
 	}
 
 	/**
-	 * Verifies that a signed message
+	 * Decrypts a message
 	 *
-	 * @param string $message The message to be verified.
-	 * @param string $public_key The public key to verify the message with.
-	 * @return string|false The verified message or false if the message could not be verified.
+	 * @param string $message The message to be decrypted.
+	 * @param string $secret_key The secret key to verify the message with.
+	 * @param string $nonce The nonce to verify the message with, generated with Crypto::generate_nonce().
+	 * @return string|false The decrypted message or false if the message could not be decrypted.
 	 */
-	public static function verify_signed_message( $message, $public_key ) {
+	public static function decrypt_message( $message, $secret_key, $nonce ) {
 		
-		if ( ! $public_key || ! is_string( $public_key ) ) {
+		if ( ! $secret_key || ! is_string( $secret_key ) || ! $nonce || ! is_string( $nonce ) ) {
 			return false;
 		}
 
 		try {
-			$verified = sodium_crypto_sign_open( sodium_base642bin( $message, SODIUM_BASE64_VARIANT_ORIGINAL ), sodium_base642bin( $public_key, SODIUM_BASE64_VARIANT_ORIGINAL ) );
-		} catch ( \SodiumException $e ) {
-			return false;
-		}
-
-		return $verified;
-	}
-
-	/**
-	 * Sign a message
-	 *
-	 * @param string $message The message to be signed.
-	 * @param string $private_key The private key to sign the message with.
-	 * @return string|WP_Error The signed message or WP_Error if the message could not be signed.
-	 */
-	public static function sign_message( $message, $private_key ) {
-		
-		if ( ! $private_key || ! is_string( $private_key ) ) {
-			return false;
-		}
-
-		try {
-			$signed = sodium_crypto_sign( $message, sodium_base642bin( $private_key, SODIUM_BASE64_VARIANT_ORIGINAL ) );
-			return sodium_bin2base64( $signed, SODIUM_BASE64_VARIANT_ORIGINAL );
+			$decrypted = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt( hex2bin( $message ), '', hex2bin( $nonce ), hex2bin( $secret_key ) );
 		} catch ( \Exception $e ) {
-			return new \WP_Error( 'newspack-network-node-webhook-signing-error', $e->getMessage() );
+			return false;
 		}
+
+		return $decrypted;
+	}
+
+	/**
+	 * Encrypts a message
+	 *
+	 * @param string $message The message to be encrypted.
+	 * @param string $secret_key The secret key to encrypt the message with.
+	 * @param string $nonce The nonce to verify the message with, generated with Crypto::generate_nonce().
+	 * @return string|WP_Error The encrypted message or WP_Error if the message could not be encrypted.
+	 */
+	public static function encrypt_message( $message, $secret_key, $nonce ) {
+		
+		if ( ! $secret_key || ! is_string( $secret_key ) || ! $nonce || ! is_string( $nonce ) ) {
+			return false;
+		}
+
+		try {
+			$encrypted = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt( $message, '', hex2bin( $nonce ), hex2bin( $secret_key ) );
+			return bin2hex( $encrypted );
+		} catch ( \Exception $e ) {
+			return new \WP_Error( 'newspack-network-node-webhook-encrypting-error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Generates a nonce to encrypt messages
+	 *
+	 * @return string
+	 */
+	public static function generate_nonce() {
+		return bin2hex( random_bytes( SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES ) );
 	}
 }

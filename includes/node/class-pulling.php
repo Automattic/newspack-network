@@ -99,16 +99,18 @@ class Pulling {
 	}
 
 	/**
-	 * Signs the request parameters with the Node's private key
+	 * Signs the request parameters with the Node's secret key
 	 *
 	 * @param array $params The request parameters.
 	 * @return array The params array with an additional signature key.
 	 */
 	public static function sign_params( $params ) {
 		$message             = wp_json_encode( $params );
-		$private_key         = Settings::get_private_key();
-		$signature           = Crypto::sign_message( $message, $private_key );
+		$secret_key          = Settings::get_secret_key();
+		$nonce               = Crypto::generate_nonce();
+		$signature           = Crypto::encrypt_message( $message, $secret_key, $nonce );
 		$params['signature'] = $signature;
+		$params['nonce']     = $nonce;
 		return $params;
 	}
 

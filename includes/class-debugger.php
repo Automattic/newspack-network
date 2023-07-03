@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Hub Debugger methods.
+ * Newspack Network Debugger methods.
  *
  * @package Newspack
  */
@@ -19,7 +19,7 @@ class Debugger {
 	 * @return void
 	 */
 	public static function log( $message ) {
-		if ( ! defined( 'NEWSPACK_HUB_DEBUG' ) || ! NEWSPACK_HUB_DEBUG ) {
+		if ( ! defined( 'NEWSPACK_NETWORK_DEBUG' ) || ! NEWSPACK_NETWORK_DEBUG ) {
 			return;
 		}
 		$caller = debug_backtrace()[0]; //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace

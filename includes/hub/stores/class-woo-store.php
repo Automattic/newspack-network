@@ -7,6 +7,7 @@
 
 namespace Newspack_Network\Hub\Stores;
 
+use Newspack_Network\Debugger;
 use Newspack_Network\Incoming_Events\Woo_Item_Changed;
 use WP_REST_Request;
 use WP_REST_Server;
@@ -117,25 +118,24 @@ abstract class Woo_Store {
 	 * @return object The subscription data.
 	 */
 	protected static function fetch_data_from_api( Woo_Item_Changed $woo_item ) {
-
 		if ( $woo_item->is_local() ) {
 			return self::fetch_data_from_local_api( $woo_item );
 		}
 
 		$woo_item_id = $woo_item->get_id();
 		
-		$endpoint = sprintf( '%s/wp-json/wc/v3/%s/%d', $woo_item->get_node()->get_url(), static::get_api_endpoint_prefix(), $woo_item_id );
+		$endpoint    = sprintf( '%s/wp-json/wc/v3/%s/%d', $woo_item->get_node()->get_url(), static::get_api_endpoint_prefix(), $woo_item_id );
+		$endpoint_id = 'get-woo-' . static::get_api_endpoint_prefix();
 
 		$response = wp_remote_get( // phpcs:ignore
 			$endpoint,
 			[
-				'headers' => [
-					'Authorization' => $woo_item->get_node()->get_authorization_header(),
-				],
+				'headers' => $woo_item->get_node()->get_authorization_headers( $endpoint_id ),
 			]
 		);
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			Debugger::log( 'API request failed' );
 			return;
 		}
 
