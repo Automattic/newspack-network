@@ -80,24 +80,6 @@ class Node {
 	}
 
 	/**
-	 * Returns the Node's App User
-	 *
-	 * @return ?string
-	 */
-	public function get_app_user() {
-		return get_post_meta( $this->get_id(), 'app-user', true );
-	}
-
-	/**
-	 * Returns the Node's App Pass
-	 *
-	 * @return ?string
-	 */
-	public function get_app_pass() {
-		return get_post_meta( $this->get_id(), 'app-pass', true );
-	}
-
-	/**
 	 * Verifies that a signed message was signed with this Node's secret key
 	 *
 	 * @param string $message The message to be verified.

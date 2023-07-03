@@ -233,8 +233,6 @@ class Nodes {
 
 		$node_url   = get_post_meta( $post->ID, 'node-url', true );
 		$secret_key = get_post_meta( $post->ID, 'secret-key', true );
-		$app_user   = get_post_meta( $post->ID, 'app-user', true );
-		$app_pass   = get_post_meta( $post->ID, 'app-pass', true );
 
 		?>
 		<div class="misc-pub-section">
@@ -248,19 +246,6 @@ class Nodes {
 			</div>
 
 		<?php endif; ?>
-
-		<div class="misc-pub-section">
-			<h3>Application Password</h3>
-
-			<p>
-				Please inform a user and a application password for the hub to retrieve data from this node.
-			</p>
-			User name: <input type="text" name="newspack-node-app-user" value="<?php echo esc_attr( $app_user ); ?>" />
-			<br/>
-			Application passowrd: <input type="text" name="newspack-node-app-pass" value="<?php echo esc_attr( $app_pass ); ?>" />
-		</div>
-
-
 		<?php
 	}
 
@@ -300,13 +285,6 @@ class Nodes {
 
 		if ( ! empty( $_POST['newspack-node-url'] ) && filter_var( $_POST['newspack-node-url'], FILTER_VALIDATE_URL ) ) {
 			update_post_meta( $post_id, 'node-url', sanitize_text_field( untrailingslashit( $_POST['newspack-node-url'] ) ) );
-		}
-
-		if ( isset( $_POST['newspack-node-app-user'] ) ) {
-			update_post_meta( $post_id, 'app-user', sanitize_text_field( $_POST['newspack-node-app-user'] ) );
-		}
-		if ( isset( $_POST['newspack-node-app-pass'] ) ) {
-			update_post_meta( $post_id, 'app-pass', sanitize_text_field( $_POST['newspack-node-app-pass'] ) );
 		}
 
 		$key = get_post_meta( $post_id, 'secret-key', true );
