@@ -8,6 +8,7 @@
 namespace Newspack_Network\Hub;
 
 use Newspack_Network\Crypto;
+use Newspack_Network\Rest_Authenticaton;
 use WP_Post;
 
 /**
@@ -71,10 +72,11 @@ class Node {
 	/**
 	 * Returns the Node's Authorization Header to be used in REST request to it
 	 *
+	 * @param int $endpoint_id The ID of the endpoint to be accessed. IDs are defined in Newspack_Network\Rest_Authentication.
 	 * @return ?string
 	 */
-	public function get_authorization_header() {
-		return 'Basic ' . base64_encode( $this->get_app_user() . ':' . $this->get_app_pass() );
+	public function get_authorization_headers( $endpoint_id ) {
+		return Rest_Authenticaton::generate_signature_headers( $endpoint_id, $this->get_secret_key() );
 	}
 
 	/**

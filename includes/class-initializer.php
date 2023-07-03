@@ -34,6 +34,7 @@ class Initializer {
 				Node\Webhook::init();
 				Node\Pulling::init();
 				Node\Canonical_Url::init();
+				Rest_Authenticaton::init_node_filters();
 			}
 		}
 		
