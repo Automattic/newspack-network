@@ -29,8 +29,8 @@ class Canonical_Url_Updated extends Abstract_Incoming_Event {
 	 * @return void
 	 */
 	public function process_in_node() {
-		if ( ! empty( $this->get_data()['url'] ) ) {
-			update_option( Canonical_Url::OPTION_NAME, $this->get_data()['url'] );
+		if ( ! empty( $this->get_data()->url ) ) {
+			update_option( Canonical_Url::OPTION_NAME, $this->get_data()->url );
 		}
 	}
 }
