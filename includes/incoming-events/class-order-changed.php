@@ -19,7 +19,7 @@ class Order_Changed extends Woo_Item_Changed {
 	 *
 	 * @return void
 	 */
-	public function post_process() {
+	public function post_process_in_hub() {
 		$email = $this->get_email();
 		if ( ! $email ) {
 			return;

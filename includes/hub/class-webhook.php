@@ -102,7 +102,7 @@ class Webhook {
 
 		$incoming_event = new $incoming_event_class( $site, $verified_data, $timestamp );
 
-		$incoming_event->process();
+		$incoming_event->process_in_hub();
 
 		return new WP_REST_Response( 'success' );
 		

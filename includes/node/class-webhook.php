@@ -11,7 +11,7 @@ use Newspack_Network\Crypto;
 use Newspack\Data_Events\Webhooks as Newspack_Webhooks;
 
 /**
- * Class to handle the plugin admin pages
+ * Class that register the webhook endpoint that will send events to the Hub
  */
 class Webhook {
 

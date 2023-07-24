@@ -10,7 +10,7 @@ namespace Newspack_Network;
 use Newspack\Data_Events;
 
 /**
- * Class to handle the Listeners to the Newspack Data Events API
+ * Class to register additional listeners to the Newspack Data Events API
  */
 class Data_Listeners {
 

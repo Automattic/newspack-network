@@ -14,14 +14,7 @@ use Newspack_Network\Node\Canonical_Url;
  *
  * This event is always sent from the Hub and received by Nodes.
  */
-class Canonical_Url_Updated extends Abstract_Incoming_Event {
-	
-	/**
-	 * Processes the event
-	 *
-	 * @return void
-	 */
-	public function post_process() {}
+class Canonical_Url_Updated extends Abstract_Incoming_Event {   
 
 	/**
 	 * Process event in Node
@@ -33,4 +26,5 @@ class Canonical_Url_Updated extends Abstract_Incoming_Event {
 			update_option( Canonical_Url::OPTION_NAME, $this->get_data()->url );
 		}
 	}
+
 }

@@ -16,7 +16,7 @@ use Newspack_Network\Hub\Stores\Event_Log;
 /**
  * Class to handle the plugin admin pages
  */
-abstract class Abstract_Incoming_Event {
+class Abstract_Incoming_Event {
 
 	/**
 	 * The Node object for this event
@@ -53,22 +53,29 @@ abstract class Abstract_Incoming_Event {
 	}
 
 	/**
-	 * Processes the event
+	 * Processes the event in the hub by persisting it in the Event Log
 	 *
 	 * @return void
 	 */
-	public function process() {
+	public function process_in_hub() {
 		Debugger::log( 'Processing event' );
 		Event_Log::persist( $this );
-		$this->post_process();
+		$this->post_process_in_hub();
 	}
 
 	/**
-	 * Child classes should implement this method to do any post-processing
+	 * Child classes should implement this method to do any post-processing in the Hub after the event is persisted in the Event Log
 	 *
 	 * @return void
 	 */
-	abstract public function post_process();
+	public function post_process_in_hub() {}
+
+	/**
+	 * Child classes should implement this method to do any processing when the Node processes the event
+	 *
+	 * @return void
+	 */
+	public function process_in_node() {}
 
 	/**
 	 * Returns the site for this event
