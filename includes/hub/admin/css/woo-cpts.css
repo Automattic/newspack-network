@@ -21,6 +21,30 @@
     text-overflow: ellipsis;
 }
 
+.order-status.status-completed {
+    background: #c8d7e1;
+    color: #2e4453;
+}
+
+.order-status.status-on-hold {
+    background: #f8dda7;
+    color: #94660c;
+}
+
+.order-status.status-failed {
+    background: #eba3a3;
+    color: #761919;
+}
+
+.order-status.status-processing {
+    background: #c6e1c6;
+    color: #5b841b;
+}
+
+.order-status.status-trash {
+    background: #eba3a3;
+    color: #761919;
+}
 .subscription-status.status-active {
     background: #c6e1c6;
     color: #5b841b;
