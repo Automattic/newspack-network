@@ -47,7 +47,10 @@ class Event_Log {
 				continue;
 			}
 			$class_name = 'Newspack_Network\\Hub\\Stores\\Event_Log_Items\\' . Accepted_Actions::ACTIONS[ $item->action_name ];
-			$results[]  = new $class_name(
+			if ( ! class_exists( $class_name ) ) {
+				$class_name = 'Newspack_Network\\Hub\\Stores\\Event_Log_Items\\Generic';
+			}
+			$results[] = new $class_name(
 				[
 					'id'          => $item->id,
 					'node'        => new Node( $item->node_id ),

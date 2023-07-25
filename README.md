@@ -27,4 +27,6 @@ The Hub holds an Event Log, where we have the history of all events in all sites
 8. Enter the Hub URL
 9. Enter the Secret key generated in the Hub for that specific Node
 
+## Techinical docs
 
+See [Dev Notes](DEV_NOTES.md)
