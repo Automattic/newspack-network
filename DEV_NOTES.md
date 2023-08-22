@@ -97,3 +97,43 @@ Depending on what you want to do with the event, and where, implement these 2 me
 4. Optional. Create a `event-log-item` specific class
 
 If you want to customize how this new event looks in the `Event Log`, go to `hub/stores/event-log-items` and create a new class named after the class you informed in `ACCEPTED_ACTIONS`. Implement the `get_summary` method to display the information the way you need.
+
+
+## Troubleshooting
+
+Here's how to debug and follow each event while they travel around.
+
+First, make sure to add the `NEWSPACK_NETWORK_DEBUG` constant as `true` to every site wp-config file.
+
+All log messages will include the process id (pid) as the first part of the message in between brackets. This is helpful to identify things happening in different requests. When debugging multiple parallel async actions, sometimes they get mixed up in the log.
+
+### When an event is fired in a Node
+
+Newspack Network will listen to the Newspack Data Events API, which has its own way to dispatch events asynchronously. If Woocommerce is installed, it will use the Action Scheduler lib, otherwise it will simply dispatch a dedicated request to process the event.
+
+So before we can even begin to follow the event through the Newspack Network flow, it needs to be dispatched. Sometimes it can take one or two minutes.
+
+You can inspect it in the `Tools > Scheduled Actions` panel if Woocommerce is active, and the Data Events API will also output plenty of information in the logs.
+
+When the event is finally dispatched in a Node, it will create a new webhook request. See [Data Events Webhooks](https://github.com/Automattic/newspack-plugin/blob/master/includes/data-events/class-webhooks.php) for details on how it works.
+
+In short, a webhook is a Custom Post type post scheduled to be published in the future. Once it's published, the request is sent. If it fails, it schedules itself again for the future, incresing the wait time in a geometric progression.
+
+When the event is dispatched, you should not see anything special in the logs. Everything is handled by webhooks, so you can:
+* Go to Newspack > Connections > Webhooks and see if the request was scheduled there
+* Manually check the requests on the database
+* Manually dispatch requests using `Newspack\Data_Events\Webhooks::process_request( $request_id )`
+
+When the request is sent, Webhooks will output a message starting with `[NEWSPACK-WEBHOOKS] Sending request` in the logs.
+
+When the request reaches the hub, you will see it on the Logs starting with a `Webhook received` message.
+
+### When the Node pulls events from the Hub
+
+At any point, it's a good idea to check the value for the `newspack_node_last_processed_action` option. It holds the ID of the last event received in the last pull.
+
+Pulls are scheduled in CRON for every 5 minutes. If you want to trigger a pull now, you can do so by calling `Newspack_Network\Node\Pulling::pull()`
+
+In the Node's log you will see detailed information about the pull attempt, starting with a `Pulling data` message.
+
+In the Hub's log, you will also see detailed information about the pull request, starting with a `Pull request received` message.

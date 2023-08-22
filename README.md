@@ -30,3 +30,7 @@ The Hub holds an Event Log, where we have the history of all events in all sites
 ## Techinical docs
 
 See [Dev Notes](DEV_NOTES.md)
+
+## Testing scenarios
+
+This is a new plugin, so on [this page](TESTING_SCENARIOS.md) you'll find several testing scenarios to help you configure the plugin and confirm it's working as expected.
