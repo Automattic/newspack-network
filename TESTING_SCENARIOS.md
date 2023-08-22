@@ -26,3 +26,7 @@ See the troubleshooting section in the [developer docs](DEV_NOTES.md) to learn h
 * Back to the Node admin, make a change to the Order or Subscription (for example changing its status)
 * Confirm the change shows up in the Event Log
 * Confirm that the Order or Subscription in the panel shows the updated status
+
+### `donation_new` and `donation_canceled`
+
+TODO
