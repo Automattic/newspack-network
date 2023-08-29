@@ -45,7 +45,7 @@ class Users {
 		if ( 'newspack_network_activity' === $column_name ) {
 			$user = get_user_by( 'id', $user_id );
 			if ( ! $user ) {
-				return;
+				return $value;
 			}
 
 			$last_activity = Event_Log_Store::get( [ 'email' => $user->user_email ], 1 );

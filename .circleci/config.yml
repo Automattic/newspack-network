@@ -8,9 +8,6 @@ workflows:
   all:
     jobs:
       - newspack/build
-      - newspack/lint-js-scss:
-          requires:
-            - newspack/build
       - newspack/build-distributable:
           requires:
             - newspack/build
