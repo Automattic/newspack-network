@@ -5,6 +5,8 @@
  * @package Newspack
  */
 
+// phpcs:disable WordPress.Security.NonceVerification.Recommended
+
 namespace Newspack_Network\Hub\Admin;
 
 use Newspack_Network\Accepted_Actions;
@@ -46,7 +48,6 @@ class Event_Log_List_Table extends \WP_List_Table {
 
 		$args = [];
 
-        // phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['s'] ) ) {
 			$args['search'] = sanitize_text_field( $_GET['s'] );
 		}
@@ -62,7 +63,6 @@ class Event_Log_List_Table extends \WP_List_Table {
 		if ( isset( $_GET['email'] ) ) { 
 			$args['email'] = sanitize_text_field( $_GET['email'] );
 		}
-        // phpcs:enable WordPress.Security.NonceVerification.Recommended
 		
 		$columns               = $this->get_columns();
 		$primary               = 'id';
@@ -92,9 +92,9 @@ class Event_Log_List_Table extends \WP_List_Table {
 		if ( 'top' !== $which ) {
 			return;
 		}
-		$current_action = $_GET['action_name'] ?? '';
-		$current_node   = $_GET['node_id'] ?? '';
-		$current_email  = $_GET['email'] ?? '';
+		$current_action = isset( $_GET['action_name'] ) ? sanitize_text_field( $_GET['action_name'] ) : '';
+		$current_node   = isset( $_GET['node_id'] ) ? sanitize_text_field( $_GET['node_id'] ) : '';
+		$current_email  = isset( $_GET['email'] ) ? sanitize_text_field( $_GET['email'] ) : '';
 		$all_actions    = array_keys( Accepted_Actions::ACTIONS );
 		$all_emails     = Event_Log_Store::get_all_emails();
 		?>

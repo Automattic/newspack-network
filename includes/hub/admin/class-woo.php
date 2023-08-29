@@ -5,6 +5,8 @@
  * @package Newspack
  */
 
+// phpcs:disable WordPress.Security.NonceVerification.Recommended
+
 namespace Newspack_Network\Hub\Admin;
 
 use Newspack_Network\Hub\Admin;
@@ -139,7 +141,7 @@ abstract class Woo {
 			return;
 		}
 
-		$current_node = $_GET['node_id'] ?? '';
+		$current_node = isset( $_GET['node_id'] ) ? sanitize_text_field( $_GET['node_id'] ) : '';
 
 		Nodes::nodes_dropdown( $current_node );
 
@@ -153,7 +155,7 @@ abstract class Woo {
 	 */
 	public static function pre_get_posts( $query ) {
 		global $pagenow;
-		$post_type = $_GET['post_type'] ?? '';
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : '';
 		if ( 'edit.php' !== $pagenow || ! in_array( $post_type, self::$post_types, true ) || ! is_admin() || ! $query->is_main_query() ) {
 			return null;
 		}
@@ -163,7 +165,7 @@ abstract class Woo {
 		}
 		$query->query_vars['meta_query'][] = [
 			'key'   => 'node_id',
-			'value' => $_GET['node_id'],
+			'value' => sanitize_text_field( $_GET['node_id'] ),
 		];
 
 		return null;

@@ -284,7 +284,7 @@ class Nodes {
 		}
 
 		if ( ! empty( $_POST['newspack-node-url'] ) && filter_var( $_POST['newspack-node-url'], FILTER_VALIDATE_URL ) ) {
-			update_post_meta( $post_id, 'node-url', sanitize_text_field( untrailingslashit( $_POST['newspack-node-url'] ) ) );
+			update_post_meta( $post_id, 'node-url', untrailingslashit( sanitize_text_field( $_POST['newspack-node-url'] ) ) );
 		}
 
 		$key = get_post_meta( $post_id, 'secret-key', true );
