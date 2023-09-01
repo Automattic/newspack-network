@@ -94,7 +94,7 @@ class Pull_Endpoint {
 				'id_greater_than'  => $last_processed_id,
 				'action_name_in'   => $actions,
 			],
-			2
+			20
 		);
 
 		Debugger::log( count( $events ) . ' events found' );
