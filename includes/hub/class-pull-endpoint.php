@@ -94,7 +94,7 @@ class Pull_Endpoint {
 				'id_greater_than'  => $last_processed_id,
 				'action_name_in'   => $actions,
 			],
-			20
+			defined( 'NEWSPACK_NETWORK_EVENTS_PULL_LIMIT' ) && is_numeric( NEWSPACK_NETWORK_EVENTS_PULL_LIMIT ) ? NEWSPACK_NETWORK_EVENTS_PULL_LIMIT : 20
 		);
 
 		Debugger::log( count( $events ) . ' events found' );
