@@ -89,8 +89,8 @@ class Abstract_Incoming_Event {
 	/**
 	 * Returns the data for this event
 	 *
-	 * @return array
-	 */ 
+	 * @return object
+	 */
 	public function get_data() {
 		return $this->data;
 	}

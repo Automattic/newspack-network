@@ -15,7 +15,7 @@ use Newspack_Network\Node\Canonical_Url;
  *
  * This event is always sent from the Hub and received by Nodes.
  */
-class Donation_New extends Abstract_Incoming_Event {
+class Donation_Subscription_Cancelled extends Abstract_Incoming_Event {
 
 	/**
 	 * Process event in Node
@@ -36,7 +36,6 @@ class Donation_New extends Abstract_Incoming_Event {
 		}
 
 		$node_id            = $this->get_node_id();
-		$recurrence         = $this->get_data()->recurrence;
 		$network_donor_data = \Newspack\Reader_Data::get_data( $existing_user->ID, 'network_donor' );
 
 		if ( $network_donor_data ) {
@@ -47,9 +46,9 @@ class Donation_New extends Abstract_Incoming_Event {
 		if ( ! isset( $network_donor_data[ $node_id ] ) ) {
 			$network_donor_data[ $node_id ] = [];
 		}
-		$network_donor_data[ $node_id ][ $this->get_timestamp() ] = $recurrence;
+		$network_donor_data[ $node_id ][ $this->get_timestamp() ] = 'subscription_cancelled';
 		\Newspack\Reader_Data::update_item( $existing_user->ID, 'network_donor', wp_json_encode( $network_donor_data ) );
-		Debugger::log( 'Updated ' . $email . ' network donor status with "' . $recurrence . '" for node ' . $node_id );
+		Debugger::log( 'Updated ' . $email . ' network donor status with "subscription_cancelled" for node ' . $node_id );
 	}
 
 }

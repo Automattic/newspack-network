@@ -33,6 +33,7 @@ class Accepted_Actions {
 		'newspack_node_subscription_changed' => 'Subscription_Changed',
 		'canonical_url_updated'              => 'Canonical_Url_Updated',
 		'donation_new'                       => 'Donation_New',
+		'donation_subscription_cancelled'    => 'Donation_Subscription_Cancelled',
 	];
 
 	/**
@@ -46,5 +47,6 @@ class Accepted_Actions {
 		'reader_registered',
 		'canonical_url_updated',
 		'donation_new',
+		'donation_subscription_cancelled',
 	];
 }
