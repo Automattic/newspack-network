@@ -31,8 +31,20 @@ class Donation_Subscription_Cancelled extends Abstract_Incoming_Event {
 		$existing_user = get_user_by( 'email', $email );
 
 		if ( ! $existing_user ) {
-			Debugger::log( 'User not found' );
-			return;
+			// Create user.
+			$user_id = wp_insert_user(
+				[
+					'user_email' => $email,
+					'user_login' => $email,
+					'user_pass'  => wp_generate_password(),
+					'role'       => NEWSPACK_NETWORK_READER_ROLE,
+				]
+			);
+			if ( is_wp_error( $user_id ) ) {
+				Debugger::log( 'Error creating user: ' . $user_id->get_error_message() );
+				return;
+			}
+			$existing_user = get_user_by( 'id', $user_id );
 		}
 
 		$node_id            = $this->get_node_id();
