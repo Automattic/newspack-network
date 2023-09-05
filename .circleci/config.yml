@@ -3,22 +3,35 @@ version: 2.1
 orbs:
   newspack: newspack/newspack@1.4.4
 
+commands:
+  checkout_code:
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:16.11.1
+    steps:
+      - checkout_code
+      - run:
+          name: Install dependencies
+          command: npm start
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
+
 workflows:
   version: 2
   all:
     jobs:
-      - newspack/build
-      - newspack/build-distributable:
-          requires:
-            - newspack/build
-          archive-name: 'newspack-network'
-          filters:
-            branches:
-              only:
-                - master
+      - build
       - newspack/release:
           requires:
-            - newspack/build
+            - build
           filters:
             branches:
               only:
