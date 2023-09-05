@@ -47,7 +47,7 @@ class Donation_Subscription_Cancelled extends Abstract_Incoming_Event {
 			$existing_user = get_user_by( 'id', $user_id );
 		}
 
-		$node_id            = $this->get_node_id();
+		$node               = $this->get_site();
 		$network_donor_data = \Newspack\Reader_Data::get_data( $existing_user->ID, 'network_donor' );
 
 		if ( $network_donor_data ) {
@@ -55,12 +55,12 @@ class Donation_Subscription_Cancelled extends Abstract_Incoming_Event {
 		} else {
 			$network_donor_data = [];
 		}
-		if ( ! isset( $network_donor_data[ $node_id ] ) ) {
-			$network_donor_data[ $node_id ] = [];
+		if ( ! isset( $network_donor_data[ $node ] ) ) {
+			$network_donor_data[ $node ] = [];
 		}
-		$network_donor_data[ $node_id ][ $this->get_timestamp() ] = 'subscription_cancelled';
+		$network_donor_data[ $node ][ $this->get_timestamp() ] = 'subscription_cancelled';
 		\Newspack\Reader_Data::update_item( $existing_user->ID, 'network_donor', wp_json_encode( $network_donor_data ) );
-		Debugger::log( 'Updated ' . $email . ' network donor status with "subscription_cancelled" for node ' . $node_id );
+		Debugger::log( 'Updated ' . $email . ' network donor status with "subscription_cancelled" for node ' . $node );
 	}
 
 }
