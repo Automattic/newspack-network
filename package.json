@@ -9,10 +9,7 @@
 	"scripts": {
 		"cm": "git-cz",
 		"semantic-release": "newspack-scripts release --files=newspack-network.php",
-		"build": "newspack-scripts build",
-		"start": "npm ci && newspack-scripts watch",
-		"watch": "newspack-scripts watch",
-		"test": "newspack-scripts test",
+		"start": "npm ci",
 		"lint:php": "./vendor/bin/phpcs .",
 		"format:php": "./vendor/bin/phpcbf .",
 		"lint:php:staged": "./vendor/bin/phpcs",
