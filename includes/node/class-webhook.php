@@ -7,6 +7,7 @@
 
 namespace Newspack_Network\Node;
 
+use Newspack_Network\Accepted_Actions;
 use Newspack_Network\Crypto;
 use Newspack\Data_Events\Webhooks as Newspack_Webhooks;
 
@@ -48,12 +49,7 @@ class Webhook {
 		if ( ! class_exists( 'Newspack\Data_Events\Webhooks' ) || ! method_exists( 'Newspack\Data_Events\Webhooks', 'register_system_endpoint' ) ) {
 			return;
 		}
-		$events = [
-			'reader_registered',
-			'newspack_node_order_changed',
-			'newspack_node_subscription_changed',
-		];
-		Newspack_Webhooks::register_system_endpoint( self::ENDPOINT_ID, self::get_url(), $events );
+		Newspack_Webhooks::register_system_endpoint( self::ENDPOINT_ID, self::get_url(), array_keys( Accepted_Actions::ACTIONS ) );
 	}
 
 	/**
