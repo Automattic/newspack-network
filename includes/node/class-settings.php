@@ -18,7 +18,7 @@ class Settings {
 	 * The setting section constant
 	 */
 	const SETTINGS_SECTION = 'newspack_node_settings';
-	
+
 	/**
 	 * The admin page slug
 	 */
@@ -59,7 +59,7 @@ class Settings {
 	 * @return void
 	 */
 	public static function add_menu() {
-		Admin::add_submenu_page( __( 'Node Settings', 'newspack-network-node' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
+		Admin::add_submenu_page( __( 'Node Settings', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
 	}
 
 	/**
@@ -85,7 +85,7 @@ class Settings {
 
 		add_settings_section(
 			self::SETTINGS_SECTION,
-			esc_html__( 'Newspack Network Node Settings', 'newspack-network-node' ),
+			esc_html__( 'Newspack Network Node Settings', 'newspack-network' ),
 			[ __CLASS__, 'section_callback' ],
 			self::PAGE_SLUG
 		);
@@ -93,7 +93,7 @@ class Settings {
 		$settings = [
 			[
 				'key'      => 'newspack_node_hub_url',
-				'label'    => esc_html__( 'Hub URL', 'newspack-network-node' ),
+				'label'    => esc_html__( 'Hub URL', 'newspack-network' ),
 				'callback' => [ __CLASS__, 'hub_url_callback' ],
 				'args'     => [
 					'sanitize_callback' => [ __CLASS__, 'sanitize_hub_url' ],
@@ -101,7 +101,7 @@ class Settings {
 			],
 			[
 				'key'      => 'newspack_node_secret',
-				'label'    => esc_html__( 'Secret key', 'newspack-network-node' ),
+				'label'    => esc_html__( 'Secret key', 'newspack-network' ),
 				'callback' => [ __CLASS__, 'secret_key_callback' ],
 				'args'     => [
 					'sanitize_callback' => [ __CLASS__, 'sanitize_secret_key' ],
@@ -177,7 +177,7 @@ class Settings {
 			add_settings_error(
 				'newspack_node_hub_url',
 				'newspack_node_hub_url',
-				__( 'The URL is not valid.', 'newspack-network-node' )
+				__( 'The URL is not valid.', 'newspack-network' )
 			);
 			return false;
 		}
@@ -197,7 +197,7 @@ class Settings {
 			add_settings_error(
 				'newspack_node_secret_key',
 				'newspack_node_secret_key',
-				__( 'Invalid Secret key:', 'newspack-network-node' ) . ' ' . $signed->get_error_message()
+				__( 'Invalid Secret key:', 'newspack-network' ) . ' ' . $signed->get_error_message()
 			);
 			return false;
 		}
@@ -214,7 +214,7 @@ class Settings {
 		<div class='wrap'>
 			<?php settings_errors(); ?>
 			<form method='post' action='options.php'>
-			<?php 
+			<?php
 				do_settings_sections( self::PAGE_SLUG );
 				settings_fields( self::SETTINGS_SECTION );
 			?>
@@ -222,7 +222,43 @@ class Settings {
 						<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Save Changes' ); ?>' />
 				</p>
 			</form>
+			<hr />
+			<?php self::render_debug_tools(); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Renders the debug tools.
+	 *
+	 * @return void
+	 */
+	private static function render_debug_tools() {
+		$icon          = '❌';
+		$error_message = Pulling::get_last_error_message();
+		if ( empty( $error_message ) ) {
+			$icon          = '✅';
+			$error_message = __( 'No recent errors.', 'newspack-network' );
+		}
+		?>
+		<h2><?php esc_html_e( 'Debug Tools', 'newspack-network' ); ?></h2>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th scope="row"><?php _e( 'Last Processed Item ID', 'newspack-network' ); ?></th>
+					<td><code><?php echo esc_html( Pulling::get_last_processed_id() ); ?></code></td>
+				</tr>
+				<tr>
+					<th scope="row"><?php _e( 'Last Error From Server', 'newspack-network' ); ?></th>
+					<td><?php echo esc_html( $icon ); ?> <?php echo esc_html( $error_message ); ?></td>
+				</tr>
+			</tbody>
+		</table>
+		<form method="post">
+			<?php wp_nonce_field( Pulling::MANUAL_PULL_ACTION_NAME ); ?>
+			<input type="hidden" name="action" value="<?php echo esc_attr( Pulling::MANUAL_PULL_ACTION_NAME ); ?>">
+			<button class="button"><?php esc_html_e( 'Synchronize data', 'newspack-network' ); ?></button>
+		</form>
 		<?php
 	}
 
