@@ -18,6 +18,7 @@ class Distributor_Customizations {
 	 * @return void
 	 */
 	public static function init() {
+		require_once NEWSPACK_NETWORK_PLUGIN_DIR . '/includes/distributor-customizations/global.php';
 		Distributor_Customizations\Canonical_Url::init();
 	}
 
