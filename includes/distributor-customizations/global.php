@@ -16,8 +16,8 @@
 add_filter(
 	'dt_push_post_args',
 	function( $post_body, $post ) {
-		$post_body['post_date'] = $post->post_date;
-
+		$post_body['date']     = $post->post_date;
+		$post_body['date_gmt'] = $post->post_date_gmt;
 		return $post_body;
 	},
 	10,
@@ -31,9 +31,9 @@ add_filter(
 add_filter(
 	'dt_pull_post_args',
 	function( $post_array, $remote_id, $post ) {
-		$post_array['post_date'] = $post->post_date;
-
-		return $post_body;
+		$post_array['post_date']     = $post->post_date;
+		$post_array['post_date_gmt'] = $post->post_date_gmt;
+		return $post_array;
 	},
 	10,
 	3
