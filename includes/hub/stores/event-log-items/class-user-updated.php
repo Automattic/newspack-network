@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Author Updated Log Item
+ * Newspack User Updated Log Item
  *
  * @package Newspack
  */
@@ -10,9 +10,9 @@ namespace Newspack_Network\Hub\Stores\Event_Log_Items;
 use Newspack_Network\Hub\Stores\Abstract_Event_Log_Item;
 
 /**
- * Class to handle the Author Updated Log Item
+ * Class to handle the User Updated Log Item
  */
-class Author_Updated extends Abstract_Event_Log_Item {
+class User_Updated extends Abstract_Event_Log_Item {
 
 	/**
 	 * Gets a summary for this event

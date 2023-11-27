@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Network watcher for updates on authors' information
+ * Newspack Network watcher for updates on user' information
  *
  * @package Newspack
  */
@@ -8,24 +8,24 @@
 namespace Newspack_Network;
 
 /**
- * Class to handle the plugin admin pages
+ * Class to watch the user for updates and trigger events
  */
-class Author_Update_Watcher {
+class User_Update_Watcher {
 
 	/**
-	 * Flag to indicate if the processing of the author updated event is in progress.
+	 * Flag to indicate if the processing of the user updated event is in progress.
 	 * If true, this class won't fire any events to avoid an infinite loop in author updates.
 	 *
 	 * @var boolean
 	 */
-	public static $processing_author_updated_event = false;
+	public static $processing_user_updated_event = false;
 
 	/**
-	 * Holds information about the authors that were updated in this request, if any.
+	 * Holds information about the users that were updated in this request, if any.
 	 *
 	 * @var array
 	 */
-	public static $updated_authors = [];
+	public static $updated_users = [];
 
 	/**
 	 * The metadata we're watching and syncing.
@@ -94,10 +94,10 @@ class Author_Update_Watcher {
 	 * @return void
 	 */
 	private static function add_change( $user_id, $type, $key, $value ) {
-		if ( ! isset( self::$updated_authors[ $user_id ] ) ) {
+		if ( ! isset( self::$updated_users[ $user_id ] ) ) {
 			$user = get_userdata( $user_id );
 			if ( $user ) {
-				self::$updated_authors[ $user_id ] = [
+				self::$updated_users[ $user_id ] = [
 					'email' => $user->user_email,
 				];
 			} else {
@@ -105,13 +105,13 @@ class Author_Update_Watcher {
 			}
 		}
 
-		if ( ! isset( self::$updated_authors[ $user_id ][ $type ] ) ) {
-			self::$updated_authors[ $user_id ][ $type ] = [];
+		if ( ! isset( self::$updated_users[ $user_id ][ $type ] ) ) {
+			self::$updated_users[ $user_id ][ $type ] = [];
 		}
 
-		Debugger::log( 'Author update detected for ' . self::$updated_authors[ $user_id ]['email'] . ": $type: $key" );
+		Debugger::log( 'Author update detected for ' . self::$updated_users[ $user_id ]['email'] . ": $type: $key" );
 
-		self::$updated_authors[ $user_id ][ $type ][ $key ] = $value;
+		self::$updated_users[ $user_id ][ $type ][ $key ] = $value;
 	}
 
 	/**
@@ -124,7 +124,7 @@ class Author_Update_Watcher {
 	 * @return void
 	 */
 	public static function update_user_meta( $meta_id, $user_id, $meta_key, $meta_value ) {
-		if ( self::$processing_author_updated_event ) {
+		if ( self::$processing_user_updated_event ) {
 			return;
 		}
 
@@ -142,7 +142,7 @@ class Author_Update_Watcher {
 	 * @return void
 	 */
 	public static function profile_update( $user_id, $old_user_data, $user_data ) {
-		if ( self::$processing_author_updated_event ) {
+		if ( self::$processing_user_updated_event ) {
 			return;
 		}
 
@@ -159,11 +159,11 @@ class Author_Update_Watcher {
 	 * @return void
 	 */
 	public static function maybe_trigger_event() {
-		if ( self::$processing_author_updated_event ) {
+		if ( self::$processing_user_updated_event ) {
 			return;
 		}
-		foreach ( self::$updated_authors as $author ) {
-			do_action( 'newspack_network_author_updated', $author );
+		foreach ( self::$updated_users as $author ) {
+			do_action( 'newspack_network_user_updated', $author );
 		}
 	}
 

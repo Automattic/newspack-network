@@ -1,21 +1,21 @@
 <?php
 /**
- * Newspack Author Updated Incoming Event class
+ * Newspack User Updated Incoming Event class
  *
  * @package Newspack
  */
 
 namespace Newspack_Network\Incoming_Events;
 
-use Newspack_Network\Author_Update_Watcher;
+use Newspack_Network\User_Update_Watcher;
 use Newspack_Network\Debugger;
 
 /**
- * Class to handle the Canonical Url Updated Event
+ * Class to handle the User Updated Event
  *
  * This event is always sent from the Hub and received by Nodes.
  */
-class Author_Updated extends Abstract_Incoming_Event {
+class User_Updated extends Abstract_Incoming_Event {
 
 	/**
 	 * Processes the event
@@ -42,7 +42,7 @@ class Author_Updated extends Abstract_Incoming_Event {
 	 */
 	public function maybe_update_user() {
 		$email = $this->get_email();
-		Debugger::log( 'Processing author_updated with email: ' . $email );
+		Debugger::log( 'Processing user_updated with email: ' . $email );
 		if ( ! $email ) {
 			return;
 		}
@@ -53,7 +53,7 @@ class Author_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
-		Author_Update_Watcher::$processing_author_updated_event = true;
+		User_Update_Watcher::$processing_user_updated_event = true;
 
 		$data = $this->get_data();
 
