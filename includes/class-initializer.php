@@ -41,6 +41,7 @@ class Initializer {
 		Data_Listeners::init();
 		Reader_Roles_Filter::init();
 		User_Update_Watcher::init();
+		GAM::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
