@@ -64,7 +64,8 @@ class Author_Updated extends Abstract_Incoming_Event {
 			foreach ( $data->prop as $prop_key => $prop_value ) {
 				$update_array[ $prop_key ] = $prop_value;
 			}
-			Debugger::log( 'Updating user with data: ' . print_r( $update_array, true ) );
+			Debugger::log( 'Updating user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+
 			wp_update_user( $update_array );
 		}
 
