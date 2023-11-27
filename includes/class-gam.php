@@ -2,6 +2,9 @@
 /**
  * Newspack Ads GAM Integration.
  *
+ * Implements support for custom targeting key-val pairs for each site in the
+ * network. The ad slots are then targeted to the site's URL.
+ *
  * @package Newspack
  */
 
