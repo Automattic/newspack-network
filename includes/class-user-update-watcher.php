@@ -46,6 +46,8 @@ class User_Update_Watcher {
 		'wikipedia',
 
 		// Core bio.
+		'first_name',
+		'last_name',
 		'description',
 
 		// Newspack.
