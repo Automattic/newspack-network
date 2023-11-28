@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Network watcher for updates on user' information
+ * Newspack Network watcher for updates on users' information
  *
  * @package Newspack
  */
