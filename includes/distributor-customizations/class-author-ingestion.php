@@ -18,12 +18,21 @@ use Newspack_Network\Debugger;
 class Author_Ingestion {
 
 	/**
+	 * Array of authors from pulled posts. See self::capture_authorship.
+	 *
+	 * @var array
+	 */
+	private static $pulled_posts = [];
+
+	/**
 	 * Initializes the class
 	 *
 	 * @return void
 	 */
 	public static function init() {
 		add_action( 'rest_insert_post', [ __CLASS__, 'handle_rest_insertion' ], 10, 2 );
+		add_filter( 'dt_item_mapping', [ __CLASS__, 'capture_authorship' ], 10, 2 );
+		add_action( 'dt_pull_post', [ __CLASS__, 'handle_pull' ] );
 	}
 
 	/**
@@ -55,15 +64,28 @@ class Author_Ingestion {
 			return;
 		}
 
+		self::ingest_authors_for_post( $post->ID, $distributed_authors );
+	}
+
+	/**
+	 * Ingest authors for a post distribubted to this site
+	 *
+	 * @param int   $post_id The post ID.
+	 * @param array $distributed_authors The distributed authors array.
+	 * @return void
+	 */
+	public static function ingest_authors_for_post( $post_id, $distributed_authors ) {
+
 		Debugger::log( 'Ingesting authors from distributed post.' );
 
-		update_post_meta( $post->ID, 'newspack_network_authors', $distributed_authors );
+		update_post_meta( $post_id, 'newspack_network_authors', $distributed_authors );
 
 		$coauthors_plus = self::get_coauthors_plus();
 		$coauthors      = [];
 
 		foreach ( $distributed_authors as $author ) {
-			if ( 'wp_user' != $author['type'] ) {
+			// We only ingest WP Users. Guest authors are only stored in the newspack_network_authors post meta.
+			if ( empty( $author['type'] ) || 'wp_user' != $author['type'] ) {
 				continue;
 			}
 
@@ -75,7 +97,7 @@ class Author_Ingestion {
 				continue;
 			}
 
-			update_user_meta( $user->ID, 'newspack_remote_site', get_post_meta( $post->ID, 'dt_original_site_url', true ) );
+			update_user_meta( $user->ID, 'newspack_remote_site', get_post_meta( $post_id, 'dt_original_site_url', true ) );
 			update_user_meta( $user->ID, 'newspack_remote_id', $author['id'] );
 
 			foreach ( Author_Distribution::$watched_meta as $meta_key ) {
@@ -88,7 +110,7 @@ class Author_Ingestion {
 			if ( ! $coauthors_plus ) {
 				wp_update_post(
 					[
-						'ID'          => $post->ID,
+						'ID'          => $post_id,
 						'post_author' => $user->ID,
 					]
 				);
@@ -99,8 +121,46 @@ class Author_Ingestion {
 		}
 
 		if ( $coauthors_plus ) {
-			$coauthors_plus->add_coauthors( $post->ID, $coauthors );
+			$coauthors_plus->add_coauthors( $post_id, $coauthors );
 		}
+
+	}
+
+	/**
+	 * Captures and stores the authorship data for a post
+	 *
+	 * Distributor discards the additional data we send in the REST request, so we need to capture it here
+	 * for later use in self::add_author_data_to_pull
+	 *
+	 * @param WP_Post $post The post object being pulled.
+	 * @param array   $post_array The post array received from the REST api.
+	 * @return WP_Post
+	 */
+	public static function capture_authorship( $post, $post_array ) {
+		Debugger::log( 'Trying to capture authorship for post ' . $post->ID );
+		if ( empty( $post_array['newspack_network_authors'] ) ) {
+			return $post;
+		}
+		Debugger::log( 'Capturing authorship for post ' . $post->ID );
+		self::$pulled_posts[ $post->ID ] = $post_array['newspack_network_authors'];
+		return $post;
+	}
+
+	/**
+	 * Triggered when a post is pulled from a remote site.
+	 *
+	 * @param int $post_id The pulled post ID.
+	 * @return void
+	 */
+	public static function handle_pull( $post_id ) {
+		$remote_id = get_post_meta( $post_id, 'dt_original_post_id', true );
+		if ( ! $remote_id || empty( self::$pulled_posts[ $remote_id ] ) ) {
+			return;
+		}
+
+		$distributed_authors = self::$pulled_posts[ $remote_id ];
+
+		self::ingest_authors_for_post( $post_id, $distributed_authors );
 
 	}
 

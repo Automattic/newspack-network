@@ -74,6 +74,7 @@ class Author_Distribution {
 	 */
 	public static function init() {
 		add_filter( 'dt_push_post_args', [ __CLASS__, 'add_author_data_to_push' ], 10, 2 );
+		add_filter( 'rest_prepare_post', [ __CLASS__, 'add_author_data_to_pull' ], 10, 3 );
 	}
 
 	/**
@@ -89,6 +90,37 @@ class Author_Distribution {
 			$post_body['newspack_network_authors'] = $authors;
 		}
 		return $post_body;
+	}
+
+	/**
+	 * Filters the post data for a REST API response.
+	 *
+	 * This acts on requests made to pull a post from this site.
+	 *
+	 * @param WP_REST_Response $response The response object.
+	 * @param WP_Post          $post     Post object.
+	 * @param WP_REST_Request  $request  Request object.
+	 */
+	public static function add_author_data_to_pull( $response, $post, $request ) {
+		if (
+			empty( $request->get_param( 'distributor_request' ) ) ||
+			'GET' !== $request->get_method() ||
+			'edit' !== $request->get_param( 'context' ) ||
+			empty( $request->get_param( 'id' ) )
+		) {
+			return $response;
+		}
+
+		$authors = self::get_authors_for_distribution( $post );
+
+		if ( ! empty( $authors ) ) {
+			$data                             = $response->get_data();
+			$data['newspack_network_authors'] = $authors;
+			$response->set_data( $data );
+		}
+
+		return $response;
+
 	}
 
 	/**
