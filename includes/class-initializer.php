@@ -26,6 +26,7 @@ class Initializer {
 			Hub\Event_Listeners::init();
 			Hub\Database\Subscriptions::init();
 			Hub\Database\Orders::init();
+			Hub\Newspack_Ads_GAM::init();
 		}
 
 		if ( Site_Role::is_node() ) {
@@ -40,7 +41,6 @@ class Initializer {
 		Data_Listeners::init();
 		Reader_Roles_Filter::init();
 		Distributor_Customizations::init();
-		GAM::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
