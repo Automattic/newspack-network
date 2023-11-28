@@ -22,19 +22,22 @@ class Event_Log {
 	/**
 	 * Get event log items
 	 *
-	 * @param array $args See {@see self::build_where_clause()} for supported arguments.
-	 * @param int   $per_page Number of items to return per page.
-	 * @param int   $page Page number to return.
+	 * @param array  $args See {@see self::build_where_clause()} for supported arguments.
+	 * @param int    $per_page Number of items to return per page.
+	 * @param int    $page Page number to return.
+	 * @param string $order Order to return the items in. ASC or DESC.
 	 * @return Abstract_Event_Log_Item[]
 	 */
-	public static function get( $args, $per_page = 10, $page = 1 ) {
+	public static function get( $args, $per_page = 10, $page = 1, $order = 'DESC' ) {
 		global $wpdb;
 
 		$offset = ( $page - 1 ) * $per_page;
 
 		$table_name = Database::get_table_name();
 
-		$query = $wpdb->prepare( "SELECT * FROM $table_name WHERE 1=1 [args] ORDER BY ID DESC LIMIT %d OFFSET %d", $per_page, $offset ); //phpcs:ignore
+		$order_string = "ORDER BY ID $order";
+
+		$query = $wpdb->prepare( "SELECT * FROM $table_name WHERE 1=1 [args] $order_string LIMIT %d OFFSET %d", $per_page, $offset ); //phpcs:ignore
 
 		$query = str_replace( '[args]', self::build_where_clause( $args ), $query );
 
@@ -83,13 +86,13 @@ class Event_Log {
 	 * @param array $args See {@see self::build_where_clause()} for supported arguments.
 	 * @return int
 	 */
-	public static function get_total_items( $args ) { 
+	public static function get_total_items( $args ) {
 		global $wpdb;
 		$table_name = Database::get_table_name();
 		$query      = "SELECT COUNT(*) FROM $table_name WHERE 1=1 [args]";
 		$query      = str_replace( '[args]', self::build_where_clause( $args ), $query );
 		$result     = $wpdb->get_var( $query ); //phpcs:ignore
-		return $result; 
+		return $result;
 	}
 
 	/**
@@ -97,7 +100,7 @@ class Event_Log {
 	 *
 	 * @param array $args {
 	 *      The query arguments. Supported arguments are below.
-	 * 
+	 *
 	 *      @type string $search Search string to search for in the event log. It will search in the email, action_name and data fields.
 	 *      @type int $node_id The ID of the node to filter by.
 	 *      @type int $excluded_node_id The ID of the node to exclude from results.
@@ -158,7 +161,7 @@ class Event_Log {
 		}
 		return $where;
 	}
-	
+
 	/**
 	 * Persists an event to the database
 	 *
