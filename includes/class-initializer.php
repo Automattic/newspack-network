@@ -33,13 +33,13 @@ class Initializer {
 			if ( Node\Settings::get_hub_url() ) {
 				Node\Webhook::init();
 				Node\Pulling::init();
-				Node\Canonical_Url::init();
 				Rest_Authenticaton::init_node_filters();
 			}
 		}
 
 		Data_Listeners::init();
 		Reader_Roles_Filter::init();
+		Distributor_Customizations::init();
 		GAM::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
