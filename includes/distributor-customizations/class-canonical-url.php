@@ -5,7 +5,7 @@
  * @package Newspack
  */
 
-namespace Newspack_Network\Node;
+namespace Newspack_Network\Distributor_Customizations;
 
 use Newspack\Data_Events;
 
@@ -13,7 +13,7 @@ use Newspack\Data_Events;
  * Class to filter the Distributor Canonical URLs based on information received from the Hub.
  */
 class Canonical_Url {
-	
+
 	const OPTION_NAME = 'newspack_network_canonical_url';
 
 	/**
