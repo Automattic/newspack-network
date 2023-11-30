@@ -52,6 +52,15 @@ class Node {
 	}
 
 	/**
+	 * Returns the Node's name
+	 *
+	 * @return ?string
+	 */
+	public function get_name() {
+		return $this->post->post_title ?? $this->get_url();
+	}
+
+	/**
 	 * Returns the Node's URL
 	 *
 	 * @return ?string

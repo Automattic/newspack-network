@@ -24,6 +24,7 @@ class Nodes_List {
 		add_filter( 'manage_' . Nodes::POST_TYPE_SLUG . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
 		add_action( 'manage_' . Nodes::POST_TYPE_SLUG . '_posts_custom_column', [ __CLASS__, 'posts_columns_values' ], 10, 2 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
+		add_action( 'admin_bar_menu', [ __CLASS__, 'admin_bar_menu' ], 100 );
 	}
 
 	/**
@@ -87,6 +88,37 @@ class Nodes_List {
 			[],
 			filemtime( NEWSPACK_NETWORK_PLUGIN_DIR . '/includes/hub/admin/css/nodes-list.css' )
 		);
+	}
+
+	/**
+	 * Adds the nodes and their bookmarks to the Admin Bar menu
+	 *
+	 * @param \WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+	 * @return void
+	 */
+	public static function admin_bar_menu( $wp_admin_bar ) {
+		$nodes = Nodes::get_all_nodes();
+		foreach ( $nodes as $node ) {
+			$item_id = 'node-' . $node->get_id();
+			$args    = [
+				'id'     => $item_id,
+				'title'  => $node->get_name(),
+				'href'   => false,
+				'parent' => 'site-name',
+			];
+			$wp_admin_bar->add_node( $args );
+
+			foreach ( $node->get_bookmarks() as $bookmark ) {
+				$sub_item_id = $item_id . '-' . sanitize_title( $bookmark['label'] );
+				$args        = [
+					'id'     => $sub_item_id,
+					'title'  => $bookmark['label'],
+					'href'   => $bookmark['url'],
+					'parent' => $item_id,
+				];
+				$wp_admin_bar->add_node( $args );
+			}
+		}
 	}
 
 }
