@@ -113,12 +113,15 @@ class Admin {
 	 * @return void
 	 */
 	public static function add_admin_menu() {
+		$icon        = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjE4cHgiIGhlaWdodD0iNjE4cHgiIHZpZXdCb3g9IjAgMCA2MTggNjE4IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPgogICAgPGcgaWQ9IlBhZ2UtMSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBhdGggZD0iTTMwOSwwIEM0NzkuNjU2NDk1LDAgNjE4LDEzOC4zNDQyOTMgNjE4LDMwOS4wMDE3NTkgQzYxOCw0NzkuNjU5MjI2IDQ3OS42NTY0OTUsNjE4IDMwOSw2MTggQzEzOC4zNDM1MDUsNjE4IDAsNDc5LjY1OTIyNiAwLDMwOS4wMDE3NTkgQzAsMTM4LjM0NDI5MyAxMzguMzQzNTA1LDAgMzA5LDAgWiBNMTc0LDE3MSBMMTc0LDI2Mi42NzEzNTYgTDE3NS4zMDUsMjY0IEwxNzQsMjY0IEwxNzQsNDQ2IEwyNDEsNDQ2IEwyNDEsMzMwLjkxMyBMMzUzLjk5Mjk2Miw0NDYgTDQ0NCw0NDYgTDE3NCwxNzEgWiBNNDQ0LDI5OSBMMzg5LDI5OSBMNDEwLjQ3NzYxLDMyMSBMNDQ0LDMyMSBMNDQ0LDI5OSBaIE00NDQsMjM1IEwzMjcsMjM1IEwzNDguMjQ1OTE5LDI1NyBMNDQ0LDI1NyBMNDQ0LDIzNSBaIE00NDQsMTcxIEwyNjQsMTcxIEwyODUuMjkwNTEyLDE5MyBMNDQ0LDE5MyBMNDQ0LDE3MSBaIiBpZD0iQ29tYmluZWQtU2hhcGUiIGZpbGw9IiMyQTdERTEiPjwvcGF0aD4KICAgIDwvZz4KPC9zdmc+';
 		$page_suffix = add_menu_page(
 			__( 'Newspack Network', 'newspack-network' ),
 			__( 'Newspack Network', 'newspack-network' ),
 			'manage_options',
 			self::PAGE_SLUG,
-			array( __CLASS__, 'render_page' )
+			array( __CLASS__, 'render_page' ),
+			$icon,
+			4
 		);
 
 		self::add_submenu_page( __( 'Site Role', 'newspack-network' ), self::PAGE_SLUG, array( __CLASS__, 'render_page' ) );
@@ -155,7 +158,7 @@ class Admin {
 		<div class='wrap'>
 			<?php settings_errors(); ?>
 			<form method='post' action='options.php'>
-			<?php 
+			<?php
 				do_settings_sections( self::PAGE_SLUG );
 				settings_fields( self::SETTINGS_SECTION );
 			?>
@@ -182,7 +185,7 @@ class Admin {
 	 * @return void
 	 */
 	public static function enqueue_scripts() {
-		
+
 	}
 
 }
