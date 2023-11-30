@@ -50,7 +50,7 @@ class Node {
 			return $this->post->ID;
 		}
 	}
-	
+
 	/**
 	 * Returns the Node's URL
 	 *
@@ -88,5 +88,47 @@ class Node {
 	 */
 	public function decrypt_message( $message, $nonce ) {
 		return Crypto::decrypt_message( $message, $this->get_secret_key(), $nonce );
+	}
+
+	/**
+	 * Gets a collection of bookmarks for this Node
+	 *
+	 * @return array
+	 */
+	public function get_bookmarks() {
+
+		$base_url = trailingslashit( $this->get_url() );
+
+		return [
+			[
+				'label' => __( 'Dashboard', 'newspack-network' ),
+				'url'   => $base_url . 'wp-admin/',
+			],
+			[
+				'label' => 'Newspack',
+				'url'   => $base_url . 'wp-admin?page=newspack',
+			],
+			[
+				'label' => 'Woocommerce',
+				'url'   => $base_url . 'wp-admin?page=wc-admin',
+			],
+			[
+				'label' => __( 'Posts', 'newspack-network' ),
+				'url'   => $base_url . 'wp-admin/edit.php',
+			],
+			[
+				'label' => __( 'Users', 'newspack-network' ),
+				'url'   => $base_url . 'wp-admin/users.php',
+			],
+			[
+				'label' => __( 'Plugins', 'newspack-network' ),
+				'url'   => $base_url . 'wp-admin/plugins.php',
+			],
+			[
+				'label' => __( 'Settings', 'newspack-network' ),
+				'url'   => $base_url . 'wp-admin/options-general.php',
+			],
+		];
+
 	}
 }
