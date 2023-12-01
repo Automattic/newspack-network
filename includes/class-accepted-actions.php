@@ -34,6 +34,7 @@ class Accepted_Actions {
 		'canonical_url_updated'              => 'Canonical_Url_Updated',
 		'donation_new'                       => 'Donation_New',
 		'donation_subscription_cancelled'    => 'Donation_Subscription_Cancelled',
+		'network_user_updated'               => 'User_Updated',
 	];
 
 	/**
@@ -48,5 +49,6 @@ class Accepted_Actions {
 		'canonical_url_updated',
 		'donation_new',
 		'donation_subscription_cancelled',
+		'network_user_updated',
 	];
 }

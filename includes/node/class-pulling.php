@@ -24,11 +24,23 @@ class Pulling {
 	const PULL_INTERVAL = 60 * 5; // 5 minutes
 
 	/**
-	 * The option name that stores the ID of the last processed event
+	 * The option name that stores the ID of the last processed event.
 	 *
 	 * @var string
 	 */
 	const LAST_PROCESSED_EVENT_OPTION_NAME = 'newspack_node_last_processed_action';
+
+	/**
+	 * The option name that stores the last error information.
+	 *
+	 * @var string
+	 */
+	const LAST_ERROR_OPTION_NAME = 'newspack_node_last_pull_error';
+
+	/**
+	 * The name of the manual pull action.
+	 */
+	const MANUAL_PULL_ACTION_NAME = 'newspack_node_pull';
 
 	/**
 	 * Initialize hooks.
@@ -36,6 +48,7 @@ class Pulling {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_cron_events' ] );
 		add_filter( 'cron_schedules', [ __CLASS__, 'add_cron_schedule' ] ); // phpcs:ignore
+		add_action( 'admin_init', [ __CLASS__, 'process_manual_pull' ] );
 	}
 
 	/**
@@ -44,7 +57,7 @@ class Pulling {
 	 * @param array $schedules The Cron schedules.
 	 * @return array
 	 */
-	public static function add_cron_schedule( $schedules ) { 
+	public static function add_cron_schedule( $schedules ) {
 		// translators: %d is the number of seconds.
 		$display                                     = sprintf( __( 'Newspack Network Pull Interval: %d seconds', 'newspack-network' ), self::PULL_INTERVAL );
 		$schedules['newspack_network_pull_interval'] = array(
@@ -63,6 +76,40 @@ class Pulling {
 		if ( ! wp_next_scheduled( $hook ) ) {
 			wp_schedule_event( time(), 'newspack_network_pull_interval', $hook );
 		}
+	}
+
+	/**
+	 * Process manual pull request.
+	 */
+	public static function process_manual_pull() {
+		$action = self::MANUAL_PULL_ACTION_NAME;
+
+		if ( isset( $_GET['update'] ) && $action === $_GET['update'] ) {
+			$error_message = self::get_last_error_message();
+			add_action(
+				'admin_notices',
+				function() use ( $error_message ) {
+					$message = $error_message ? $error_message : esc_html__( 'Latest data pulled successfully.', 'newspack-network' );
+					$status  = $error_message ? 'error' : 'updated';
+					?>
+					<div id="message" class="<?php echo esc_attr( $status ); ?> notice is-dismissible"><p><?php echo esc_html( $message ); ?></p></div>
+					<?php
+				}
+			);
+		}
+
+		if ( ! isset( $_REQUEST['action'] ) || $action !== $_REQUEST['action'] ) {
+			return;
+		}
+		if ( ! \check_admin_referer( $action ) ) {
+			\wp_die( \esc_html__( 'Invalid request.', 'newspack' ) );
+		}
+
+		self::pull();
+
+		$redirect = \add_query_arg( [ 'update' => $action ], \remove_query_arg( [ 'action', 'uid', '_wpnonce', '_wp_http_referer' ] ) );
+		\wp_safe_redirect( $redirect );
+		exit;
 	}
 
 	/**
@@ -126,7 +173,7 @@ class Pulling {
 			$url,
 			[
 				'body' => $params,
-			] 
+			]
 		);
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -136,6 +183,26 @@ class Pulling {
 			return new \WP_Error( 'newspack-network-node-pulling-error', __( 'Error pulling data from the Hub', 'newspack-network-node' ) );
 		}
 		return wp_remote_retrieve_body( $response );
+	}
+
+	/**
+	 * Handles an error response from the Hub
+	 *
+	 * @param \WP_Error $error The error object.
+	 *
+	 * @return void
+	 */
+	private static function handle_error( $error ) {
+		Debugger::log( 'Error pulling data' );
+		Debugger::log( $error->get_error_message() );
+		update_option( self::LAST_ERROR_OPTION_NAME, $error->get_error_message() );
+	}
+
+	/**
+	 * Retrieve the last error message.
+	 */
+	public static function get_last_error_message() {
+		return get_option( self::LAST_ERROR_OPTION_NAME, '' );
 	}
 
 	/**
@@ -149,9 +216,10 @@ class Pulling {
 		Debugger::log( 'Pulled data response:' );
 		Debugger::log( $response );
 		if ( is_wp_error( $response ) ) {
-			Debugger::log( 'Error pulling data' );
-			Debugger::log( $response->get_error_message() );
+			self::handle_error( $response );
 			return;
+		} else {
+			update_option( self::LAST_ERROR_OPTION_NAME, '' );
 		}
 		$response = json_decode( $response, true );
 		if ( ! is_array( $response ) ) {
@@ -178,10 +246,9 @@ class Pulling {
 			}
 
 			$incoming_event->process_in_node();
-			
+
 			self::set_last_processed_id( $id );
 		}
 	}
 
-	
 }

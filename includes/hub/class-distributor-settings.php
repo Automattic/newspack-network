@@ -20,7 +20,7 @@ class Distributor_Settings {
 	 * The setting section constant
 	 */
 	const SETTINGS_SECTION = 'newspack_hub_distributor_settings';
-	
+
 	/**
 	 * The admin page slug
 	 */
@@ -141,7 +141,7 @@ class Distributor_Settings {
 		$current = self::get_canonical_node();
 
 		Nodes::nodes_dropdown( $current, self::CANONICAL_NODE_OPTION_NAME, __( 'Default', 'newspack-network' ) );
-		
+
 		echo sprintf(
 			'<br/><small>%1$s</small>',
 			esc_html__( 'By default, canonical URLs will point to the site where the post was created. Modify this setting if you want them to point to one of the nodes.', 'newspack-network' )
@@ -162,7 +162,7 @@ class Distributor_Settings {
 		<div class='wrap'>
 			<?php settings_errors(); ?>
 			<form method='post' action='options.php'>
-			<?php 
+			<?php
 				do_settings_sections( self::PAGE_SLUG );
 				settings_fields( self::SETTINGS_SECTION );
 			?>
@@ -183,6 +183,11 @@ class Distributor_Settings {
 	 * @return array
 	 */
 	public static function dispatch_canonical_url_updated_event( $old_value, $value, $option ) {
+		if ( '0' === (string) $value ) {
+			return [
+				'url' => get_bloginfo( 'url' ),
+			];
+		}
 		$node     = new Node( $value );
 		$node_url = $node->get_url();
 		if ( ! $node_url ) {
