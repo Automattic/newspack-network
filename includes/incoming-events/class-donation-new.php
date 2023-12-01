@@ -18,11 +18,29 @@ use Newspack_Network\Node\Canonical_Url;
 class Donation_New extends Abstract_Incoming_Event {
 
 	/**
+	 * Processes the event
+	 *
+	 * @return void
+	 */
+	public function post_process_in_hub() {
+		$this->process_donation();
+	}
+
+	/**
 	 * Process event in Node
 	 *
 	 * @return void
 	 */
 	public function process_in_node() {
+		$this->process_donation();
+	}
+
+	/**
+	 * Process donation
+	 *
+	 * @return void
+	 */
+	public function process_donation() {
 		$email = $this->get_email();
 		Debugger::log( 'Processing donation_new with email: ' . $email );
 		if ( ! $email ) {

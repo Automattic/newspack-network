@@ -18,11 +18,29 @@ use Newspack_Network\Node\Canonical_Url;
 class Donation_Subscription_Cancelled extends Abstract_Incoming_Event {
 
 	/**
+	 * Processes the event
+	 *
+	 * @return void
+	 */
+	public function post_process_in_hub() {
+		$this->process_cancellation();
+	}
+
+	/**
 	 * Process event in Node
 	 *
 	 * @return void
 	 */
 	public function process_in_node() {
+		$this->process_cancellation();
+	}
+
+	/**
+	 * Process event
+	 *
+	 * @return void
+	 */
+	public function process_cancellation() {
 		$email = $this->get_email();
 		Debugger::log( 'Processing donation_new with email: ' . $email );
 		if ( ! $email ) {
