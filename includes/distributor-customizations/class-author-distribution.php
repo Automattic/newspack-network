@@ -8,6 +8,7 @@
 namespace Newspack_Network\Distributor_Customizations;
 
 use Newspack\Data_Events;
+use Newspack_Network\User_Update_Watcher;
 
 /**
  * Class to handle author distribution.
@@ -16,56 +17,6 @@ use Newspack\Data_Events;
  * On the target site, the plugin will create the authors if they don't exist, and override the byline
  */
 class Author_Distribution {
-
-	/**
-	 * The user meta we watch for changes.
-	 *
-	 * @var array
-	 */
-	public static $watched_meta = [
-		// Social Links.
-		'facebook',
-		'instagram',
-		'linkedin',
-		'myspace',
-		'pinterest',
-		'soundcloud',
-		'tumblr',
-		'twitter',
-		'youtube',
-		'wikipedia',
-
-		// Core bio.
-		'first_name',
-		'last_name',
-		'description',
-
-		// Newspack.
-		'newspack_job_title',
-		'newspack_role',
-		'newspack_employer',
-		'newspack_phone_number',
-
-		// Yoast SEO.
-		'wpseo_title',
-		'wpseo_metadesc',
-		'wpseo_noindex_author',
-		'wpseo_content_analysis_disable',
-		'wpseo_keyword_analysis_disable',
-		'wpseo_inclusive_language_analysis_disable',
-	];
-
-	/**
-	 * The user properties we're watching and syncing.
-	 *
-	 * @var array
-	 */
-	public static $user_props = [
-		'display_name',
-		'user_email',
-		'user_url',
-		'website', // guest authors.
-	];
 
 	/**
 	 * Initializes the class
@@ -173,13 +124,18 @@ class Author_Distribution {
 		];
 
 
-		foreach ( self::$user_props as $prop ) {
+		foreach ( User_Update_Watcher::$user_props as $prop ) {
 			if ( isset( $user->$prop ) ) {
 				$author[ $prop ] = $user->$prop;
 			}
 		}
 
-		foreach ( self::$watched_meta as $meta_key ) {
+		// CoAuthors' guest authors have a 'website' property.
+		if ( isset( $user->website ) ) {
+			$author['website'] = $user->website;
+		}
+
+		foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
 			$author[ $meta_key ] = get_user_meta( $user->ID, $meta_key, true );
 		}
 
@@ -203,13 +159,18 @@ class Author_Distribution {
 			'id'   => $guest_author->ID,
 		];
 
-		foreach ( self::$user_props as $prop ) {
+		foreach ( User_Update_Watcher::$user_props as $prop ) {
 			if ( isset( $guest_author->$prop ) ) {
 				$author[ $prop ] = $guest_author->$prop;
 			}
 		}
 
-		foreach ( self::$watched_meta as $meta_key ) {
+		// CoAuthors' guest authors have a 'website' property.
+		if ( isset( $guest_author->website ) ) {
+			$author['website'] = $guest_author->website;
+		}
+
+		foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
 			if ( isset( $guest_author->$meta_key ) ) {
 				$author[ $meta_key ] = $guest_author->$meta_key;
 			}

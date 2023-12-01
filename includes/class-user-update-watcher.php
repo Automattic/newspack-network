@@ -73,7 +73,6 @@ class User_Update_Watcher {
 	public static $user_props = [
 		'display_name',
 		'user_email',
-		'ID',
 		'user_url',
 	];
 

@@ -9,6 +9,8 @@ namespace Newspack_Network\Distributor_Customizations;
 
 use Newspack\Data_Events;
 use Newspack_Network\Debugger;
+use Newspack_Network\User_Update_Watcher;
+
 
 /**
  * Class to handle author ingestion.
@@ -100,7 +102,7 @@ class Author_Ingestion {
 			update_user_meta( $user->ID, 'newspack_remote_site', get_post_meta( $post_id, 'dt_original_site_url', true ) );
 			update_user_meta( $user->ID, 'newspack_remote_id', $author['id'] );
 
-			foreach ( Author_Distribution::$watched_meta as $meta_key ) {
+			foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
 				if ( isset( $author[ $meta_key ] ) ) {
 					update_user_meta( $user->ID, $meta_key, $author[ $meta_key ] );
 				}
@@ -185,7 +187,7 @@ class Author_Ingestion {
 			'role'          => 'author',
 		];
 
-		foreach ( Author_Distribution::$user_props as $prop ) {
+		foreach ( User_Update_Watcher::$user_props as $prop ) {
 			if ( isset( $distributed_author[ $prop ] ) ) {
 				$insert_array[ $prop ] = $distributed_author[ $prop ];
 			}
