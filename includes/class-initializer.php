@@ -39,6 +39,7 @@ class Initializer {
 
 		Data_Listeners::init();
 		Reader_Roles_Filter::init();
+		User_Update_Watcher::init();
 		Distributor_Customizations::init();
 		GAM::init();
 
