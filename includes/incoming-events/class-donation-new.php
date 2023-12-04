@@ -9,6 +9,7 @@ namespace Newspack_Network\Incoming_Events;
 
 use Newspack_Network\Debugger;
 use Newspack_Network\Node\Canonical_Url;
+use Newspack_Network\Utils\Users as User_Utils;
 
 /**
  * Class to handle the Canonical Url Updated Event
@@ -46,23 +47,11 @@ class Donation_New extends Abstract_Incoming_Event {
 		if ( ! $email ) {
 			return;
 		}
-		$existing_user = get_user_by( 'email', $email );
 
-		if ( ! $existing_user ) {
-			// Create user.
-			$user_id = wp_insert_user(
-				[
-					'user_email' => $email,
-					'user_login' => $email,
-					'user_pass'  => wp_generate_password(),
-					'role'       => NEWSPACK_NETWORK_READER_ROLE,
-				]
-			);
-			if ( is_wp_error( $user_id ) ) {
-				Debugger::log( 'Error creating user: ' . $user_id->get_error_message() );
-				return;
-			}
-			$existing_user = get_user_by( 'id', $user_id );
+		$existing_user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
+
+		if ( is_wp_error( $existing_user ) ) {
+			return;
 		}
 
 		$node               = $this->get_site();
