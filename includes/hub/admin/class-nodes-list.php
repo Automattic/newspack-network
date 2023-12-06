@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Hub Event Log List Table
+ * Newspack Hub Nodes List Table
  *
  * @package Newspack
  */
@@ -11,7 +11,7 @@ use Newspack_Network\Hub\Nodes;
 use Newspack_Network\Hub\Node;
 
 /**
- * The Event Log List Table
+ * The Nodes List Table
  */
 class Nodes_List {
 
