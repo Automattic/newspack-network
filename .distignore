@@ -3,9 +3,6 @@
 .*ignore
 .*rc*
 *.config.js
-.git
-.github
-.circleci
 .DS_Store
 Thumbs.db
 composer.json
@@ -26,5 +23,12 @@ webpack.config.js
 *.tar.gz
 *.zip
 node_modules
+
+# directories
+.cache
+.git
+.github
+.circleci
 /tests
 /bin
+/release
