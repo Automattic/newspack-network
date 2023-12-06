@@ -54,6 +54,12 @@ class Donation_New extends Abstract_Incoming_Event {
 			return;
 		}
 
+		$is_renewal = $this->get_data()->is_renewal;
+		if ( $is_renewal ) {
+			Debugger::log( 'Ignoring donation subscription renewal with email: ' . $email );
+			return;
+		}
+
 		$node               = $this->get_site();
 		$recurrence         = $this->get_data()->recurrence;
 		$network_donor_data = \Newspack\Reader_Data::get_data( $existing_user->ID, 'network_donor' );
