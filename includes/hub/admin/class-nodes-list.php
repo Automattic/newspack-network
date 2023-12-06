@@ -36,7 +36,7 @@ class Nodes_List {
 	public static function posts_columns( $columns ) {
 		unset( $columns['date'] );
 		unset( $columns['stats'] );
-		$columns['links'] = __( 'Useful links', 'newspack-network' );
+		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
 
 	}
