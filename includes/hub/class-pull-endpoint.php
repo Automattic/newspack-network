@@ -41,7 +41,7 @@ class Pull_Endpoint {
 					'callback'            => [ __CLASS__, 'handle_pull' ],
 					'permission_callback' => '__return_true',
 				],
-			] 
+			]
 		);
 	}
 
@@ -57,13 +57,13 @@ class Pull_Endpoint {
 		$actions           = $request['actions'];
 		$signature         = $request['signature'];
 		$nonce             = $request['nonce'];
-		
+
 		Debugger::log( 'Pull request received' );
 		Debugger::log( $site );
 		Debugger::log( $last_processed_id );
 		Debugger::log( $actions );
 
-		if ( empty( $site ) || 
+		if ( empty( $site ) ||
 			empty( $actions ) ||
 			empty( $nonce ) ||
 			empty( $signature )
@@ -94,11 +94,13 @@ class Pull_Endpoint {
 				'id_greater_than'  => $last_processed_id,
 				'action_name_in'   => $actions,
 			],
-			defined( 'NEWSPACK_NETWORK_EVENTS_PULL_LIMIT' ) && is_numeric( NEWSPACK_NETWORK_EVENTS_PULL_LIMIT ) ? NEWSPACK_NETWORK_EVENTS_PULL_LIMIT : 20
+			defined( 'NEWSPACK_NETWORK_EVENTS_PULL_LIMIT' ) && is_numeric( NEWSPACK_NETWORK_EVENTS_PULL_LIMIT ) ? NEWSPACK_NETWORK_EVENTS_PULL_LIMIT : 20,
+			1,
+			'ASC'
 		);
 
 		Debugger::log( count( $events ) . ' events found' );
-		
+
 		$response_body = array_map(
 			function( $event ) {
 				return [
@@ -111,9 +113,9 @@ class Pull_Endpoint {
 			},
 			$events
 		);
-		
+
 		return new WP_REST_Response( $response_body );
-		
+
 	}
 
 }
