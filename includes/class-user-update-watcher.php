@@ -63,6 +63,10 @@ class User_Update_Watcher {
 		'wpseo_content_analysis_disable',
 		'wpseo_keyword_analysis_disable',
 		'wpseo_inclusive_language_analysis_disable',
+
+		// Simple Local Avatars.
+		'simple_local_avatar',
+		'simple_local_avatar_rating',
 	];
 
 	/**
