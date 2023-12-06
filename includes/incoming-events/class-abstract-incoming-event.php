@@ -8,6 +8,7 @@
 namespace Newspack_Network\Incoming_Events;
 
 use Newspack_Network\Accepted_Actions;
+use Newspack_Network\Site_Role;
 use Newspack_Network\Debugger;
 use Newspack_Network\Hub\Nodes;
 use Newspack_Network\Hub\Node;
@@ -90,7 +91,7 @@ class Abstract_Incoming_Event {
 	 * Returns the data for this event
 	 *
 	 * @return array
-	 */ 
+	 */
 	public function get_data() {
 		return $this->data;
 	}
@@ -139,8 +140,13 @@ class Abstract_Incoming_Event {
 	 * Get this event's Node object. Will only work on the Hub
 	 *
 	 * @return ?Node
+	 *
+	 * @throws \Exception If the function was called from a node.
 	 */
 	public function get_node() {
+		if ( Site_Role::is_node() ) {
+			throw new \Exception( 'This function can only be called from the Hub' );
+		}
 		return Nodes::get_node_by_url( $this->site );
 	}
 
