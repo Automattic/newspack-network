@@ -118,7 +118,7 @@ class Node {
 				'url'   => $base_url . 'wp-admin?page=newspack',
 			],
 			[
-				'label' => 'Woocommerce',
+				'label' => 'WooCommerce',
 				'url'   => $base_url . 'wp-admin?page=wc-admin',
 			],
 			[
