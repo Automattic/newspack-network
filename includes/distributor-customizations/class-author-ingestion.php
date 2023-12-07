@@ -10,7 +10,7 @@ namespace Newspack_Network\Distributor_Customizations;
 use Newspack\Data_Events;
 use Newspack_Network\Debugger;
 use Newspack_Network\User_Update_Watcher;
-
+use Newspack_Network\Utils\Users as User_Utils;
 
 /**
  * Class to handle author ingestion.
@@ -93,14 +93,11 @@ class Author_Ingestion {
 
 			Debugger::log( 'Ingesting author: ' . $author['user_email'] );
 
-			$user = self::get_or_create_user( $author );
+			$user = User_Utils::get_or_create_user_by_email( $author['user_email'], get_post_meta( $post_id, 'dt_original_site_url', true ), $author['id'] );
 
 			if ( is_wp_error( $user ) ) {
 				continue;
 			}
-
-			update_user_meta( $user->ID, 'newspack_remote_site', get_post_meta( $post_id, 'dt_original_site_url', true ) );
-			update_user_meta( $user->ID, 'newspack_remote_id', $author['id'] );
 
 			foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
 				if ( isset( $author[ $meta_key ] ) ) {
@@ -163,44 +160,6 @@ class Author_Ingestion {
 		$distributed_authors = self::$pulled_posts[ $remote_id ];
 
 		self::ingest_authors_for_post( $post_id, $distributed_authors );
-
-	}
-
-	/**
-	 * Gets or created a user based on the distributed author data.
-	 *
-	 * @param array $distributed_author The distributed author as received from the remote site.
-	 * @return WP_User|WP_Error
-	 */
-	public static function get_or_create_user( $distributed_author ) {
-
-		$existing_user = get_user_by( 'email', $distributed_author['user_email'] );
-
-		if ( $existing_user ) {
-			return $existing_user;
-		}
-
-		$insert_array = [
-			'user_login'    => $distributed_author['user_email'],
-			'user_nicename' => $distributed_author['user_email'],
-			'user_pass'     => wp_generate_password(),
-			'role'          => 'author',
-		];
-
-		foreach ( User_Update_Watcher::$user_props as $prop ) {
-			if ( isset( $distributed_author[ $prop ] ) ) {
-				$insert_array[ $prop ] = $distributed_author[ $prop ];
-			}
-		}
-
-		$user_id = wp_insert_user( $insert_array );
-
-		if ( is_wp_error( $user_id ) ) {
-			Debugger::log( 'Error creating user: ' . $user_id->get_error_message() );
-			return $user_id;
-		}
-
-		return get_user_by( 'id', $user_id );
 
 	}
 
