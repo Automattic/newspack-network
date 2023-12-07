@@ -63,7 +63,7 @@ abstract class Abstract_Event_Log_Item {
 	 *
 	 * @param array $args {
 	 *      Array of arguments for creating an Event Log Item.
-	 * 
+	 *
 	 *      @type int    $id          The ID of the Event Log Item.
 	 *      @type Node   $node        The Node associated with the Event Log Item.
 	 *      @type string $email       The email associated with the Event Log Item.
@@ -90,7 +90,7 @@ abstract class Abstract_Event_Log_Item {
 
 	/**
 	 * Gets the ID of the Event Log Item.
-	 * 
+	 *
 	 * @return int
 	 */
 	public function get_id() {
@@ -99,7 +99,7 @@ abstract class Abstract_Event_Log_Item {
 
 	/**
 	 * Gets the Node associated with the Event Log Item.
-	 * 
+	 *
 	 * @return Node
 	 */
 	public function get_node() {
@@ -107,17 +107,23 @@ abstract class Abstract_Event_Log_Item {
 	}
 
 	/**
-	 * Gets the Node URL associated with the Event Log Item.
-	 * 
-	 * @return string
+	 * Returns the Item's Node Url
+	 *
+	 * If the Node is not found, returns the local URL.
+	 *
+	 * @return ?string
 	 */
 	public function get_node_url() {
-		return $this->node->get_url();
+		$node = $this->get_node();
+		if ( empty( $node->get_id() ) ) {
+			return get_bloginfo( 'url' );
+		}
+		return $node->get_url();
 	}
 
 	/**
 	 * Gets the Node ID associated with the Event Log Item.
-	 * 
+	 *
 	 * @return int
 	 */
 	public function get_node_id() {
@@ -125,9 +131,9 @@ abstract class Abstract_Event_Log_Item {
 	}
 
 	/**
-	 * 
+	 *
 	 * Gets the email associated with the Event Log Item.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function get_email() {
@@ -136,7 +142,7 @@ abstract class Abstract_Event_Log_Item {
 
 	/**
 	 * Gets the action_name associated with the Event Log Item.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function get_action_name() {
@@ -145,7 +151,7 @@ abstract class Abstract_Event_Log_Item {
 
 	/**
 	 * Gets the raw data associated with the Event Log Item in json format.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function get_raw_data() {
@@ -154,7 +160,7 @@ abstract class Abstract_Event_Log_Item {
 
 	/**
 	 * Gets the data associated with the Event Log Item.
-	 * 
+	 *
 	 * @return array
 	 */
 	public function get_data() {
@@ -163,7 +169,7 @@ abstract class Abstract_Event_Log_Item {
 
 	/**
 	 * Gets the timestamp associated with the Event Log Item.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function get_timestamp() {
