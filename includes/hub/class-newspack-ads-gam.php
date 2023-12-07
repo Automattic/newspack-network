@@ -14,6 +14,7 @@ use Newspack_Network\Site_Role;
 use Newspack_Network\Debugger;
 
 use Newspack_Ads\Providers\GAM_Model;
+use Newspack_Ads\Providers\GAM\Api\Targeting_Keys;
 
 /**
  * Integration class for Newspack Ads GAM support.
@@ -37,6 +38,9 @@ final class Newspack_Ads_GAM {
 		if ( ! class_exists( 'Newspack_Ads\Providers\GAM_Model' ) ) {
 			return;
 		}
+		if ( ! class_exists( 'Newspack_Ads\Providers\GAM\Api\Targeting_Keys' ) ) {
+			return;
+		}
 		$api = GAM_Model::get_api();
 		if ( ! $api || is_wp_error( $api ) ) {
 			Debugger::log( 'Error adding GAM targeting keys: GAM API is not available.' );
@@ -45,11 +49,11 @@ final class Newspack_Ads_GAM {
 		$nodes     = Nodes::get_all_nodes();
 		$node_urls = array_map(
 			function( $node ) {
-				return $node->get_url();
+				return Targeting_Keys::parse_site_url( $node->get_url() );
 			},
 			$nodes
 		);
-		$urls      = array_merge( [ \get_bloginfo( 'url' ) ], $node_urls );
+		$urls      = array_merge( [ Targeting_Keys::parse_site_url( \get_bloginfo( 'url' ) ) ], $node_urls );
 		$api->targeting_keys->create_targeting_key( 'site', $urls, 'PREDEFINED', 'CUSTOM_DIMENSION' );
 		Debugger::log( 'Updated GAM targeting keys.' );
 	}
