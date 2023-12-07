@@ -28,9 +28,6 @@ class Nodes {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
-		add_filter( 'manage_' . self::POST_TYPE_SLUG . '_posts_columns', [ __CLASS__, 'posts_columns' ] );
-		add_action( 'manage_' . self::POST_TYPE_SLUG . '_posts_custom_column', [ __CLASS__, 'posts_columns_values' ], 10, 2 );
-
 	}
 
 	/**
@@ -164,37 +161,6 @@ class Nodes {
 			'normal',
 			'core'
 		);
-	}
-
-	/**
-	 * Modify columns on post type table
-	 *
-	 * @param array $columns Registered columns.
-	 * @return array
-	 */
-	public static function posts_columns( $columns ) {
-		unset( $columns['date'] );
-		unset( $columns['stats'] );
-		$columns['links'] = __( 'Useful links', 'newspack-network' );
-		return $columns;
-
-	}
-
-	/**
-	 * Add content to the custom column
-	 *
-	 * @param string $column The current column.
-	 * @param int    $post_id The current post ID.
-	 * @return void
-	 */
-	public static function posts_columns_values( $column, $post_id ) {
-		if ( 'links' === $column ) {
-			?>
-				<p>
-					Coming soon...
-				</p>
-			<?php
-		}
 	}
 
 	/**
