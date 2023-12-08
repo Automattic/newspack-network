@@ -49,11 +49,11 @@ final class Newspack_Ads_GAM {
 		$nodes     = Nodes::get_all_nodes();
 		$node_urls = array_map(
 			function( $node ) {
-				return Targeting_Keys::parse_url( $node->get_url() );
+				return Targeting_Keys::sanitize_url( $node->get_url() );
 			},
 			$nodes
 		);
-		$urls      = array_merge( [ Targeting_Keys::parse_url( \get_bloginfo( 'url' ) ) ], $node_urls );
+		$urls      = array_merge( [ Targeting_Keys::sanitize_url( \get_bloginfo( 'url' ) ) ], $node_urls );
 		$api->targeting_keys->create_targeting_key( 'site', $urls, 'PREDEFINED', 'CUSTOM_DIMENSION' );
 		Debugger::log( 'Updated GAM targeting keys.' );
 	}
