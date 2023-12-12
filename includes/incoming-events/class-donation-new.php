@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Hub Canonical Url Updated Incoming Event class
+ * Newspack Hub Donation New Incoming Event class
  *
  * @package Newspack
  */
@@ -12,9 +12,7 @@ use Newspack_Network\Node\Canonical_Url;
 use Newspack_Network\Utils\Users as User_Utils;
 
 /**
- * Class to handle the Canonical Url Updated Event
- *
- * This event is always sent from the Hub and received by Nodes.
+ * Class to handle the Donation New Event
  */
 class Donation_New extends Abstract_Incoming_Event {
 
