@@ -93,7 +93,15 @@ class Author_Ingestion {
 
 			Debugger::log( 'Ingesting author: ' . $author['user_email'] );
 
-			$user = User_Utils::get_or_create_user_by_email( $author['user_email'], get_post_meta( $post_id, 'dt_original_site_url', true ), $author['id'] );
+			$insert_array = [];
+
+			foreach ( User_Update_Watcher::$user_props as $prop ) {
+				if ( isset( $author[ $prop ] ) ) {
+					$insert_array[ $prop ] = $author[ $prop ];
+				}
+			}
+
+			$user = User_Utils::get_or_create_user_by_email( $author['user_email'], get_post_meta( $post_id, 'dt_original_site_url', true ), $author['id'], $insert_array );
 
 			if ( is_wp_error( $user ) ) {
 				continue;
