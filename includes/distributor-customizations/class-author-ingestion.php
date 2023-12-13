@@ -15,7 +15,7 @@ use Newspack_Network\Utils\Users as User_Utils;
 /**
  * Class to handle author ingestion.
  *
- * This class is used to handle the authorship data added by Author_Distriburion to the distributed post
+ * This class is used to handle the authorship data added by Author_Distribution to the distributed post
  */
 class Author_Ingestion {
 
