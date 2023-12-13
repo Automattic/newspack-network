@@ -17,7 +17,7 @@ class Users {
 	 *
 	 * @param string $email The email of the user to look for. If no user is found, a new one will be created with this email.
 	 * @param string $remote_site_url The URL of the remote site. Used only when a new user is created.
-	 * @param string $remote_site_id The ID of the remote site. Used only when a new user is created.
+	 * @param string $remote_site_id The ID of the user in the remote site. Used only when a new user is created.
 	 * @param array  $insert_array An array of additional fields to be passed to wp_insert_user() when creating a new user. Use this to set the user's role, the default is NEWSPACK_NETWORK_READER_ROLE.
 	 * @return WP_User|WP_Error
 	 */
