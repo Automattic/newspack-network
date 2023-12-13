@@ -8,6 +8,7 @@
 namespace Newspack_Network\Distributor_Customizations;
 
 use Newspack\Data_Events;
+use Newspack_Network\Debugger;
 use Newspack_Network\User_Update_Watcher;
 
 /**
@@ -116,6 +117,8 @@ class Author_Distribution {
 		}
 
 		if ( ! $user ) {
+			Debugger::log( 'Error getting WP User details for distribution. Invalid User:' );
+			Debugger::log( $user );
 			return [];
 		}
 
@@ -152,6 +155,8 @@ class Author_Distribution {
 	public static function get_guest_author_for_distribution( $guest_author ) {
 
 		if ( ! is_object( $guest_author ) || ! isset( $guest_author->type ) || 'guest-author' !== $guest_author->type ) {
+			Debugger::log( 'Error getting guest author details for distribution. Invalid Guest Author:' );
+			Debugger::log( $guest_author );
 			return [];
 		}
 
