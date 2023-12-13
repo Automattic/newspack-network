@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Network author ingestino.
+ * Newspack Network author ingestion.
  *
  * @package Newspack
  */
