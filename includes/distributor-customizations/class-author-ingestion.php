@@ -70,7 +70,7 @@ class Author_Ingestion {
 	}
 
 	/**
-	 * Ingest authors for a post distribubted to this site
+	 * Ingest authors for a post distributed to this site
 	 *
 	 * @param int   $post_id The post ID.
 	 * @param array $distributed_authors The distributed authors array.
