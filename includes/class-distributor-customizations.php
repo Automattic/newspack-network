@@ -22,6 +22,7 @@ class Distributor_Customizations {
 		Distributor_Customizations\Canonical_Url::init();
 		Distributor_Customizations\Author_Distribution::init();
 		Distributor_Customizations\Author_Ingestion::init();
+		Distributor_Customizations\Authorship_Filters::init();
 	}
 
 
