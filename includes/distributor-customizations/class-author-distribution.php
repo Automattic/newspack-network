@@ -95,6 +95,7 @@ class Author_Distribution {
 		foreach ( $co_authors as $co_author ) {
 			if ( is_a( $co_author, 'WP_User' ) ) {
 				$authors[] = self::get_wp_user_for_distribution( $co_author );
+				continue;
 			}
 			$authors[] = self::get_guest_author_for_distribution( $co_author );
 		}
