@@ -108,6 +108,7 @@ class Author_Ingestion {
 			$user = User_Utils::get_or_create_user_by_email( $author['user_email'], get_post_meta( $post_id, 'dt_original_site_url', true ), $author['id'], $insert_array );
 
 			if ( is_wp_error( $user ) ) {
+				Debugger::log( 'Error creating user: ' . $user->get_error_message() );
 				continue;
 			}
 
@@ -119,6 +120,7 @@ class Author_Ingestion {
 
 			// If CoAuthors Plus is not present, just assign the first author as the post author.
 			if ( ! $coauthors_plus ) {
+				Debugger::log( 'CoAuthors Plus not present, assigning first author as post author.' );
 				wp_update_post(
 					[
 						'ID'          => $post_id,
@@ -132,6 +134,8 @@ class Author_Ingestion {
 		}
 
 		if ( $coauthors_plus ) {
+			Debugger::log( 'CoAuthors Plus present, assigning coauthors:' );
+			Debugger::log( $coauthors );
 			$coauthors_plus->add_coauthors( $post_id, $coauthors );
 		}
 
