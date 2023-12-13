@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Network author distriburion.
+ * Newspack Network author distribution.
  *
  * @package Newspack
  */
