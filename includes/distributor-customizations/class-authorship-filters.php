@@ -26,6 +26,7 @@ class Authorship_Filters {
 	 */
 	public static function init() {
 		add_filter( 'get_coauthors', [ __CLASS__, 'filter_coauthors' ], 10, 2 );
+		add_filter( 'newspack_author_bio_name', [ __CLASS__, 'newspack_author_bio_name' ], 10, 3 );
 	}
 
 	/**
@@ -66,6 +67,26 @@ class Authorship_Filters {
 		}
 
 		return $filtered_coauthors;
+	}
+
+	/**
+	 * Add job title for guest authors in the author bio.
+	 *
+	 * @param string $author_name The author name.
+	 * @param int    $author_id The author ID.
+	 * @param object $author The author object.
+	 */
+	public static function newspack_author_bio_name( $author_name, $author_id, $author = null ) {
+		if ( empty( $author->type ) || 'guest_author' !== $author->type ) {
+			return $author_name;
+		}
+
+		if ( $author && ! empty( $author->newspack_job_title ) ) {
+			$author_name .= '<span class="author-job-title">' . $author->newspack_job_title . '</span>';
+		}
+
+		return $author_name;
+
 	}
 
 }
