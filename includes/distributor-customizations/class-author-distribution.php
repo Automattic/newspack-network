@@ -170,6 +170,8 @@ class Author_Distribution {
 	 */
 	private static function get_guest_author_for_distribution( $guest_author ) {
 
+		global $coauthors_plus;
+
 		if ( ! is_object( $guest_author ) || ! isset( $guest_author->type ) || 'guest-author' !== $guest_author->type ) {
 			return new WP_Error( 'Error getting guest author details for distribution. Invalid Guest Author' );
 		}
@@ -188,6 +190,14 @@ class Author_Distribution {
 		// CoAuthors' guest authors have a 'website' property.
 		if ( isset( $guest_author->website ) ) {
 			$author['website'] = $guest_author->website;
+		}
+
+		// Gets the guest author avatar.
+		// We only want to send an actual uploaded avatar, we don't want to send the fallback avatar, like gravatar.
+		// If no avatar was set, let it default to the fallback set in the target site.
+		$author_avatar = $coauthors_plus->guest_authors->get_guest_author_thumbnail( $guest_author, 80 );
+		if ( $author_avatar ) {
+			$author['avatar_img_tag'] = $author_avatar;
 		}
 
 		foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
