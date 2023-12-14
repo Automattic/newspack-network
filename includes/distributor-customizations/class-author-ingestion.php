@@ -80,6 +80,8 @@ class Author_Ingestion {
 
 		Debugger::log( 'Ingesting authors from distributed post.' );
 
+		User_Update_Watcher::$enabled = false;
+
 		update_post_meta( $post_id, 'newspack_network_authors', $distributed_authors );
 
 		$coauthors_plus = self::get_coauthors_plus();
