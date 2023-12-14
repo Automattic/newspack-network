@@ -81,24 +81,42 @@ class Author_Distribution {
 	 * @param WP_Post $post The post object.
 	 * @return array An array of authors.
 	 */
-	public static function get_authors_for_distribution( $post ) {
+	private static function get_authors_for_distribution( $post ) {
+		$author = self::get_wp_user_for_distribution( $post->post_author );
+
 		if ( ! function_exists( 'get_coauthors' ) ) {
-			return [ self::get_wp_user_for_distribution( $post->post_author ) ];
+			if ( is_wp_error( $author ) ) {
+				Debugger::log( 'Error getting author ' . $post->post_author . ' for distribution on post ' . $post->ID . ': ' . $author->get_error_message() );
+				return [];
+			}
+			return [ $author ];
 		}
 
 		$co_authors = get_coauthors( $post->ID );
 		if ( empty( $co_authors ) ) {
-			return [ self::get_wp_user_for_distribution( $post->post_author ) ];
+			if ( is_wp_error( $author ) ) {
+				Debugger::log( 'Error getting author ' . $post->post_author . ' for distribution on post ' . $post->ID . ': ' . $author->get_error_message() );
+				return [];
+			}
+			return [ $author ];
 		}
 
 		$authors = [];
 
 		foreach ( $co_authors as $co_author ) {
 			if ( is_a( $co_author, 'WP_User' ) ) {
+				// This will never return an error because we are checking for is_a() first.
 				$authors[] = self::get_wp_user_for_distribution( $co_author );
 				continue;
 			}
-			$authors[] = self::get_guest_author_for_distribution( $co_author );
+
+			$guest_author = self::get_guest_author_for_distribution( $co_author );
+			if ( is_wp_error( $guest_author ) ) {
+				Debugger::log( 'Error getting guest author for distribution on post ' . $post->ID . ': ' . $guest_author->get_error_message() );
+				Debugger::log( $co_author );
+				continue;
+			}
+			$authors[] = $guest_author;
 		}
 
 		return $authors;
@@ -109,17 +127,15 @@ class Author_Distribution {
 	 * Gets the user data of a WP user to be distributed along with the post.
 	 *
 	 * @param int|WP_Post $user The user ID or object.
-	 * @return array
+	 * @return WP_Error|array
 	 */
-	public static function get_wp_user_for_distribution( $user ) {
+	private static function get_wp_user_for_distribution( $user ) {
 		if ( ! is_a( $user, 'WP_User' ) ) {
 			$user = get_user_by( 'ID', $user );
 		}
 
 		if ( ! $user ) {
-			Debugger::log( 'Error getting WP User details for distribution. Invalid User:' );
-			Debugger::log( $user );
-			return [];
+			return new WP_Error( 'Error getting WP User details for distribution. Invalid User:' );
 		}
 
 		$author = [
@@ -150,14 +166,12 @@ class Author_Distribution {
 	 * Get the guest author data to be distributed along with the post.
 	 *
 	 * @param object $guest_author The Guest Author object.
-	 * @return array
+	 * @return WP_Error|array
 	 */
-	public static function get_guest_author_for_distribution( $guest_author ) {
+	private static function get_guest_author_for_distribution( $guest_author ) {
 
 		if ( ! is_object( $guest_author ) || ! isset( $guest_author->type ) || 'guest-author' !== $guest_author->type ) {
-			Debugger::log( 'Error getting guest author details for distribution. Invalid Guest Author:' );
-			Debugger::log( $guest_author );
-			return [];
+			return new WP_Error( 'Error getting guest author details for distribution. Invalid Guest Author' );
 		}
 
 		$author = [
