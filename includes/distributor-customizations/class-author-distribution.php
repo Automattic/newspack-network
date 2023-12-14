@@ -135,7 +135,7 @@ class Author_Distribution {
 		}
 
 		if ( ! $user ) {
-			return new WP_Error( 'Error getting WP User details for distribution. Invalid User:' );
+			return new WP_Error( 'Error getting WP User details for distribution. Invalid User' );
 		}
 
 		$author = [
