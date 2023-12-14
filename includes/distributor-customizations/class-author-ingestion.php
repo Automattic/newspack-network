@@ -137,7 +137,7 @@ class Author_Ingestion {
 	 * Captures and stores the authorship data for a post
 	 *
 	 * Distributor discards the additional data we send in the REST request, so we need to capture it here
-	 * for later use in self::add_author_data_to_pull
+	 * for later use in self::handle_pull
 	 *
 	 * @param WP_Post $post The post object being pulled.
 	 * @param array   $post_array The post array received from the REST api.
