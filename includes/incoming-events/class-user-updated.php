@@ -53,7 +53,7 @@ class User_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
-		User_Update_Watcher::$processing_user_updated_event = true;
+		User_Update_Watcher::$enabled = false;
 
 		$data = $this->get_data();
 
