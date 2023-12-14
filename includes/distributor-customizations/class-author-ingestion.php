@@ -93,7 +93,9 @@ class Author_Ingestion {
 
 			Debugger::log( 'Ingesting author: ' . $author['user_email'] );
 
-			$insert_array = [];
+			$insert_array = [
+				'role' => 'author',
+			];
 
 			foreach ( User_Update_Watcher::$user_props as $prop ) {
 				if ( isset( $author[ $prop ] ) ) {
