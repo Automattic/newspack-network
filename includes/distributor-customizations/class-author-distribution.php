@@ -27,6 +27,25 @@ class Author_Distribution {
 	public static function init() {
 		add_filter( 'dt_push_post_args', [ __CLASS__, 'add_author_data_to_push' ], 10, 2 );
 		add_filter( 'rest_prepare_post', [ __CLASS__, 'add_author_data_to_pull' ], 10, 3 );
+		add_filter( 'dt_syncable_taxonomies', [ __CLASS__, 'filter_syncable_taxonomies' ] );
+	}
+
+	/**
+	 * Removes CoAuthors Plus' author taxonomy from the list of taxonomies to be synced.
+	 *
+	 * This is crucial for out integration with CAP, as we are handling author syncing ourselves and we don't want
+	 * Distributor to try to sync the author taxonomy.
+	 *
+	 * @param array $taxonomies An array of taxonomies slugs.
+	 * @return array
+	 */
+	public static function filter_syncable_taxonomies( $taxonomies ) {
+		return array_filter(
+			$taxonomies,
+			function( $taxonomy ) {
+				return 'author' !== $taxonomy;
+			}
+		);
 	}
 
 	/**
