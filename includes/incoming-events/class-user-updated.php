@@ -77,7 +77,7 @@ class User_Updated extends Abstract_Incoming_Event {
 			}
 		}
 
-		User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta );
+		User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta, true );
 
 	}
 

@@ -60,9 +60,10 @@ class Users {
 	 *
 	 * @param int   $user_id The user ID to add the avatar to.
 	 * @param array $user_data The user data where we are going to look for the avatar. We are looking for the 'simple_local_avatar' meta key.
+	 * @param bool  $overwrite Whether to overwrite the existing avatar or not.
 	 * @return bool True if the avatar was sideloaded, false otherwise.
 	 */
-	public static function maybe_sideload_avatar( $user_id, $user_data ) {
+	public static function maybe_sideload_avatar( $user_id, $user_data, $overwrite ) {
 
 		Debugger::log( 'Attempting to sideload user avatar' );
 
@@ -73,6 +74,13 @@ class Users {
 		}
 
 		$avatar_meta_key = 'simple_local_avatar';
+
+		$existing_avatar = get_user_meta( $user_id, $avatar_meta_key, true );
+
+		if ( ! empty( $existing_avatar ) && ! $overwrite ) {
+			Debugger::log( 'User already has an avatar and overwrite is false, skipping' );
+			return false;
+		}
 
 		if ( ! is_array( $user_data ) ) {
 			$user_data = (array) $user_data;
