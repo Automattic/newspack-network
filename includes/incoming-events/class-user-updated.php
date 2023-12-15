@@ -9,6 +9,7 @@ namespace Newspack_Network\Incoming_Events;
 
 use Newspack_Network\User_Update_Watcher;
 use Newspack_Network\Debugger;
+use Newspack_Network\Utils\Users as User_Utils;
 
 /**
  * Class to handle the User Updated Event
@@ -76,23 +77,7 @@ class User_Updated extends Abstract_Incoming_Event {
 			}
 		}
 
-		// @TODO move this to the User Utils class when it gets merged.
-		global $simple_local_avatars;
-		if ( ! $simple_local_avatars || ! is_a( $simple_local_avatars, 'Simple_Local_Avatars' ) ) {
-			return;
-		}
-
-		$avatar_meta_key = 'simple_local_avatar';
-
-		if ( array_key_exists( $avatar_meta_key, $data->meta ) && ! empty( $data->meta[ $avatar_meta_key ]['full'] ) ) {
-			Debugger::log( 'Updating user avatar' );
-			$avatar_url = $data->meta[ $avatar_meta_key ]['full'];
-			$avatar_id  = media_sideload_image( $avatar_url, 0, null, 'id' );
-			if ( $avatar_id && is_int( $avatar_id ) ) {
-				Debugger::log( 'Avatar successfully sideloaded with ID: ' . $avatar_id );
-				$simple_local_avatars->assign_new_user_avatar( $avatar_id, $existing_user->ID );
-			}
-		}
+		User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta );
 
 	}
 

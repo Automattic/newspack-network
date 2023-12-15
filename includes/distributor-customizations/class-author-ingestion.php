@@ -117,6 +117,8 @@ class Author_Ingestion {
 				}
 			}
 
+			User_Utils::maybe_sideload_avatar( $user->ID, $author );
+
 			// If CoAuthors Plus is not present, just assign the first author as the post author.
 			if ( ! $coauthors_plus ) {
 				wp_update_post(
