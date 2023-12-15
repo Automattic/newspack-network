@@ -26,7 +26,7 @@ add_filter(
 /**
  * Keep the publication date on the new pulled post.
  *
- * This filter is used to filter the arguments sent to the remote server during a pull.
+ * This filters the arguments passed into wp_insert_post during a pull.
  */
 add_filter(
 	'dt_pull_post_args',
