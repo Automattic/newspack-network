@@ -13,12 +13,12 @@ namespace Newspack_Network;
 class User_Update_Watcher {
 
 	/**
-	 * Flag to indicate if the processing of the user updated event is in progress.
-	 * If true, this class won't fire any events to avoid an infinite loop in author updates.
+	 * Flag to indicate if the watcher should watch.
+	 * If false, this class won't fire any events to avoid an infinite loop in author updates.
 	 *
 	 * @var boolean
 	 */
-	public static $processing_user_updated_event = false;
+	public static $enabled = true;
 
 	/**
 	 * Holds information about the users that were updated in this request, if any.
@@ -73,7 +73,6 @@ class User_Update_Watcher {
 	public static $user_props = [
 		'display_name',
 		'user_email',
-		'ID',
 		'user_url',
 	];
 
@@ -126,7 +125,7 @@ class User_Update_Watcher {
 	 * @return void
 	 */
 	public static function update_user_meta( $meta_id, $user_id, $meta_key, $meta_value ) {
-		if ( self::$processing_user_updated_event ) {
+		if ( ! self::$enabled ) {
 			return;
 		}
 
@@ -144,7 +143,7 @@ class User_Update_Watcher {
 	 * @return void
 	 */
 	public static function profile_update( $user_id, $old_user_data, $user_data ) {
-		if ( self::$processing_user_updated_event ) {
+		if ( ! self::$enabled ) {
 			return;
 		}
 
@@ -161,7 +160,7 @@ class User_Update_Watcher {
 	 * @return void
 	 */
 	public static function maybe_trigger_event() {
-		if ( self::$processing_user_updated_event ) {
+		if ( ! self::$enabled ) {
 			return;
 		}
 		foreach ( self::$updated_users as $author ) {
