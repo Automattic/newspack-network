@@ -7,6 +7,7 @@
 
 namespace Newspack_Network\Distributor_Customizations;
 
+use Distributor\DistributorPost;
 use Newspack\Data_Events;
 use Newspack_Network\Debugger;
 use Newspack_Network\User_Update_Watcher;
@@ -37,7 +38,18 @@ class Authorship_Filters {
 	 * @return array
 	 */
 	public static function filter_coauthors( $coauthors, $post_id ) {
+		if ( ! class_exists( 'Distributor\DistributorPost' ) ) {
+			return $coauthors;
+		}
+
+		// We don't want to filter authors on admin, as it might break things.
 		if ( is_admin() ) {
+			return $coauthors;
+		}
+
+		// Only filter posts that are still linked to the original post.
+		$distributor_post = new DistributorPost( $post_id );
+		if ( ! $distributor_post->is_linked ) {
 			return $coauthors;
 		}
 
