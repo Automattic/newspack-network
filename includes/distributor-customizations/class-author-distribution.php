@@ -174,7 +174,7 @@ class Author_Distribution {
 			$author['website'] = $user->website;
 		}
 
-		foreach ( User_Update_Watcher::get_writable_meta() as $meta_key ) {
+		foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
 			$author[ $meta_key ] = get_user_meta( $user->ID, $meta_key, true );
 		}
 
