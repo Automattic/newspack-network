@@ -43,3 +43,19 @@ add_filter(
  * ===== End of Post publication date ======
  * =========================================
  */
+
+/**
+ * =========================================
+ * ===== Allow editors to pull content =====
+ * =========================================
+ */
+function newspack_network_filter_distributor_menu_cap() {
+	return 'edit_others_posts';
+}
+add_filter( 'dt_capabilities', 'newspack_network_filter_distributor_menu_cap' );
+add_filter( 'dt_pull_capabilities', 'newspack_network_filter_distributor_menu_cap' );
+/**
+ * =========================================
+ * ==== End of editors to pull content =====
+ * =========================================
+ */
