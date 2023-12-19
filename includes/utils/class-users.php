@@ -97,6 +97,12 @@ class Users {
 			}
 
 			$avatar_id = media_sideload_image( $avatar_url, 0, null, 'id' );
+
+			if ( is_wp_error( $avatar_id ) ) {
+				Debugger::log( 'Error sideloading avatar: ' . $avatar_id->get_error_message() );
+				return false;
+			}
+
 			if ( $avatar_id && is_int( $avatar_id ) ) {
 				Debugger::log( 'Avatar successfully sideloaded with ID: ' . $avatar_id );
 				$simple_local_avatars->assign_new_user_avatar( $avatar_id, $user_id );
