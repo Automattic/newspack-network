@@ -111,11 +111,13 @@ class Author_Ingestion {
 				continue;
 			}
 
-			foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
+			foreach ( User_Update_Watcher::get_writable_meta() as $meta_key ) {
 				if ( isset( $author[ $meta_key ] ) ) {
 					update_user_meta( $user->ID, $meta_key, $author[ $meta_key ] );
 				}
 			}
+
+			User_Utils::maybe_sideload_avatar( $user->ID, $author, false );
 
 			// If CoAuthors Plus is not present, just assign the first author as the post author.
 			if ( ! $coauthors_plus ) {
