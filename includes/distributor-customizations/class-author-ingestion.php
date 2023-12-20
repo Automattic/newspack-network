@@ -105,7 +105,7 @@ class Author_Ingestion {
 				}
 			}
 
-			$user = User_Utils::get_or_create_user_by_email( $author['user_email'], get_post_meta( $post_id, 'dt_original_site_url', true ), $author['id'], $insert_array );
+			$user = User_Utils::get_or_create_user_by_email( $author['user_email'], get_post_meta( $post_id, 'dt_original_site_url', true ), $author['ID'], $insert_array );
 
 			if ( is_wp_error( $user ) ) {
 				Debugger::log( 'Error creating user: ' . $user->get_error_message() );

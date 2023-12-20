@@ -68,7 +68,12 @@ class Authorship_Filters {
 			}
 
 			if ( 'guest_author' === $distributed_author['type'] ) {
+
+				// This removes the author URL from the guest author.
+				$distributed_author['user_nicename'] = '';
+
 				$filtered_coauthors[] = (object) $distributed_author;
+
 			} elseif ( 'wp_user' === $distributed_author['type'] ) {
 				$user = get_user_by( 'email', $distributed_author['user_email'] );
 				if ( ! is_a( $user, 'WP_User' ) ) {
