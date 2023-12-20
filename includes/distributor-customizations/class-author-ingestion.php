@@ -33,6 +33,7 @@ class Author_Ingestion {
 	 */
 	public static function init() {
 		add_action( 'rest_insert_post', [ __CLASS__, 'handle_rest_insertion' ], 10, 2 );
+		add_action( 'dt_process_subscription_attributes', [ __CLASS__, 'handle_rest_insertion' ], 10, 2 );
 		add_filter( 'dt_item_mapping', [ __CLASS__, 'capture_authorship' ], 10, 2 );
 		add_action( 'dt_pull_post', [ __CLASS__, 'handle_pull' ] );
 	}
@@ -54,6 +55,8 @@ class Author_Ingestion {
 	 * Fired when a post is inserted via the REST API
 	 *
 	 * Checks if there are newspack network author information and ingests it.
+	 *
+	 * This callback is also used when a subscription update is received.
 	 *
 	 * @param WP_Post         $post     Inserted post object.
 	 * @param WP_REST_Request $request  Request object.
@@ -112,11 +115,13 @@ class Author_Ingestion {
 				continue;
 			}
 
-			foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
+			foreach ( User_Update_Watcher::get_writable_meta() as $meta_key ) {
 				if ( isset( $author[ $meta_key ] ) ) {
 					update_user_meta( $user->ID, $meta_key, $author[ $meta_key ] );
 				}
 			}
+
+			User_Utils::maybe_sideload_avatar( $user->ID, $author, false );
 
 			// If CoAuthors Plus is not present, just assign the first author as the post author.
 			if ( ! $coauthors_plus ) {

@@ -9,6 +9,7 @@ namespace Newspack_Network\Incoming_Events;
 
 use Newspack_Network\User_Update_Watcher;
 use Newspack_Network\Debugger;
+use Newspack_Network\Utils\Users as User_Utils;
 
 /**
  * Class to handle the User Updated Event
@@ -75,6 +76,8 @@ class User_Updated extends Abstract_Incoming_Event {
 				update_user_meta( $existing_user->ID, $meta_key, $meta_value );
 			}
 		}
+
+		User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta, true );
 
 	}
 
