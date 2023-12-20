@@ -33,6 +33,7 @@ class Author_Ingestion {
 	 */
 	public static function init() {
 		add_action( 'rest_insert_post', [ __CLASS__, 'handle_rest_insertion' ], 10, 2 );
+		add_action( 'dt_process_subscription_attributes', [ __CLASS__, 'handle_rest_insertion' ], 10, 2 );
 		add_filter( 'dt_item_mapping', [ __CLASS__, 'capture_authorship' ], 10, 2 );
 		add_action( 'dt_pull_post', [ __CLASS__, 'handle_pull' ] );
 	}
@@ -54,6 +55,8 @@ class Author_Ingestion {
 	 * Fired when a post is inserted via the REST API
 	 *
 	 * Checks if there are newspack network author information and ingests it.
+	 *
+	 * This callback is also used when a subscription update is received.
 	 *
 	 * @param WP_Post         $post     Inserted post object.
 	 * @param WP_REST_Request $request  Request object.
