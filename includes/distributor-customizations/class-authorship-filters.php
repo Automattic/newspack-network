@@ -28,6 +28,7 @@ class Authorship_Filters {
 	public static function init() {
 		add_filter( 'get_coauthors', [ __CLASS__, 'filter_coauthors' ], 10, 2 );
 		add_filter( 'newspack_author_bio_name', [ __CLASS__, 'newspack_author_bio_name' ], 10, 3 );
+		add_filter( 'author_link', [ __CLASS__, 'author_link' ], 20, 3 );
 	}
 
 	/**
@@ -71,6 +72,7 @@ class Authorship_Filters {
 
 				// This removes the author URL from the guest author.
 				$distributed_author['user_nicename'] = '';
+				$distributed_author['ID']            = -2;
 
 				$filtered_coauthors[] = (object) $distributed_author;
 
@@ -104,6 +106,22 @@ class Authorship_Filters {
 
 		return $author_name;
 
+	}
+
+	/**
+	 * Filter the author link for guest authors.
+	 *
+	 * @param string $link The author link.
+	 * @param int    $author_id The author ID.
+	 * @param string $author_nicename The author nicename.
+	 * @return string
+	 */
+	public static function author_link( $link, $author_id, $author_nicename ) {
+		if ( -2 === $author_id && empty( $author_nicename ) ) {
+			$link = '#';
+		}
+
+		return $link;
 	}
 
 }
