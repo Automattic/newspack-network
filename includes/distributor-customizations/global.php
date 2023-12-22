@@ -26,7 +26,7 @@ add_filter(
 /**
  * Keep the publication date on the new pulled post.
  *
- * This filter is used to filter the arguments sent to the remote server during a pull.
+ * This filters the arguments passed into wp_insert_post during a pull.
  */
 add_filter(
 	'dt_pull_post_args',
@@ -41,5 +41,21 @@ add_filter(
 /**
  * =========================================
  * ===== End of Post publication date ======
+ * =========================================
+ */
+
+/**
+ * =========================================
+ * ===== Allow editors to pull content =====
+ * =========================================
+ */
+function newspack_network_filter_distributor_menu_cap() {
+	return 'edit_others_posts';
+}
+add_filter( 'dt_capabilities', 'newspack_network_filter_distributor_menu_cap' );
+add_filter( 'dt_pull_capabilities', 'newspack_network_filter_distributor_menu_cap' );
+/**
+ * =========================================
+ * ==== End of editors to pull content =====
  * =========================================
  */

@@ -20,6 +20,9 @@ class Distributor_Customizations {
 	public static function init() {
 		require_once NEWSPACK_NETWORK_PLUGIN_DIR . '/includes/distributor-customizations/global.php';
 		Distributor_Customizations\Canonical_Url::init();
+		Distributor_Customizations\Author_Distribution::init();
+		Distributor_Customizations\Author_Ingestion::init();
+		Distributor_Customizations\Authorship_Filters::init();
 	}
 
 
