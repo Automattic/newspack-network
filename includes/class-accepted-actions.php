@@ -32,6 +32,9 @@ class Accepted_Actions {
 		'newspack_node_order_changed'        => 'Order_Changed',
 		'newspack_node_subscription_changed' => 'Subscription_Changed',
 		'canonical_url_updated'              => 'Canonical_Url_Updated',
+		'donation_new'                       => 'Donation_New',
+		'donation_subscription_cancelled'    => 'Donation_Subscription_Cancelled',
+		'network_user_updated'               => 'User_Updated',
 	];
 
 	/**
@@ -44,5 +47,8 @@ class Accepted_Actions {
 	const ACTIONS_THAT_NODES_PULL = [
 		'reader_registered',
 		'canonical_url_updated',
+		'donation_new',
+		'donation_subscription_cancelled',
+		'network_user_updated',
 	];
 }

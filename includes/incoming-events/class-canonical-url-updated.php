@@ -7,14 +7,14 @@
 
 namespace Newspack_Network\Incoming_Events;
 
-use Newspack_Network\Node\Canonical_Url;
+use Newspack_Network\Distributor_Customizations\Canonical_Url;
 
 /**
  * Class to handle the Canonical Url Updated Event
  *
  * This event is always sent from the Hub and received by Nodes.
  */
-class Canonical_Url_Updated extends Abstract_Incoming_Event {   
+class Canonical_Url_Updated extends Abstract_Incoming_Event {
 
 	/**
 	 * Process event in Node
@@ -22,9 +22,7 @@ class Canonical_Url_Updated extends Abstract_Incoming_Event {
 	 * @return void
 	 */
 	public function process_in_node() {
-		if ( ! empty( $this->get_data()->url ) ) {
-			update_option( Canonical_Url::OPTION_NAME, $this->get_data()->url );
-		}
+		update_option( Canonical_Url::OPTION_NAME, $this->get_data()->url );
 	}
 
 }

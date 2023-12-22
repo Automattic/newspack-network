@@ -26,6 +26,7 @@ class Initializer {
 			Hub\Event_Listeners::init();
 			Hub\Database\Subscriptions::init();
 			Hub\Database\Orders::init();
+			Hub\Newspack_Ads_GAM::init();
 		}
 
 		if ( Site_Role::is_node() ) {
@@ -33,13 +34,14 @@ class Initializer {
 			if ( Node\Settings::get_hub_url() ) {
 				Node\Webhook::init();
 				Node\Pulling::init();
-				Node\Canonical_Url::init();
 				Rest_Authenticaton::init_node_filters();
 			}
 		}
-		
+
 		Data_Listeners::init();
 		Reader_Roles_Filter::init();
+		User_Update_Watcher::init();
+		Distributor_Customizations::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
