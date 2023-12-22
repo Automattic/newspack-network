@@ -1,3 +1,20 @@
+# [1.0.0-alpha.2](https://github.com/Automattic/newspack-network/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2023-12-22)
+
+
+### Bug Fixes
+
+* dont sync authors terms ([#26](https://github.com/Automattic/newspack-network/issues/26)) ([a4a788b](https://github.com/Automattic/newspack-network/commit/a4a788b1f21ff0e330365d890434cc602c4b4b33))
+* **newspack-ads:** parse targeting site url ([#22](https://github.com/Automattic/newspack-network/issues/22)) ([acb84c1](https://github.com/Automattic/newspack-network/commit/acb84c121db9bdb7bab68a267f7ed45ad333bd83))
+
+
+### Features
+
+* allow editors to pull content ([#28](https://github.com/Automattic/newspack-network/issues/28)) ([3021f7e](https://github.com/Automattic/newspack-network/commit/3021f7e3d50876e2655a2955a5fe64cb25a7dba9))
+* network donation events as reader data ([#8](https://github.com/Automattic/newspack-network/issues/8)) ([9a114a4](https://github.com/Automattic/newspack-network/commit/9a114a49bd1fa6d47321e979e096587c481f183e))
+* sync user avatar ([#21](https://github.com/Automattic/newspack-network/issues/21)) ([70e4c83](https://github.com/Automattic/newspack-network/commit/70e4c834067cf3a2571a7b26b3b570e6c36ad376))
+* update authors on post update ([#29](https://github.com/Automattic/newspack-network/issues/29)) ([25cb65f](https://github.com/Automattic/newspack-network/commit/25cb65f1f89cc6c4ac05b3be0f4aaab5029440c1))
+* update menu icon and position ([#18](https://github.com/Automattic/newspack-network/issues/18)) ([11638b2](https://github.com/Automattic/newspack-network/commit/11638b22b50b555c4310336ebdd9df1f4df6ba23))
+
 # 1.0.0-alpha.1 (2023-12-01)
 
 
