@@ -165,7 +165,7 @@ class Author_Distribution {
 
 		$author = [
 			'type' => 'wp_user',
-			'id'   => $user->ID,
+			'ID'   => $user->ID,
 		];
 
 
@@ -195,30 +195,22 @@ class Author_Distribution {
 	 */
 	private static function get_guest_author_for_distribution( $guest_author ) {
 
+		// CoAuthors plugin existence was checked in get_authors_for_distribution().
+		global $coauthors_plus;
+
 		if ( ! is_object( $guest_author ) || ! isset( $guest_author->type ) || 'guest-author' !== $guest_author->type ) {
 			return new WP_Error( 'Error getting guest author details for distribution. Invalid Guest Author' );
 		}
 
-		$author = [
-			'type' => 'guest_author',
-			'id'   => $guest_author->ID,
-		];
+		$author         = (array) $guest_author;
+		$author['type'] = 'guest_author';
 
-		foreach ( User_Update_Watcher::$user_props as $prop ) {
-			if ( isset( $guest_author->$prop ) ) {
-				$author[ $prop ] = $guest_author->$prop;
-			}
-		}
-
-		// CoAuthors' guest authors have a 'website' property.
-		if ( isset( $guest_author->website ) ) {
-			$author['website'] = $guest_author->website;
-		}
-
-		foreach ( User_Update_Watcher::$watched_meta as $meta_key ) {
-			if ( isset( $guest_author->$meta_key ) ) {
-				$author[ $meta_key ] = $guest_author->$meta_key;
-			}
+		// Gets the guest author avatar.
+		// We only want to send an actual uploaded avatar, we don't want to send the fallback avatar, like gravatar.
+		// If no avatar was set, let it default to the fallback set in the target site.
+		$author_avatar = $coauthors_plus->guest_authors->get_guest_author_thumbnail( $guest_author, 80 );
+		if ( $author_avatar ) {
+			$author['avatar_img_tag'] = $author_avatar;
 		}
 
 		return $author;
