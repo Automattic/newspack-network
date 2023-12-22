@@ -13,12 +13,12 @@ namespace Newspack_Network;
 class User_Update_Watcher {
 
 	/**
-	 * Flag to indicate if the processing of the user updated event is in progress.
-	 * If true, this class won't fire any events to avoid an infinite loop in author updates.
+	 * Flag to indicate if the watcher should watch.
+	 * If false, this class won't fire any events to avoid an infinite loop in author updates.
 	 *
 	 * @var boolean
 	 */
-	public static $processing_user_updated_event = false;
+	public static $enabled = true;
 
 	/**
 	 * Holds information about the users that were updated in this request, if any.
@@ -63,6 +63,19 @@ class User_Update_Watcher {
 		'wpseo_content_analysis_disable',
 		'wpseo_keyword_analysis_disable',
 		'wpseo_inclusive_language_analysis_disable',
+
+		// Simple Local Avatars.
+		'simple_local_avatar',
+		'simple_local_avatar_rating',
+	];
+
+	/**
+	 * Meta keys we watched but we don't want to update in the same way we do with all the others.
+	 *
+	 * @var array
+	 */
+	public static $read_only_meta = [
+		'simple_local_avatar', // The avatar is sideloaded in a different way.
 	];
 
 	/**
@@ -73,7 +86,6 @@ class User_Update_Watcher {
 	public static $user_props = [
 		'display_name',
 		'user_email',
-		'ID',
 		'user_url',
 	];
 
@@ -81,9 +93,20 @@ class User_Update_Watcher {
 	 * Runs the initialization.
 	 */
 	public static function init() {
+		add_action( 'add_user_meta', [ __CLASS__, 'add_user_meta' ], 10, 3 );
 		add_action( 'update_user_meta', [ __CLASS__, 'update_user_meta' ], 10, 4 );
+		add_action( 'deleted_user_meta', [ __CLASS__, 'deleted_user_meta' ], 10, 3 );
 		add_action( 'profile_update', [ __CLASS__, 'profile_update' ], 10, 3 );
 		add_action( 'shutdown', [ __CLASS__, 'maybe_trigger_event' ] );
+	}
+
+	/**
+	 * Gets a list of metadata we can update.
+	 *
+	 * @return array
+	 */
+	public static function get_writable_meta() {
+		return array_diff( self::$watched_meta, self::$read_only_meta );
 	}
 
 	/**
@@ -117,6 +140,24 @@ class User_Update_Watcher {
 	}
 
 	/**
+	 * Runs when a user meta is added
+	 *
+	 * @param int    $user_id    The user ID.
+	 * @param string $meta_key   The meta key.
+	 * @param mixed  $meta_value The meta value.
+	 * @return void
+	 */
+	public static function add_user_meta( $user_id, $meta_key, $meta_value ) {
+		if ( ! self::$enabled ) {
+			return;
+		}
+
+		if ( in_array( $meta_key, self::$watched_meta, true ) ) {
+			self::add_change( $user_id, 'meta', $meta_key, $meta_value );
+		}
+	}
+
+	/**
 	 * Runs when a user meta is updated
 	 *
 	 * @param int    $meta_id    The meta ID after successful update.
@@ -126,12 +167,34 @@ class User_Update_Watcher {
 	 * @return void
 	 */
 	public static function update_user_meta( $meta_id, $user_id, $meta_key, $meta_value ) {
-		if ( self::$processing_user_updated_event ) {
+		if ( ! self::$enabled ) {
 			return;
 		}
 
 		if ( in_array( $meta_key, self::$watched_meta, true ) ) {
+			if ( method_exists( __CLASS__, 'watch_meta_' . $meta_key ) ) {
+				call_user_func( [ __CLASS__, 'watch_meta_' . $meta_key ], $user_id, $meta_value );
+				return;
+			}
 			self::add_change( $user_id, 'meta', $meta_key, $meta_value );
+		}
+	}
+
+	/**
+	 * Runs when a user meta is deleted
+	 *
+	 * @param string[] $meta_ids    An array of metadata entry IDs to delete.
+	 * @param int      $user_id   ID of the object metadata is for.
+	 * @param string   $meta_key    Metadata key.
+	 * @return void
+	 */
+	public static function deleted_user_meta( $meta_ids, $user_id, $meta_key ) {
+		if ( ! self::$enabled ) {
+			return;
+		}
+
+		if ( in_array( $meta_key, self::$watched_meta, true ) ) {
+			self::add_change( $user_id, 'meta', $meta_key, '' );
 		}
 	}
 
@@ -144,7 +207,7 @@ class User_Update_Watcher {
 	 * @return void
 	 */
 	public static function profile_update( $user_id, $old_user_data, $user_data ) {
-		if ( self::$processing_user_updated_event ) {
+		if ( ! self::$enabled ) {
 			return;
 		}
 
@@ -161,11 +224,39 @@ class User_Update_Watcher {
 	 * @return void
 	 */
 	public static function maybe_trigger_event() {
-		if ( self::$processing_user_updated_event ) {
+		if ( ! self::$enabled ) {
 			return;
 		}
 		foreach ( self::$updated_users as $author ) {
 			do_action( 'newspack_network_user_updated', $author );
+		}
+	}
+
+	/**
+	 * Watcher for the simple_local_avatar meta.
+	 *
+	 * This meta gets updated every time a new image size is created for the avatar,
+	 * and we only want to fire an event if the media ID changes.
+	 *
+	 * @param int    $user_id The user ID.
+	 * @param string $new_value The meta value.
+	 * @return void
+	 */
+	public static function watch_meta_simple_local_avatar( $user_id, $new_value ) {
+		$old_value = get_user_meta( $user_id, 'simple_local_avatar', true );
+
+		Debugger::log( 'simple_local_avatar meta updated, but will only trigger a user update if the media id has changed.' );
+
+		if ( ! is_array( $old_value ) || empty( $old_value['media_id'] ) ) {
+			return;
+		}
+
+		if ( ! is_array( $new_value ) || empty( $new_value['media_id'] ) ) {
+			return;
+		}
+
+		if ( (int) $old_value['media_id'] !== (int) $new_value['media_id'] ) {
+			self::add_change( $user_id, 'meta', 'simple_local_avatar', $new_value );
 		}
 	}
 
