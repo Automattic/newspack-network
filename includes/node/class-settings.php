@@ -314,7 +314,7 @@ class Settings {
 				?>
 
 				<tr>
-					<td><?php echo esc_html( $date ); ?></td>
+					<td><?php echo esc_html( $date ); ?> (#<?php echo esc_html( $r['request_id'] ); ?>)</td>
 					<td><?php echo esc_html( $r['action'] ); ?></td>
 					<td><code><?php echo esc_html( $data ); ?></code></td>
 					<td>
