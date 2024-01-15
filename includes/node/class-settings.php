@@ -8,6 +8,7 @@
 namespace Newspack_Network\Node;
 
 use Newspack_Network\Admin;
+use Newspack_Network\Crypto;
 
 /**
  * Class to handle Node settings page
@@ -259,7 +260,107 @@ class Settings {
 			<input type="hidden" name="action" value="<?php echo esc_attr( Pulling::MANUAL_PULL_ACTION_NAME ); ?>">
 			<button class="button"><?php esc_html_e( 'Synchronize data', 'newspack-network' ); ?></button>
 		</form>
+
 		<?php
+
+		self::render_webhooks_requests();
+
+	}
+
+	/**
+	 * Renders the table with the scheduled webhooks requests.
+	 *
+	 * @return void
+	 */
+	private static function render_webhooks_requests() {
+		$secret_key = self::get_secret_key();
+		if ( ! $secret_key ) {
+			// Node is not configured yet.
+			return;
+		}
+
+		$requests = \Newspack\Data_Events\Webhooks::get_endpoint_requests( Webhook::ENDPOINT_ID );
+
+		?>
+		<h3>
+			<?php esc_html_e( 'Events queue', 'newspack-network' ); ?>
+		</h3>
+		<p>
+			<?php esc_html_e( 'The following events are queued to be sent or have recently been sent to the Hub.', 'newspack-network' ); ?>
+		</p>
+		<table class="wp-list-table widefat fixed striped table-view-list">
+			<thead>
+				<tr>
+					<th scope="col" id="date" class="manage-column column-date">Date</th>
+					<th scope="col" id="action_name" class="manage-column column-action_name">Action name</th>
+					<th scope="col" id="data" class="manage-column column-data">Data</th>
+					<th scope="col" id="data" class="manage-column column-status">Status</th>
+					<th scope="col" id="data" class="manage-column column-status">Errors</th>
+				</tr>
+			</thead>
+
+			<?php
+			foreach ( $requests as $request ) :
+				$status_label = __( 'Pending', 'newspack-network' );
+				$icon         = '🕒';
+				if ( 'finished' === $request['status'] ) {
+					$status_label = __( 'Sent', 'newspack-network' );
+					$icon         = '✅';
+				}
+				$r             = json_decode( $request['body'], true );
+				$data          = Crypto::decrypt_message( $r['data'], $secret_key, $r['nonce'] );
+				$date          = gmdate( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $r['timestamp'] );
+				$scheduled_for = gmdate( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $request['scheduled'] );
+				?>
+
+				<tr>
+					<td><?php echo esc_html( $date ); ?></td>
+					<td><?php echo esc_html( $r['action'] ); ?></td>
+					<td><code><?php echo esc_html( $data ); ?></code></td>
+					<td>
+						<?php echo esc_html( $icon . ' ' . $status_label ); ?>.
+						<?php
+							echo esc_html(
+								sprintf(
+								/* translators: %s: scheduled date */
+									__( 'Scheduled for %s', 'newspack-network' ),
+									$scheduled_for
+								)
+							);
+						?>
+					</td>
+					<td>
+						<?php if ( ! empty( $request['errors'] ) ) : ?>
+							<?php
+								echo esc_html(
+									sprintf(
+										/* translators: %s is the number of errors */
+										_n(
+											'There was %s failed attempts to send this request',
+											'There were %s failed attempts to send this request',
+											count( $request['errors'] ),
+											'newspack-network'
+										),
+										count( $request['errors'] )
+									)
+								);
+								echo '<ul>';
+							foreach ( $request['errors'] as $error ) {
+								echo '<li><code>';
+								echo esc_html( $error );
+								echo '</code></li>';
+							}
+								echo '</ul>';
+							?>
+						<?php endif; ?>
+					</td>
+				</tr>
+
+			<?php endforeach; ?>
+		</table>
+
+		<?php
+
 	}
 
 }
