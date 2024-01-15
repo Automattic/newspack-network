@@ -336,7 +336,7 @@ class Settings {
 									sprintf(
 										/* translators: %s is the number of errors */
 										_n(
-											'There was %s failed attempts to send this request',
+											'There was %s failed attempt to send this request',
 											'There were %s failed attempts to send this request',
 											count( $request['errors'] ),
 											'newspack-network'
