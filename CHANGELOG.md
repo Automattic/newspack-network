@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/Automattic/newspack-network/compare/v1.0.0...v1.0.1) (2024-01-18)
+
+
+### Bug Fixes
+
+* namespace ([7c4d560](https://github.com/Automattic/newspack-network/commit/7c4d5608cbdd79ea0c63091ba04f6ad6e5798436))
+* update author distribution on pull ([e9548a5](https://github.com/Automattic/newspack-network/commit/e9548a5dcb313abfc50b056a52a80a70d3432200))
+
 # 1.0.0 (2023-12-22)
 
 

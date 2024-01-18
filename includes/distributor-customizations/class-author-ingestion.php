@@ -34,8 +34,7 @@ class Author_Ingestion {
 	public static function init() {
 		add_action( 'rest_insert_post', [ __CLASS__, 'handle_rest_insertion' ], 10, 2 );
 		add_action( 'dt_process_subscription_attributes', [ __CLASS__, 'handle_rest_insertion' ], 10, 2 );
-		add_filter( 'dt_item_mapping', [ __CLASS__, 'capture_authorship' ], 10, 2 );
-		add_action( 'dt_pull_post', [ __CLASS__, 'handle_pull' ] );
+		add_action( 'dt_pull_post', [ __CLASS__, 'handle_pull' ], 10, 3 );
 	}
 
 	/**
@@ -147,40 +146,22 @@ class Author_Ingestion {
 	}
 
 	/**
-	 * Captures and stores the authorship data for a post
-	 *
-	 * Distributor discards the additional data we send in the REST request, so we need to capture it here
-	 * for later use in self::handle_pull
-	 *
-	 * @param WP_Post $post The post object being pulled.
-	 * @param array   $post_array The post array received from the REST api.
-	 * @return WP_Post
-	 */
-	public static function capture_authorship( $post, $post_array ) {
-		Debugger::log( 'Trying to capture authorship for post ' . $post->ID );
-		if ( empty( $post_array['newspack_network_authors'] ) ) {
-			return $post;
-		}
-		Debugger::log( 'Capturing authorship for post ' . $post->ID );
-		self::$pulled_posts[ $post->ID ] = $post_array['newspack_network_authors'];
-		return $post;
-	}
-
-	/**
 	 * Triggered when a post is pulled from a remote site.
 	 *
-	 * @param int $post_id The pulled post ID.
+	 * @param int                                                 $new_post_id   The new post ID that was pulled.
+	 * @param \Distributor\ExternalConnections\ExternalConnection $connection    The Distributor connection pulling the post.
+	 * @param array                                               $post_array    The original post data retrieved via the connection.
 	 * @return void
 	 */
-	public static function handle_pull( $post_id ) {
-		$remote_id = get_post_meta( $post_id, 'dt_original_post_id', true );
-		if ( ! $remote_id || empty( self::$pulled_posts[ $remote_id ] ) ) {
+	public static function handle_pull( $new_post_id, $connection, $post_array ) {
+
+		if ( empty( $post_array['newspack_network_authors'] ) ) {
 			return;
 		}
 
-		$distributed_authors = self::$pulled_posts[ $remote_id ];
+		$distributed_authors = $post_array['newspack_network_authors'];
 
-		self::ingest_authors_for_post( $post_id, $distributed_authors );
+		self::ingest_authors_for_post( $new_post_id, $distributed_authors );
 
 	}
 
