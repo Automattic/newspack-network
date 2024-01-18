@@ -10,6 +10,7 @@ namespace Newspack_Network\Distributor_Customizations;
 use Newspack\Data_Events;
 use Newspack_Network\Debugger;
 use Newspack_Network\User_Update_Watcher;
+use WP_Error;
 
 /**
  * Class to handle author distribution.
