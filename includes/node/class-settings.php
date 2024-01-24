@@ -283,10 +283,10 @@ class Settings {
 
 		?>
 		<h3>
-			<?php esc_html_e( 'Events queue', 'newspack-network' ); ?>
+			<?php esc_html_e( 'Scheduled Events', 'newspack-network' ); ?>
 		</h3>
 		<p>
-			<?php esc_html_e( 'The following events are queued to be sent or have recently been sent to the Hub.', 'newspack-network' ); ?>
+			<?php esc_html_e( 'The following events are scheduled to be sent or have recently been sent to the Hub.', 'newspack-network' ); ?>
 		</p>
 		<table class="wp-list-table widefat fixed striped table-view-list">
 			<thead>
