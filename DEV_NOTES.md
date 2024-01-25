@@ -30,7 +30,7 @@ For example, the `reader_registered` event will create or update a WP User in th
 
 The Hub can also be an active site in the network. So events that happen on the Hub should also be propagated as if it was just another node.
 
-But when an event is fired in the Hub, there's no need to send a webhook request to itself. So we simply listen to events fired by the Data Events API and trigger the process to persist it into the `Event_Log`. This is done by `Hub\Event_Listeners` and it basically does the same thing `Hub\Webhook` does, but it is listening to local events instead of receiving webhook requests from a Node. 
+But when an event is fired in the Hub, there's no need to send a webhook request to itself. So we simply listen to events fired by the Data Events API and trigger the process to persist it into the `Event_Log`. This is done by `Hub\Event_Listeners` and it basically does the same thing `Hub\Webhook` does, but it is listening to local events instead of receiving webhook requests from a Node.
 
 ## Nodes pulling events from the hub
 
@@ -109,20 +109,15 @@ All log messages will include the process id (pid) as the first part of the mess
 
 ### When an event is fired in a Node
 
-Newspack Network will listen to the Newspack Data Events API, which has its own way to dispatch events asynchronously. If Woocommerce is installed, it will use the Action Scheduler lib, otherwise it will simply dispatch a dedicated request to process the event.
+Newspack Network will listen to the Newspack Data Events API.
 
-So before we can even begin to follow the event through the Newspack Network flow, it needs to be dispatched. Sometimes it can take one or two minutes.
-
-You can inspect it in the `Tools > Scheduled Actions` panel if Woocommerce is active, and the Data Events API will also output plenty of information in the logs.
-
-When the event is finally dispatched in a Node, it will create a new webhook request. See [Data Events Webhooks](https://github.com/Automattic/newspack-plugin/blob/master/includes/data-events/class-webhooks.php) for details on how it works.
+When an event dispatched in a Node, it will create a new webhook request. See [Data Events Webhooks](https://github.com/Automattic/newspack-plugin/blob/master/includes/data-events/class-webhooks.php) for details on how it works.
 
 In short, a webhook is a Custom Post type post scheduled to be published in the future. Once it's published, the request is sent. If it fails, it schedules itself again for the future, incresing the wait time in a geometric progression.
 
-When the event is dispatched, you should not see anything special in the logs. Everything is handled by webhooks, so you can:
-* Go to Newspack > Connections > Webhooks and see if the request was scheduled there
-* Manually check the requests on the database
-* Manually dispatch requests using `Newspack\Data_Events\Webhooks::process_request( $request_id )`
+You can see the scheduled webhook requests in Newspack Network > Node Settings under the "Events queue" section.
+
+* If you want to manually and immeditally send a webhook request, you can do so using `Newspack\Data_Events\Webhooks::process_request( $request_id )`
 
 When the request is sent, Webhooks will output a message starting with `[NEWSPACK-WEBHOOKS] Sending request` in the logs.
 
