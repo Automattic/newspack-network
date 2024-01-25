@@ -35,6 +35,8 @@ class Accepted_Actions {
 		'donation_new'                       => 'Donation_New',
 		'donation_subscription_cancelled'    => 'Donation_Subscription_Cancelled',
 		'network_user_updated'               => 'User_Updated',
+		'newsletter_subscribed'              => 'Newsletter_Subscribed',
+		'newsletter_updated'                 => 'Newsletter_Subscription_Updated',
 	];
 
 	/**
@@ -50,5 +52,7 @@ class Accepted_Actions {
 		'donation_new',
 		'donation_subscription_cancelled',
 		'network_user_updated',
+		'newsletter_subscribed',
+		'newsletter_updated',
 	];
 }
