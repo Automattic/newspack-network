@@ -59,3 +59,17 @@ add_filter( 'dt_pull_capabilities', 'newspack_network_filter_distributor_menu_ca
  * ==== End of editors to pull content =====
  * =========================================
  */
+
+/**
+ * =========================================
+ * =========== Bug Workaround ==============
+ * This is a workaround the bug fixed in https://github.com/10up/distributor/pull/1185
+ * Until that fix is released, we need to keep this workaround.
+ * =========================================
+ */
+add_action(
+	'init',
+	function() {
+		wp_cache_delete( 'dt_media::{$post_id}', 'dt::post' );
+	}
+);
