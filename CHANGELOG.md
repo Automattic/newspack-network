@@ -1,3 +1,27 @@
+# [1.1.0](https://github.com/Automattic/newspack-network/compare/v1.0.1...v1.1.0) (2024-01-25)
+
+
+### Bug Fixes
+
+* add workaround for distributor bug ([#36](https://github.com/Automattic/newspack-network/issues/36)) ([123ac89](https://github.com/Automattic/newspack-network/commit/123ac894154a6b92321bff92c6b0413357840b2f))
+
+
+### Features
+
+* add event queue debug ([#34](https://github.com/Automattic/newspack-network/issues/34)) ([a5e48ae](https://github.com/Automattic/newspack-network/commit/a5e48ae516b1b33ace4047eb2ee7f640ff96d514))
+
+# [1.1.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.0.1...v1.1.0-alpha.1) (2024-01-25)
+
+
+### Bug Fixes
+
+* add workaround for distributor bug ([#36](https://github.com/Automattic/newspack-network/issues/36)) ([123ac89](https://github.com/Automattic/newspack-network/commit/123ac894154a6b92321bff92c6b0413357840b2f))
+
+
+### Features
+
+* add event queue debug ([#34](https://github.com/Automattic/newspack-network/issues/34)) ([a5e48ae](https://github.com/Automattic/newspack-network/commit/a5e48ae516b1b33ace4047eb2ee7f640ff96d514))
+
 ## [1.0.1](https://github.com/Automattic/newspack-network/compare/v1.0.0...v1.0.1) (2024-01-18)
 
 
