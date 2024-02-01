@@ -38,6 +38,7 @@ workflows:
                 - release
                 - alpha
                 - /^hotfix\/.*/
+                - /^epic\/.*/
       - newspack/post-release:
           requires:
             - newspack/release
