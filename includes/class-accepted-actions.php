@@ -28,13 +28,14 @@ class Accepted_Actions {
 	 * @var array Array where the keys are the supported events and the values are the Incoming Events class names
 	 */
 	const ACTIONS = [
-		'reader_registered'                  => 'Reader_Registered',
-		'newspack_node_order_changed'        => 'Order_Changed',
-		'newspack_node_subscription_changed' => 'Subscription_Changed',
-		'canonical_url_updated'              => 'Canonical_Url_Updated',
-		'donation_new'                       => 'Donation_New',
-		'donation_subscription_cancelled'    => 'Donation_Subscription_Cancelled',
-		'network_user_updated'               => 'User_Updated',
+		'reader_registered'                       => 'Reader_Registered',
+		'newspack_node_order_changed'             => 'Order_Changed',
+		'newspack_node_subscription_changed'      => 'Subscription_Changed',
+		'canonical_url_updated'                   => 'Canonical_Url_Updated',
+		'donation_new'                            => 'Donation_New',
+		'donation_subscription_cancelled'         => 'Donation_Subscription_Cancelled',
+		'network_user_updated'                    => 'User_Updated',
+		'newspack_network_woo_membership_updated' => 'Woocommerce_Membership_Updated',
 	];
 
 	/**
@@ -50,5 +51,6 @@ class Accepted_Actions {
 		'donation_new',
 		'donation_subscription_cancelled',
 		'network_user_updated',
+		'newspack_network_woo_membership_updated',
 	];
 }
