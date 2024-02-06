@@ -15,8 +15,8 @@ class Base {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		add_filter( 'dt_capabilities', [ __CLASS__,'filter_distributor_menu_cap' ] );
-		add_filter( 'dt_pull_capabilities', [ __CLASS__,'filter_distributor_menu_cap' ] );
+		add_filter( 'dt_capabilities', [ __CLASS__, 'filter_distributor_menu_cap' ] );
+		add_filter( 'dt_pull_capabilities', [ __CLASS__, 'filter_distributor_menu_cap' ] );
 
 		add_filter( 'dt_push_post_args', [ __CLASS__, 'filter_push_post_args' ], 10, 2 );
 		add_filter( 'dt_pull_post_args', [ __CLASS__, 'filter_pull_post_args' ], 10, 3 );
