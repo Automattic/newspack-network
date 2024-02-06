@@ -29,13 +29,9 @@ function newspack_network_get_primary_category_slug( $post_body, $post ) {
  * @param WP_REST_Request $request The request data.
  */
 function newspack_network_fix_primary_category( $post, $request ) {
-	$primary_category_id   = get_post_meta( $post->ID, '_yoast_wpseo_primary_category', true );
 	$primary_category_slug = get_post_meta( $post->ID, 'yoast_primary_category_slug', true );
-	$hub_primary_category  = get_term( $primary_category_id );
-	if ( ! $hub_primary_category ) {
-		// Attempt to find a matching category on the Hub site by slug.
-		$hub_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
-	}
+	// Match the category by slug, the IDs might have a clash.
+	$hub_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
 	if ( $hub_primary_category ) {
 		update_post_meta( $post->ID, '_yoast_wpseo_primary_category', $hub_primary_category->term_id );
 	} elseif ( class_exists( '\Newspack\Logger' ) ) {
