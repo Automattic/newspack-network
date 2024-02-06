@@ -21,8 +21,8 @@ class Base {
 		add_filter( 'dt_push_post_args', [ __CLASS__, 'filter_push_post_args' ], 10, 2 );
 		add_filter( 'dt_pull_post_args', [ __CLASS__, 'filter_pull_post_args' ], 10, 3 );
 		add_filter( 'dt_subscription_post_args', [ __CLASS__, 'filter_subscription_post_args' ], 10, 2 );
-		add_action( 'dt_process_subscription_attributes', [ __CLASS__, 'fix_primary_category' ], 10, 2 );
-		add_action( 'dt_process_distributor_attributes', [ __CLASS__, 'fix_primary_category' ], 10, 2 );
+		add_action( 'dt_process_subscription_attributes', [ __CLASS__, 'process_attributes' ], 10, 2 );
+		add_action( 'dt_process_distributor_attributes', [ __CLASS__, 'process_attributes' ], 10, 2 );
 
 		/**
 		 * This is a workaround the bug fixed in https://github.com/10up/distributor/pull/1185
@@ -54,12 +54,13 @@ class Base {
 	}
 
 	/**
-	 * Fix primary category on the Node.
+	 * Process distributed post attributes after the distribution has completed.
 	 *
 	 * @param WP_Post         $post The post object.
 	 * @param WP_REST_Request $request The request data.
 	 */
-	public static function fix_primary_category( $post, $request ) {
+	public static function process_attributes( $post, $request ) {
+		// Fix the primary category.
 		$primary_category_id   = get_post_meta( $post->ID, '_yoast_wpseo_primary_category', true );
 		$primary_category_slug = get_post_meta( $post->ID, 'yoast_primary_category_slug', true );
 		$hub_primary_category  = get_term( $primary_category_id );
@@ -71,6 +72,18 @@ class Base {
 			update_post_meta( $post->ID, '_yoast_wpseo_primary_category', $hub_primary_category->term_id );
 		} elseif ( class_exists( '\Newspack\Logger' ) ) {
 			\Newspack\Logger::error( __( 'No matching category found on the Hub site.', 'newspack-network' ) );
+		}
+
+		// Synchronize the post status.
+		$hub_post_status     = get_post_meta( $post->ID, 'post_status', true );
+		$current_post_status = get_post_status( $post->ID );
+		if ( $hub_post_status && $hub_post_status !== $current_post_status ) {
+			wp_update_post(
+				[
+					'ID'          => $post->ID,
+					'post_status' => $hub_post_status,
+				]
+			);
 		}
 	}
 
@@ -116,6 +129,9 @@ class Base {
 	public static function filter_subscription_post_args( $post_body, $post ) {
 		$slug = self::get_primary_category_slug( $post_body, $post );
 		$post_body['post_data']['distributor_meta']['yoast_primary_category_slug'] = $slug;
+		// Attaching the post status only on updates (so not in filter_push_post_args).
+		// By default, only published posts are distributable, so there's no need to attach the post status on new posts.
+		$post_body['post_data']['distributor_meta']['post_status'] = $post->post_status;
 		return $post_body;
 	}
 
