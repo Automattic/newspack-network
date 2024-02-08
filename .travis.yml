@@ -10,7 +10,7 @@ notifications:
 
 branches:
   only:
-    - master
+    - trunk
 
 cache:
   directories:
