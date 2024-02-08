@@ -1,3 +1,15 @@
+# [1.2.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.1.0...v1.2.0-alpha.1) (2024-02-08)
+
+
+### Bug Fixes
+
+* **data-listeners:** handle no user in wc data update ([4eeefc0](https://github.com/Automattic/newspack-network/commit/4eeefc088b12ffdb17db669d9b1f6605c546d1b1))
+
+
+### Features
+
+* **ci:** add epic/* release workflow and rename `master` to `trunk` ([#39](https://github.com/Automattic/newspack-network/issues/39)) ([9cee51d](https://github.com/Automattic/newspack-network/commit/9cee51dfd407919631df144b11e9599a312cffce))
+
 # [1.1.0](https://github.com/Automattic/newspack-network/compare/v1.0.1...v1.1.0) (2024-01-25)
 
 
