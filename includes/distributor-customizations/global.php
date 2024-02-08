@@ -13,7 +13,7 @@
  */
 function newspack_network_get_primary_category_slug( $post, $is_pulling = false ) {
 	if ( $is_pulling ) {
-		// When pulling content, the post will be the Node post.
+		// When pulling content, the post will be the remote site post (not on the WP instance that executes this code).
 		// The category slug has to be read from the data on the post object.
 		if ( ! isset( $post->meta['_yoast_wpseo_primary_category'] ) ) {
 			return;
@@ -33,7 +33,7 @@ function newspack_network_get_primary_category_slug( $post, $is_pulling = false 
 			return $maybe_primary_category['slug'];
 		}
 	} elseif ( class_exists( 'WPSEO_Primary_Term' ) ) {
-		// When pushing, the post will be the Hub post.
+		// When pushing, the post will be the post on this site.
 		// The category exists on the site which executes this code, so it can be retrieved via Yoast.
 		$primary_term = new WPSEO_Primary_Term( 'category', $post->ID );
 		$category_id  = $primary_term->get_primary_term();
@@ -47,10 +47,9 @@ function newspack_network_get_primary_category_slug( $post, $is_pulling = false 
 /**
  * Fix primary category on the Node.
  *
- * @param WP_Post         $post The post object.
- * @param WP_REST_Request $request The request data.
+ * @param WP_Post $post The post object.
  */
-function newspack_network_fix_primary_category( $post, $request ) {
+function newspack_network_fix_primary_category( $post ) {
 	$primary_category_slug = get_post_meta( $post->ID, 'yoast_primary_category_slug', true );
 	// Match the category by slug, the IDs might have a clash.
 	$hub_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
@@ -95,7 +94,7 @@ add_filter(
 
 		$slug = newspack_network_get_primary_category_slug( $post, true );
 		if ( $slug ) {
-			$post_array['meta']['yoast_primary_category_slug'] = $slug;
+			$post_array['meta_input']['yoast_primary_category_slug'] = $slug;
 		}
 
 		return $post_array;
@@ -141,5 +140,11 @@ add_filter(
 /**
  * Map Hub primary category to the primary category on the Node.
  */
-add_action( 'dt_process_subscription_attributes', 'newspack_network_fix_primary_category', 10, 2 );
-add_action( 'dt_process_distributor_attributes', 'newspack_network_fix_primary_category', 10, 2 );
+add_action( 'dt_process_subscription_attributes', 'newspack_network_fix_primary_category' );
+add_action( 'dt_process_distributor_attributes', 'newspack_network_fix_primary_category' );
+add_action(
+	'dt_pull_post',
+	function( $new_post_id ) {
+		newspack_network_fix_primary_category( get_post( $new_post_id ) );
+	}
+);
