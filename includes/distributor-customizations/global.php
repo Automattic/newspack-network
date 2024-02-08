@@ -8,11 +8,33 @@
 /**
  * Send primary category slug to the Node along with post update data.
  *
- * @param array   $post_body The post data to be sent to the Node.
  * @param WP_Post $post The post object.
+ * @param bool    $is_pulling Whether the post is being pulled from the remote site.
  */
-function newspack_network_get_primary_category_slug( $post_body, $post ) {
-	if ( class_exists( 'WPSEO_Primary_Term' ) ) {
+function newspack_network_get_primary_category_slug( $post, $is_pulling = false ) {
+	if ( $is_pulling ) {
+		// When pulling content, the post will be the Node post.
+		// The category slug has to be read from the data on the post object.
+		if ( ! isset( $post->meta['_yoast_wpseo_primary_category'] ) ) {
+			return;
+		}
+		$primary_category_id = reset( $post->meta['_yoast_wpseo_primary_category'] );
+		if ( ! $primary_category_id ) {
+			return;
+		}
+		$maybe_primary_categories = array_filter(
+			$post->terms['category'],
+			function( $category ) use ( $primary_category_id ) {
+				return (int) $category['term_id'] === (int) $primary_category_id;
+			}
+		);
+		$maybe_primary_category   = reset( $maybe_primary_categories );
+		if ( $maybe_primary_category ) {
+			return $maybe_primary_category['slug'];
+		}
+	} elseif ( class_exists( 'WPSEO_Primary_Term' ) ) {
+		// When pushing, the post will be the Hub post.
+		// The category exists on the site which executes this code, so it can be retrieved via Yoast.
 		$primary_term = new WPSEO_Primary_Term( 'category', $post->ID );
 		$category_id  = $primary_term->get_primary_term();
 		if ( $category_id ) {
@@ -50,7 +72,7 @@ add_filter(
 		$post_body['date']     = $post->post_date;
 		$post_body['date_gmt'] = $post->post_date_gmt;
 
-		$slug = newspack_network_get_primary_category_slug( $post_body, $post );
+		$slug = newspack_network_get_primary_category_slug( $post );
 		if ( $slug ) {
 			$post_body['distributor_meta']['yoast_primary_category_slug'] = $slug;
 		}
@@ -70,6 +92,12 @@ add_filter(
 	function( $post_array, $remote_id, $post ) {
 		$post_array['post_date']     = $post->post_date;
 		$post_array['post_date_gmt'] = $post->post_date_gmt;
+
+		$slug = newspack_network_get_primary_category_slug( $post, true );
+		if ( $slug ) {
+			$post_array['meta']['yoast_primary_category_slug'] = $slug;
+		}
+
 		return $post_array;
 	},
 	10,
@@ -102,7 +130,7 @@ add_action(
 add_filter(
 	'dt_subscription_post_args',
 	function( $post_body, $post ) {
-		$slug = newspack_network_get_primary_category_slug( $post_body, $post );
+		$slug = newspack_network_get_primary_category_slug( $post );
 		$post_body['post_data']['distributor_meta']['yoast_primary_category_slug'] = $slug;
 		return $post_body;
 	},
