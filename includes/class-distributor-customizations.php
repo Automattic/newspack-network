@@ -24,6 +24,4 @@ class Distributor_Customizations {
 		Distributor_Customizations\Author_Ingestion::init();
 		Distributor_Customizations\Authorship_Filters::init();
 	}
-
-
 }
