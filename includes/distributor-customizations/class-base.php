@@ -71,7 +71,7 @@ class Base {
 		} elseif ( class_exists( 'WPSEO_Primary_Term' ) ) {
 			// When pushing, the post will be the post on this site.
 			// The category exists on the site which executes this code, so it can be retrieved via Yoast.
-			$primary_term = new WPSEO_Primary_Term( 'category', $post->ID );
+			$primary_term = new \WPSEO_Primary_Term( 'category', $post->ID );
 			$category_id  = $primary_term->get_primary_term();
 			if ( $category_id ) {
 				$category = get_term( $category_id );
