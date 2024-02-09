@@ -50,11 +50,11 @@ function newspack_network_get_primary_category_slug( $post, $is_pulling = false 
  * @param WP_Post $post The post object.
  */
 function newspack_network_fix_primary_category( $post ) {
-	$primary_category_slug = get_post_meta( $post->ID, 'yoast_primary_category_slug', true );
+	$primary_category_slug = get_post_meta( $post->ID, 'newspack_network_primary_cat_slug', true );
 	// Match the category by slug, the IDs might have a clash.
-	$hub_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
-	if ( $hub_primary_category ) {
-		update_post_meta( $post->ID, '_yoast_wpseo_primary_category', $hub_primary_category->term_id );
+	$found_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
+	if ( $found_primary_category ) {
+		update_post_meta( $post->ID, '_yoast_wpseo_primary_category', $found_primary_category->term_id );
 	} elseif ( class_exists( '\Newspack\Logger' ) ) {
 		\Newspack\Logger::error( __( 'No matching category found on the Hub site.', 'newspack-network' ) );
 	}
@@ -73,7 +73,7 @@ add_filter(
 
 		$slug = newspack_network_get_primary_category_slug( $post );
 		if ( $slug ) {
-			$post_body['distributor_meta']['yoast_primary_category_slug'] = $slug;
+			$post_body['distributor_meta']['newspack_network_primary_cat_slug'] = $slug;
 		}
 
 		return $post_body;
@@ -94,7 +94,7 @@ add_filter(
 
 		$slug = newspack_network_get_primary_category_slug( $post, true );
 		if ( $slug ) {
-			$post_array['meta_input']['yoast_primary_category_slug'] = $slug;
+			$post_array['meta_input']['newspack_network_primary_cat_slug'] = $slug;
 		}
 
 		return $post_array;
@@ -130,7 +130,7 @@ add_filter(
 	'dt_subscription_post_args',
 	function( $post_body, $post ) {
 		$slug = newspack_network_get_primary_category_slug( $post );
-		$post_body['post_data']['distributor_meta']['yoast_primary_category_slug'] = $slug;
+		$post_body['post_data']['distributor_meta']['newspack_network_primary_cat_slug'] = $slug;
 		return $post_body;
 	},
 	10,
