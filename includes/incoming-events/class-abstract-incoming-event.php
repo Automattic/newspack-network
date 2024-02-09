@@ -153,5 +153,4 @@ class Abstract_Incoming_Event {
 		$node = $this->get_node();
 		return $node ? $node->get_id() : 0;
 	}
-
 }

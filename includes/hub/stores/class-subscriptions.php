@@ -102,7 +102,5 @@ class Subscriptions extends Woo_Store {
 		}
 
 		return $local_id;
-
 	}
-
 }

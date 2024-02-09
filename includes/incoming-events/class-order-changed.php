@@ -32,7 +32,5 @@ class Order_Changed extends Woo_Item_Changed {
 		}
 
 		Orders::persist( $this );
-		
 	}
-
 }

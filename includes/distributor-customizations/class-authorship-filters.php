@@ -105,7 +105,6 @@ class Authorship_Filters {
 		}
 
 		return $author_name;
-
 	}
 
 	/**
@@ -123,5 +122,4 @@ class Authorship_Filters {
 
 		return $link;
 	}
-
 }

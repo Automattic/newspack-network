@@ -52,7 +52,6 @@ class Users {
 		update_user_meta( $user_id, 'newspack_remote_id', $remote_id );
 
 		return get_user_by( 'id', $user_id );
-
 	}
 
 	/**
@@ -113,5 +112,4 @@ class Users {
 		Debugger::log( 'No avatar found in user data' );
 		return false;
 	}
-
 }

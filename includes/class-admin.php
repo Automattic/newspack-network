@@ -185,7 +185,5 @@ class Admin {
 	 * @return void
 	 */
 	public static function enqueue_scripts() {
-
 	}
-
 }

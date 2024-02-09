@@ -43,5 +43,4 @@ class Order_Item extends Woo_Item {
 	public function get_subscription_relationship() {
 		return get_post_meta( $this->get_id(), 'subscription_relationship', true );
 	}
-	
 }

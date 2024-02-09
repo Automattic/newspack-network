@@ -259,5 +259,4 @@ class User_Update_Watcher {
 			self::add_change( $user_id, 'meta', 'simple_local_avatar', $new_value );
 		}
 	}
-
 }

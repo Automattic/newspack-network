@@ -175,6 +175,4 @@ abstract class Abstract_Event_Log_Item {
 	public function get_timestamp() {
 		return $this->timestamp;
 	}
-
-
 }

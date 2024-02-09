@@ -75,5 +75,4 @@ class Event_Log {
         ) $charset_collate;";
 		$wpdb->query( $sql ); //phpcs:ignore
 	}
-
 }

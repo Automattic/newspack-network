@@ -142,11 +142,11 @@ class Distributor_Settings {
 
 		Nodes::nodes_dropdown( $current, self::CANONICAL_NODE_OPTION_NAME, __( 'Default', 'newspack-network' ) );
 
-		echo sprintf(
+		printf(
 			'<br/><small>%1$s</small>',
 			esc_html__( 'By default, canonical URLs will point to the site where the post was created. Modify this setting if you want them to point to one of the nodes.', 'newspack-network' )
 		);
-		echo sprintf(
+		printf(
 			'<br/><small>%1$s</small>',
 			esc_html__( 'Note: This assumes that all sites use the same permalink structure for posts.', 'newspack-network' )
 		);
@@ -197,7 +197,5 @@ class Distributor_Settings {
 		return [
 			'url' => $node_url,
 		];
-
 	}
-
 }
