@@ -11,6 +11,10 @@ namespace Newspack_Network\Distributor_Customizations;
  * General Distributor customizations.
  */
 class Base {
+	const YOAST_PRIMARY_CAT_META_NAME = '_yoast_wpseo_primary_category';
+	const PRIMARY_CAT_SLUG_META_NAME  = 'newspack_network_primary_cat_slug';
+	const POST_STATUS_META_NAME       = 'newspack_network_post_status';
+
 	/**
 	 * Initialize hooks.
 	 */
@@ -47,10 +51,10 @@ class Base {
 		if ( $is_pulling ) {
 			// When pulling content, the post will be the remote site post (not on the WP instance that executes this code).
 			// The category slug has to be read from the data on the post object.
-			if ( ! isset( $post->meta['_yoast_wpseo_primary_category'] ) ) {
+			if ( ! isset( $post->meta[ self::YOAST_PRIMARY_CAT_META_NAME ] ) ) {
 				return;
 			}
-			$primary_category_id = reset( $post->meta['_yoast_wpseo_primary_category'] );
+			$primary_category_id = reset( $post->meta[ self::YOAST_PRIMARY_CAT_META_NAME ] );
 			if ( ! $primary_category_id ) {
 				return;
 			}
@@ -83,17 +87,17 @@ class Base {
 	 */
 	public static function process_attributes( $post ) {
 		// Fix the primary category.
-		$primary_category_slug = get_post_meta( $post->ID, 'newspack_network_primary_cat_slug', true );
+		$primary_category_slug = get_post_meta( $post->ID, self::PRIMARY_CAT_SLUG_META_NAME, true );
 		// Match the category by slug, the IDs might have a clash.
 		$found_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
 		if ( $found_primary_category ) {
-			update_post_meta( $post->ID, '_yoast_wpseo_primary_category', $found_primary_category->term_id );
+			update_post_meta( $post->ID, self::YOAST_PRIMARY_CAT_META_NAME, $found_primary_category->term_id );
 		} elseif ( class_exists( '\Newspack\Logger' ) ) {
 			\Newspack\Logger::error( __( 'No matching category found on the Hub site.', 'newspack-network' ) );
 		}
 
 		// Synchronize the post status.
-		$hub_post_status     = get_post_meta( $post->ID, 'newspack_network_post_status', true );
+		$hub_post_status     = get_post_meta( $post->ID, self::POST_STATUS_META_NAME, true );
 		$current_post_status = get_post_status( $post->ID );
 		if ( $hub_post_status && $hub_post_status !== $current_post_status ) {
 			wp_update_post(
@@ -119,7 +123,7 @@ class Base {
 
 		$slug = self::get_primary_category_slug( $post );
 		if ( $slug ) {
-			$post_body['distributor_meta']['newspack_network_primary_cat_slug'] = $slug;
+			$post_body['distributor_meta'][ self::PRIMARY_CAT_SLUG_META_NAME ] = $slug;
 		}
 
 		return $post_body;
@@ -138,7 +142,7 @@ class Base {
 
 		$slug = self::get_primary_category_slug( $post, true );
 		if ( $slug ) {
-			$post_array['meta_input']['newspack_network_primary_cat_slug'] = $slug;
+			$post_array['meta_input'][ self::PRIMARY_CAT_SLUG_META_NAME ] = $slug;
 		}
 
 		return $post_array;
@@ -152,10 +156,10 @@ class Base {
 	 */
 	public static function filter_subscription_post_args( $post_body, $post ) {
 		$slug = self::get_primary_category_slug( $post );
-		$post_body['post_data']['distributor_meta']['newspack_network_primary_cat_slug'] = $slug;
+		$post_body['post_data']['distributor_meta'][ self::PRIMARY_CAT_SLUG_META_NAME ] = $slug;
 		// Attaching the post status only on updates (so not in filter_push_post_args).
 		// By default, only published posts are distributable, so there's no need to attach the post status on new posts.
-		$post_body['post_data']['distributor_meta']['newspack_network_post_status'] = $post->post_status;
+		$post_body['post_data']['distributor_meta'][ self::POST_STATUS_META_NAME ] = $post->post_status;
 		return $post_body;
 	}
 
