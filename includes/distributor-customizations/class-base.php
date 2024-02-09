@@ -23,6 +23,7 @@ class Base {
 		add_filter( 'dt_subscription_post_args', [ __CLASS__, 'filter_subscription_post_args' ], 10, 2 );
 		add_action( 'dt_process_subscription_attributes', [ __CLASS__, 'process_attributes' ], 10, 2 );
 		add_action( 'dt_process_distributor_attributes', [ __CLASS__, 'process_attributes' ], 10, 2 );
+		add_action( 'dt_pull_post', [ __CLASS__, 'pull_post' ] );
 
 		/**
 		 * This is a workaround the bug fixed in https://github.com/10up/distributor/pull/1185
@@ -30,7 +31,7 @@ class Base {
 		 */
 		add_action(
 			'init',
-			function() {
+			function () {
 				wp_cache_delete( 'dt_media::{$post_id}', 'dt::post' );
 			}
 		);
@@ -39,12 +40,34 @@ class Base {
 	/**
 	 * Send primary category slug to the Node along with post update data.
 	 *
-	 * @param array   $post_body The post data to be sent to the Node.
 	 * @param WP_Post $post The post object.
+	 * @param bool    $is_pulling Whether the post is being pulled from the remote site.
 	 */
-	private static function get_primary_category_slug( $post_body, $post ) {
-		if ( class_exists( 'WPSEO_Primary_Term' ) ) {
-			$primary_term = new \WPSEO_Primary_Term( 'category', $post->ID );
+	private static function get_primary_category_slug( $post, $is_pulling = false ) {
+		if ( $is_pulling ) {
+			// When pulling content, the post will be the remote site post (not on the WP instance that executes this code).
+			// The category slug has to be read from the data on the post object.
+			if ( ! isset( $post->meta['_yoast_wpseo_primary_category'] ) ) {
+				return;
+			}
+			$primary_category_id = reset( $post->meta['_yoast_wpseo_primary_category'] );
+			if ( ! $primary_category_id ) {
+				return;
+			}
+			$maybe_primary_categories = array_filter(
+				$post->terms['category'],
+				function ( $category ) use ( $primary_category_id ) {
+					return (int) $category['term_id'] === (int) $primary_category_id;
+				}
+			);
+			$maybe_primary_category   = reset( $maybe_primary_categories );
+			if ( $maybe_primary_category ) {
+				return $maybe_primary_category['slug'];
+			}
+		} elseif ( class_exists( 'WPSEO_Primary_Term' ) ) {
+			// When pushing, the post will be the post on this site.
+			// The category exists on the site which executes this code, so it can be retrieved via Yoast.
+			$primary_term = new WPSEO_Primary_Term( 'category', $post->ID );
 			$category_id  = $primary_term->get_primary_term();
 			if ( $category_id ) {
 				$category = get_term( $category_id );
@@ -56,20 +79,15 @@ class Base {
 	/**
 	 * Process distributed post attributes after the distribution has completed.
 	 *
-	 * @param WP_Post         $post The post object.
-	 * @param WP_REST_Request $request The request data.
+	 * @param WP_Post $post The post object.
 	 */
-	public static function process_attributes( $post, $request ) {
+	public static function process_attributes( $post ) {
 		// Fix the primary category.
-		$primary_category_id   = get_post_meta( $post->ID, '_yoast_wpseo_primary_category', true );
-		$primary_category_slug = get_post_meta( $post->ID, 'yoast_primary_category_slug', true );
-		$hub_primary_category  = get_term( $primary_category_id );
-		if ( ! $hub_primary_category ) {
-			// Attempt to find a matching category on the Hub site by slug.
-			$hub_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
-		}
-		if ( $hub_primary_category ) {
-			update_post_meta( $post->ID, '_yoast_wpseo_primary_category', $hub_primary_category->term_id );
+		$primary_category_slug = get_post_meta( $post->ID, 'newspack_network_primary_cat_slug', true );
+		// Match the category by slug, the IDs might have a clash.
+		$found_primary_category = get_term_by( 'slug', $primary_category_slug, 'category' );
+		if ( $found_primary_category ) {
+			update_post_meta( $post->ID, '_yoast_wpseo_primary_category', $found_primary_category->term_id );
 		} elseif ( class_exists( '\Newspack\Logger' ) ) {
 			\Newspack\Logger::error( __( 'No matching category found on the Hub site.', 'newspack-network' ) );
 		}
@@ -99,9 +117,9 @@ class Base {
 		$post_body['date']     = $post->post_date;
 		$post_body['date_gmt'] = $post->post_date_gmt;
 
-		$slug = self::get_primary_category_slug( $post_body, $post );
+		$slug = self::get_primary_category_slug( $post );
 		if ( $slug ) {
-			$post_body['distributor_meta']['yoast_primary_category_slug'] = $slug;
+			$post_body['distributor_meta']['newspack_network_primary_cat_slug'] = $slug;
 		}
 
 		return $post_body;
@@ -117,6 +135,12 @@ class Base {
 	public static function filter_pull_post_args( $post_array, $remote_id, $post ) {
 		$post_array['post_date']     = $post->post_date;
 		$post_array['post_date_gmt'] = $post->post_date_gmt;
+
+		$slug = self::get_primary_category_slug( $post, true );
+		if ( $slug ) {
+			$post_array['meta_input']['newspack_network_primary_cat_slug'] = $slug;
+		}
+
 		return $post_array;
 	}
 
@@ -127,12 +151,21 @@ class Base {
 	 * @param WP_Post $post The post object.
 	 */
 	public static function filter_subscription_post_args( $post_body, $post ) {
-		$slug = self::get_primary_category_slug( $post_body, $post );
-		$post_body['post_data']['distributor_meta']['yoast_primary_category_slug'] = $slug;
+		$slug = self::get_primary_category_slug( $post );
+		$post_body['post_data']['distributor_meta']['newspack_network_primary_cat_slug'] = $slug;
 		// Attaching the post status only on updates (so not in filter_push_post_args).
 		// By default, only published posts are distributable, so there's no need to attach the post status on new posts.
 		$post_body['post_data']['distributor_meta']['post_status'] = $post->post_status;
 		return $post_body;
+	}
+
+	/**
+	 * After the post is pulled.
+	 *
+	 * @param int $new_post_id The new post ID.
+	 */
+	public static function pull_post( $new_post_id ) {
+		self::process_attributes( get_post( $new_post_id ) );
 	}
 
 	/**
