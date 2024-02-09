@@ -93,7 +93,7 @@ class Base {
 		}
 
 		// Synchronize the post status.
-		$hub_post_status     = get_post_meta( $post->ID, 'post_status', true );
+		$hub_post_status     = get_post_meta( $post->ID, 'newspack_network_post_status', true );
 		$current_post_status = get_post_status( $post->ID );
 		if ( $hub_post_status && $hub_post_status !== $current_post_status ) {
 			wp_update_post(
@@ -155,7 +155,7 @@ class Base {
 		$post_body['post_data']['distributor_meta']['newspack_network_primary_cat_slug'] = $slug;
 		// Attaching the post status only on updates (so not in filter_push_post_args).
 		// By default, only published posts are distributable, so there's no need to attach the post status on new posts.
-		$post_body['post_data']['distributor_meta']['post_status'] = $post->post_status;
+		$post_body['post_data']['distributor_meta']['newspack_network_post_status'] = $post->post_status;
 		return $post_body;
 	}
 
