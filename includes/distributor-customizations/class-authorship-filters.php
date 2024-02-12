@@ -44,7 +44,7 @@ class Authorship_Filters {
 		}
 
 		// We don't want to filter authors on admin, as it might break things.
-		if ( is_admin() ) {
+		if ( is_admin() || defined( 'REST_REQUEST' ) && REST_REQUEST ) {
 			return $coauthors;
 		}
 
