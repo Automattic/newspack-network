@@ -159,7 +159,10 @@ class Base {
 		$post_body['post_data']['distributor_meta'][ self::PRIMARY_CAT_SLUG_META_NAME ] = $slug;
 		// Attaching the post status only on updates (so not in filter_push_post_args).
 		// By default, only published posts are distributable, so there's no need to attach the post status on new posts.
-		$post_body['post_data']['distributor_meta'][ self::POST_STATUS_META_NAME ] = $post->post_status;
+		$distributable_statuses = [ 'publish', 'trash' ];
+		if ( in_array( $post->post_status, $distributable_statuses, true ) ) {
+			$post_body['post_data']['distributor_meta'][ self::POST_STATUS_META_NAME ] = $post->post_status;
+		}
 		return $post_body;
 	}
 
