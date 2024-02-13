@@ -31,7 +31,7 @@ class User_Manual_Sync {
 	 *
 	 * @return void
 	 */
-	public static function register_listeners() {
+	public static function register_listener() {
 		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
 			return;
 		}
