@@ -23,30 +23,52 @@ class User_Manual_Sync {
 		\add_action( 'edit_user_profile', [ __CLASS__, 'add_sync_button' ] );
 		\add_action( 'show_user_profile', [ __CLASS__, 'add_sync_button' ] );
 		\add_action( 'admin_init', [ __CLASS__, 'process_admin_action' ] );
-		//\add_action( 'shutdown', [ __CLASS__, 'trigger_sync' ] );
+		\add_action( 'init', [ __CLASS__, 'register_listener' ] );
 	}
 
 	/**
-	 * TODO
+	 * Register the listeners to the Newspack Data Events API
+	 *
+	 * @return void
 	 */
-	public static function trigger_sync( $user_email ) {
-		Debugger::log( 'Attempting to sync this: ' . $user_email );
-		// do_action( 'newspack_network_manual_sync_user', $user_email );
+	public static function register_listeners() {
+		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
+			return;
+		}
+
+		Data_Events::register_listener( 'newspack_network_manual_sync_user', 'network_manual_sync_user', [ __CLASS__, 'manual_sync_user' ] );
+	}
+
+	/**
+	 * Filters the user data for the event being triggered
+	 *
+	 * @param array $user_data The user data.
+	 * @return array
+	 */
+	public static function manual_sync_user( $user_data ) {
+		return [
+			'email'   => $user_data->user_email,
+			'role'    => array_shift( $user_data->roles ),
+			'user_id' => $user_data->ID,
+		];
 	}
 
 	/**
 	 * Create URL to manually sync user.
-	 * 
+	 *
 	 * @param WP_User $user The current WP_User object.
 	 */
 	// TODO: not sure if all of this is needed, or if more is needed (whether new role/new user?)
 	public static function get_sync_link( $user ) {
-		$url = add_query_arg( array(
-			'user_id'         => \esc_attr( $user->ID ),
-			'action'          => 'np_network_manual_user_sync',
-			'uid'             => \esc_attr( $user->ID ),
-			'_wpnonce'        => \wp_create_nonce( 'np_network_manual_user_sync' ),
-		), '/wp-admin/user-edit.php' );
+		$url = add_query_arg(
+			array(
+				'user_id'  => \esc_attr( $user->ID ),
+				'action'   => 'np_network_manual_user_sync',
+				'uid'      => \esc_attr( $user->ID ),
+				'_wpnonce' => \wp_create_nonce( 'np_network_manual_user_sync' ),
+			),
+			'/wp-admin/user-edit.php'
+		);
 
 		return $url;
 	}
@@ -60,7 +82,7 @@ class User_Manual_Sync {
 	public static function add_sync_button( $user ) {
 		// TODO: should this be limited to specific roles? Author, Editor, Contributor... and not Subscriber?
 		if ( \current_user_can( 'edit_user', $user->ID ) ) :
-		?>
+			?>
 		<div class="newspack-network-sync-user">
 			<h2><?php \esc_html_e( 'Newspack Network Tools', 'newspack-network' ); ?></h2>
 			<table class="form-table" role="presentation">
@@ -79,18 +101,17 @@ class User_Manual_Sync {
 				</tr>
 			</table>
 		</div>
-	<?php
+			<?php
 	endif;
 	}
 
 	/**
 	 * Process the admin action request
-	 * 
 	 */
 	public static function process_admin_action() {
-		/** Allowed actions **/
+		/** Allowed actions */
 		$actions = [
-			'np_network_manual_user_sync'
+			'np_network_manual_user_sync',
 		];
 
 		/** Add notice if admin action was successful. */
@@ -137,7 +158,8 @@ class User_Manual_Sync {
 		}
 
 		$user_email = $user->user_email;
-		self::trigger_sync( $user_email );
+
+		do_action( 'newspack_network_manual_sync_user', $user );
 
 		$redirect = \add_query_arg( [ 'update' => $action ], \remove_query_arg( [ 'action', 'uid', '_wpnonce' ] ) );
 		\wp_safe_redirect( $redirect );

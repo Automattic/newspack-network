@@ -48,34 +48,13 @@ class User_Synced extends Abstract_Incoming_Event {
 			return;
 		}
 
-		$existing_user = get_user_by( 'email', $email );
+		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
 
-		if ( ! $existing_user ) {
-			Debugger::log( 'User not found, skipping.' );
-			return;
+		$user_current_role = array_shift( $user->roles );
+		$new_role          = $this->data->role ?? '';
+
+		if ( ! empty( $new_role ) && $user_current_role !== $new_role ) {
+			$user->set_role( $new_role );
 		}
-
-		$data = $this->get_data();
-
-		if ( isset( $data->prop ) ) {
-			$update_array = [
-				'ID' => $existing_user->ID,
-			];
-			foreach ( $data->prop as $prop_key => $prop_value ) {
-				$update_array[ $prop_key ] = $prop_value;
-			}
-			Debugger::log( 'Updating user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
-
-			wp_update_user( $update_array );
-		}
-
-		if ( isset( $data->meta ) ) {
-			foreach ( $data->meta as $meta_key => $meta_value ) {
-				Debugger::log( 'Updating user meta: ' . $meta_key );
-				update_user_meta( $existing_user->ID, $meta_key, $meta_value );
-			}
-		}
-
-		// User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta, true );
 	}
 }
