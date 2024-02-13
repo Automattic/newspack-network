@@ -36,6 +36,7 @@ class Data_Listeners {
 		Data_Events::register_listener( 'woocommerce_subscription_status_changed', 'newspack_node_subscription_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'woocommerce_order_status_changed', 'newspack_node_order_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'newspack_network_user_updated', 'network_user_updated', [ __CLASS__, 'user_updated' ] );
+		Data_Events::register_listener( 'newspack_network_manual_sync_user', 'network_manual_sync_user', [ __CLASS__, 'user_updated' ] );
 	}
 
 	/**
