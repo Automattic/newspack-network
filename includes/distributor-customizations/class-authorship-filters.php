@@ -44,13 +44,14 @@ class Authorship_Filters {
 		}
 
 		// We don't want to filter authors on admin, as it might break things.
-		if ( is_admin() || defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( is_admin() ) {
 			return $coauthors;
 		}
 
 		// Only filter posts that are still linked to the original post.
-		$distributor_post = new DistributorPost( $post_id );
-		if ( ! $distributor_post->is_linked ) {
+		// We check the dt_unlinked post meta to determine linked status.
+		// See: https://github.com/10up/distributor/blob/1f180d74db804a057f7331ce62338e571dd73350/docs/post-meta.md?plain=1#L38.
+		if ( get_post_meta( $post_id, 'dt_unlinked', true ) ) {
 			return $coauthors;
 		}
 
