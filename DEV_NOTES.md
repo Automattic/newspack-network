@@ -111,7 +111,7 @@ All log messages will include the process id (pid) as the first part of the mess
 
 Newspack Network will listen to the Newspack Data Events API.
 
-When an event dispatched in a Node, it will create a new webhook request. See [Data Events Webhooks](https://github.com/Automattic/newspack-plugin/blob/master/includes/data-events/class-webhooks.php) for details on how it works.
+When an event dispatched in a Node, it will create a new webhook request. See [Data Events Webhooks](https://github.com/Automattic/newspack-plugin/blob/trunk/includes/data-events/class-webhooks.php) for details on how it works.
 
 In short, a webhook is a Custom Post type post scheduled to be published in the future. Once it's published, the request is sent. If it fails, it schedules itself again for the future, incresing the wait time in a geometric progression.
 
