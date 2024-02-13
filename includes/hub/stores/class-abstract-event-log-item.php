@@ -40,7 +40,7 @@ abstract class Abstract_Event_Log_Item {
 	 *
 	 * @var string
 	 */
-	private $action;
+	private $action_name;
 
 	/**
 	 * The data associated with the Event Log Item.
@@ -55,13 +55,6 @@ abstract class Abstract_Event_Log_Item {
 	 * @var string
 	 */
 	private $timestamp;
-
-	/**
-	 * The action name associated with the Event Log Item.
-	 *
-	 * @var string
-	 */
-	private $action_name;
 
 	/**
 	 * Creates an instance of an Event Log Item
