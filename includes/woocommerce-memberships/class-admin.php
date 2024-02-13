@@ -29,6 +29,13 @@ class Admin {
 	const NETWORK_ID_META_KEY = '_newspack_network_id';
 
 	/**
+	 * The key of the metadata that flags a user membership that is managed in another site in the network.
+	 *
+	 * @var string
+	 */
+	const NETWORK_MANAGED_META_KEY = '_managed_by_newspack_network';
+
+	/**
 	 * Initializer.
 	 */
 	public static function init() {
@@ -108,7 +115,7 @@ class Admin {
 	 * @return string
 	 */
 	public static function get_edit_post_link( $link, $post_id ) {
-		$managed_by_newspack_network = get_post_meta( $post_id, '_managed_by_newspack_network', true );
+		$managed_by_newspack_network = get_post_meta( $post_id, self::NETWORK_MANAGED_META_KEY, true );
 		if ( $managed_by_newspack_network ) {
 			$link = str_replace( get_bloginfo( 'url' ), $managed_by_newspack_network, $link );
 		}
@@ -125,7 +132,7 @@ class Admin {
 	 * @return array
 	 */
 	public static function post_row_actions( $actions, $post ) {
-		$managed_by_newspack_network = get_post_meta( $post->ID, '_managed_by_newspack_network', true );
+		$managed_by_newspack_network = get_post_meta( $post->ID, self::NETWORK_MANAGED_META_KEY, true );
 		if ( ! $managed_by_newspack_network ) {
 			return $actions;
 		}

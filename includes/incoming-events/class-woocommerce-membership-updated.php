@@ -95,7 +95,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
-		update_post_meta( $user_membership->get_id(), '_managed_by_newspack_network', $this->get_site() );
+		update_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, $this->get_site() );
 
 		$user_membership->update_status( $this->get_new_status() );
 		$user_membership->add_note(
