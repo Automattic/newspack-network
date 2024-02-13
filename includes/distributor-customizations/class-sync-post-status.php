@@ -29,13 +29,13 @@ class Sync_Post_Status {
 	 * @param WP_Post $post The post object.
 	 */
 	public static function process_attributes( $post ) {
-		$hub_post_status     = get_post_meta( $post->ID, self::POST_STATUS_META_NAME, true );
+		$origin_post_status  = get_post_meta( $post->ID, self::POST_STATUS_META_NAME, true );
 		$current_post_status = get_post_status( $post->ID );
-		if ( $hub_post_status && $hub_post_status !== $current_post_status ) {
+		if ( $origin_post_status && $origin_post_status !== $current_post_status ) {
 			wp_update_post(
 				[
 					'ID'          => $post->ID,
-					'post_status' => $hub_post_status,
+					'post_status' => $origin_post_status,
 				]
 			);
 		}
