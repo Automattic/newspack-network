@@ -50,13 +50,17 @@ class User_Update_Watcher {
 		'last_name',
 		'description',
 
-		// Shipping and Billing
+		// Shipping and Billing.
+		'billing_first_name',
+		'billing_last_name',
 		'billing_address_1',
 		'billing_address_2',
 		'billing_city',
 		'billing_state',
 		'billing_postcode',
 		'billing_country',
+		'shipping_first_name',
+		'shipping_last_name',
 		'shipping_address_1',
 		'shipping_address_2',
 		'shipping_city',
