@@ -59,10 +59,10 @@ class Data_Listeners {
 				$relationship = 'parent';
 			}
 		}
-		return [
+		$result = [
 			'id'                        => $item_id,
 			'user_id'                   => $item->get_customer_id(),
-			'user_name'                 => $item->get_user()->display_name,
+			'user_name'                 => '',
 			'email'                     => $item->get_billing_email(),
 			'status_before'             => $status_from,
 			'status_after'              => $status_to,
@@ -70,6 +70,11 @@ class Data_Listeners {
 			'payment_count'             => method_exists( $item, 'get_payment_count' ) ? $item->get_payment_count() : 1,
 			'subscription_relationship' => $relationship,
 		];
+		$user   = $item->get_user();
+		if ( $user ) {
+			$result['user_name'] = $user->display_name;
+		}
+		return $result;
 	}
 
 	/**
@@ -81,5 +86,4 @@ class Data_Listeners {
 	public static function user_updated( $user_data ) {
 		return $user_data;
 	}
-
 }
