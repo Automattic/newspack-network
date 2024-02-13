@@ -4,8 +4,8 @@
 	"type": "wordpress-plugin",
 	"license": "GPL-3.0",
 	"require-dev": {
-		"automattic/vipwpcs": "^2.0.0",
-		"wp-coding-standards/wpcs": "*",
+		"automattic/vipwpcs": "^3.0",
+		"wp-coding-standards/wpcs": "^3.0",
 		"dealerdirect/phpcodesniffer-composer-installer": "*",
 		"phpcompatibility/phpcompatibility-wp": "*",
 		"yoast/phpunit-polyfills": "^1.0",

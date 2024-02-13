@@ -34,7 +34,7 @@ class Node {
 		}
 
 		if ( ! $node instanceof WP_Post || Nodes::POST_TYPE_SLUG !== $node->post_type ) {
-			return false;
+			return;
 		}
 
 		$this->post = $node;
@@ -138,6 +138,5 @@ class Node {
 				'url'   => $base_url . 'wp-admin/options-general.php',
 			],
 		];
-
 	}
 }

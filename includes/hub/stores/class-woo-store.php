@@ -142,7 +142,6 @@ abstract class Woo_Store {
 		$body = wp_remote_retrieve_body( $response );
 
 		return json_decode( $body );
-
 	}
 
 	/**
@@ -168,5 +167,4 @@ abstract class Woo_Store {
 
 		return (object) $response->get_data();
 	}
-
 }

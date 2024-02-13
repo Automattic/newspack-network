@@ -75,5 +75,4 @@ class Users {
 		}
 		return $value;
 	}
-
 }

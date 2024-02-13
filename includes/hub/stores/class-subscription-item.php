@@ -87,5 +87,4 @@ class Subscription_Item extends Woo_Item {
 	public function get_line_items() {
 		return get_post_meta( $this->get_id(), 'line_items', false );
 	}
-	
 }

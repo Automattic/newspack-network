@@ -250,5 +250,4 @@ class Pulling {
 			self::set_last_processed_id( $id );
 		}
 	}
-
 }

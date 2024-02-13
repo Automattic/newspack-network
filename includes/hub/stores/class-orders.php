@@ -85,7 +85,5 @@ class Orders extends Woo_Store {
 		update_post_meta( $local_id, 'date_created', $order_data->date_created );
 
 		return $local_id;
-
 	}
-
 }
