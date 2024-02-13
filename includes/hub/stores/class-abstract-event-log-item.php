@@ -57,6 +57,13 @@ abstract class Abstract_Event_Log_Item {
 	private $timestamp;
 
 	/**
+	 * The action name associated with the Event Log Item.
+	 *
+	 * @var string
+	 */
+	private $action_name;
+
+	/**
 	 * Creates an instance of an Event Log Item
 	 *
 	 * Do not create an object of this class directly. Instead, use the Event_Log Store class.

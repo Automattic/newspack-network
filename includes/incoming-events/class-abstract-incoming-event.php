@@ -40,6 +40,13 @@ class Abstract_Incoming_Event {
 	protected $timestamp;
 
 	/**
+	 * The site url
+	 *
+	 * @var string
+	 */
+	protected $site;
+
+	/**
 	 * Constructs a new Incoming Event
 	 *
 	 * @param string       $site      The origin site URL.
