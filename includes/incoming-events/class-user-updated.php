@@ -75,8 +75,8 @@ class User_Updated extends Abstract_Incoming_Event {
 				Debugger::log( 'Updating user meta: ' . $meta_key );
 				update_user_meta( $existing_user->ID, $meta_key, $meta_value );
 			}
-		}
 
-		User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta, true );
+			User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta, true );
+		}
 	}
 }

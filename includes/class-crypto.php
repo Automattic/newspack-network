@@ -31,8 +31,8 @@ class Crypto {
 	 * @return string|false The decrypted message or false if the message could not be decrypted.
 	 */
 	public static function decrypt_message( $message, $secret_key, $nonce ) {
-		
-		if ( ! $secret_key || ! is_string( $secret_key ) || ! $nonce || ! is_string( $nonce ) ) {
+
+		if ( ! $secret_key || ! is_string( $secret_key ) || ! $nonce || ! is_string( $nonce ) || ! is_string( $message ) ) {
 			return false;
 		}
 
@@ -54,7 +54,7 @@ class Crypto {
 	 * @return string|WP_Error The encrypted message or WP_Error if the message could not be encrypted.
 	 */
 	public static function encrypt_message( $message, $secret_key, $nonce ) {
-		
+
 		if ( ! $secret_key || ! is_string( $secret_key ) || ! $nonce || ! is_string( $nonce ) ) {
 			return false;
 		}
