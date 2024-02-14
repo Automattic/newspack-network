@@ -10,18 +10,79 @@ namespace Newspack_Network;
 use Newspack\Data_Events;
 use Newspack_Network\Debugger;
 
-
 /**
  * Class to watch the user for updates and trigger events
  */
 class User_Manual_Sync {
 
 	/**
+	 * The metadata we're syncing.
+	 *
+	 * @var array
+	 */
+	public static $meta_to_sync = [
+		// Social Links.
+		'facebook',
+		'instagram',
+		'linkedin',
+		'myspace',
+		'pinterest',
+		'soundcloud',
+		'tumblr',
+		'twitter',
+		'youtube',
+		'wikipedia',
+
+		// Core bio.
+		'first_name',
+		'last_name',
+		'description',
+
+		// Newspack.
+		'newspack_job_title',
+		'newspack_role',
+		'newspack_employer',
+		'newspack_phone_number',
+
+		// Yoast SEO.
+		'wpseo_title',
+		'wpseo_metadesc',
+		'wpseo_noindex_author',
+		'wpseo_content_analysis_disable',
+		'wpseo_keyword_analysis_disable',
+		'wpseo_inclusive_language_analysis_disable',
+
+		// Simple Local Avatars.
+		'simple_local_avatar',
+		'simple_local_avatar_rating',
+	];
+
+	/**
+	 * Meta keys we watched but we don't want to update in the same way we do with all the others.
+	 *
+	 * @var array
+	 */
+	public static $read_only_meta = [
+		'simple_local_avatar', // The avatar is sideloaded in a different way.
+	];
+
+	/**
+	 * The user properties we're syncing.
+	 *
+	 * @var array
+	 */
+	public static $user_props = [
+		'display_name',
+		'user_email',
+		'user_url',
+	];
+
+	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		\add_action( 'edit_user_profile', [ __CLASS__, 'add_sync_button' ] );
-		\add_action( 'show_user_profile', [ __CLASS__, 'add_sync_button' ] );
+		\add_action( 'edit_user_profile', [ __CLASS__, 'add_manual_sync_button' ] );
+		\add_action( 'show_user_profile', [ __CLASS__, 'add_manual_sync_button' ] );
 		\add_action( 'admin_init', [ __CLASS__, 'process_admin_action' ] );
 		\add_action( 'init', [ __CLASS__, 'register_listener' ] );
 	}
@@ -46,20 +107,29 @@ class User_Manual_Sync {
 	 * @return array
 	 */
 	public static function manual_sync_user( $user_data ) {
+		$synced_metadata = [];
+
+		// Create an array of all of the synced user meta values.
+		foreach( self::$meta_to_sync as $key ) {
+			$synced_metadata[$key] = $user_data->$key;
+		}
+
 		return [
 			'email'   => $user_data->user_email,
 			'role'    => array_shift( $user_data->roles ),
 			'user_id' => $user_data->ID,
+			'meta'    => $synced_metadata,
 		];
 	}
+
 
 	/**
 	 * Create URL to manually sync user.
 	 *
 	 * @param WP_User $user The current WP_User object.
+	 * @return string $url The wp-admin URL.
 	 */
-	// TODO: not sure if all of this is needed, or if more is needed (whether new role/new user?)
-	public static function get_sync_link( $user ) {
+	public static function get_manual_sync_link( $user ) {
 		$url = add_query_arg(
 			array(
 				'user_id'  => \esc_attr( $user->ID ),
@@ -73,13 +143,12 @@ class User_Manual_Sync {
 		return $url;
 	}
 
-
 	/**
 	 * Add button to manually sync users to the Edit User Profile screen.
 	 *
 	 * @param WP_User $user The current WP_User object.
 	 */
-	public static function add_sync_button( $user ) {
+	public static function add_manual_sync_button( $user ) {
 		// TODO: should this be limited to specific roles? Author, Editor, Contributor... and not Subscriber?
 		if ( \current_user_can( 'edit_user', $user->ID ) ) :
 			?>
@@ -91,7 +160,7 @@ class User_Manual_Sync {
 						<label><?php esc_html_e( 'Manually sync user', 'newspack-network' ); ?></label>
 					</th>
 					<td>
-						<a class="button" id="do-newspack-network-manual-sync" href="<?php echo esc_url( self::get_sync_link( $user ) ); ?>">
+						<a class="button" id="do-newspack-network-manual-sync" href="<?php echo esc_url( self::get_manual_sync_link( $user ) ); ?>">
 							<?php esc_html_e( 'Sync user across network', 'newspack-network' ); ?>
 						</a>
 						<p class="description">
@@ -130,7 +199,6 @@ class User_Manual_Sync {
 			}
 		}
 
-
 		if ( ! isset( $_GET['action'] ) || ! in_array( $_GET['action'], $actions, true ) ) {
 			return;
 		}
@@ -156,8 +224,6 @@ class User_Manual_Sync {
 		if ( ! $user || \is_wp_error( $user ) ) {
 			\wp_die( \esc_html__( 'User not found.', 'newspack' ) );
 		}
-
-		$user_email = $user->user_email;
 
 		do_action( 'newspack_network_manual_sync_user', $user );
 
