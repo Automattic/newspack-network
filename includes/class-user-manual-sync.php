@@ -108,10 +108,15 @@ class User_Manual_Sync {
 	 */
 	public static function manual_sync_user( $user_data ) {
 		$synced_metadata = [];
+		$synced_props = [];
 
 		// Create an array of all of the synced user meta values.
 		foreach ( self::$meta_to_sync as $key ) {
 			$synced_metadata[ $key ] = $user_data->$key;
+		}
+
+		foreach ( self::$user_props as $key ) {
+			$synced_props[ $key ] = $user_data->$key;
 		}
 
 		return [
@@ -119,9 +124,9 @@ class User_Manual_Sync {
 			'role'    => array_shift( $user_data->roles ),
 			'user_id' => $user_data->ID,
 			'meta'    => $synced_metadata,
+			'prop'    => $synced_props,
 		];
 	}
-
 
 	/**
 	 * Create URL to manually sync user.

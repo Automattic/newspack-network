@@ -50,7 +50,12 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 
 		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
 
-		$user_current_role = array_shift( $user->roles );
+		if ( is_wp_error( $user ) ) {
+			Debugger::log( 'Error creating user: ' . $user->get_error_message() );
+			return;
+		}
+
+		$user_current_role = $user->roles;
 		$new_role          = $this->data->role ?? '';
 
 		if ( ! empty( $new_role ) && $user_current_role !== $new_role ) {
@@ -67,7 +72,6 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 				$update_array[ $prop_key ] = $prop_value;
 			}
 			Debugger::log( 'Updating user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
-
 			wp_update_user( $update_array );
 		}
 
