@@ -47,16 +47,25 @@ class Abstract_Incoming_Event {
 	protected $site;
 
 	/**
+	 * Action name for this event
+	 *
+	 * @var string
+	 */
+	protected $action_name;
+
+	/**
 	 * Constructs a new Incoming Event
 	 *
 	 * @param string       $site      The origin site URL.
 	 * @param array|object $data      The data for this event.
 	 * @param int          $timestamp The timestamp for this event.
+	 * @param string       $action_name The action name for this event.
 	 */
-	public function __construct( $site, $data, $timestamp ) {
+	public function __construct( $site, $data, $timestamp, $action_name = false ) {
 		$this->site      = $site;
 		$this->data      = (object) $data;
 		$this->timestamp = $timestamp;
+		$this->action_name = $action_name;
 	}
 
 	/**
@@ -117,6 +126,9 @@ class Abstract_Incoming_Event {
 	 * @return string
 	 */
 	public function get_action_name() {
+		if ( $this->action_name ) {
+			return $this->action_name;
+		}
 		$class      = new \ReflectionClass( $this );
 		$class_name = $class->getShortName();
 		return array_search( $class_name, Accepted_Actions::ACTIONS );
