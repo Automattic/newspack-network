@@ -133,5 +133,4 @@ class Yoast_Primary_Cat {
 	public static function pull_post( $new_post_id ) {
 		self::process_attributes( get_post( $new_post_id ) );
 	}
-
 }
