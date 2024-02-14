@@ -47,7 +47,6 @@ class User_Synced extends Abstract_Incoming_Event {
 		if ( ! $email ) {
 			return;
 		}
-		// $existing_user = get_user_by( 'email', $email );
 
 		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
 

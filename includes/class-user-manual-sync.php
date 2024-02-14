@@ -110,8 +110,8 @@ class User_Manual_Sync {
 		$synced_metadata = [];
 
 		// Create an array of all of the synced user meta values.
-		foreach( self::$meta_to_sync as $key ) {
-			$synced_metadata[$key] = $user_data->$key;
+		foreach ( self::$meta_to_sync as $key ) {
+			$synced_metadata[ $key ] = $user_data->$key;
 		}
 
 		return [
