@@ -179,10 +179,15 @@ class Pulling {
 			return $response;
 		}
 		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
 		if ( 200 !== $response_code ) {
-			return new \WP_Error( 'newspack-network-node-pulling-error', __( 'Error pulling data from the Hub', 'newspack-network-node' ) );
+			$error_message = __( 'Error pulling data from the Hub', 'newspack-network-node' );
+			if ( $response_body ) {
+				$error_message .= ': ' . $response_body;
+			}
+			return new \WP_Error( 'newspack-network-node-pulling-error', $error_message );
 		}
-		return wp_remote_retrieve_body( $response );
+		return $response_body;
 	}
 
 	/**
