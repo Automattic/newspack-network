@@ -36,6 +36,20 @@ class Admin {
 	const NETWORK_MANAGED_META_KEY = '_managed_by_newspack_network';
 
 	/**
+	 * The key of the metadata that holds the ID of the user membership in the origin site
+	 *
+	 * @var string
+	 */
+	const REMOTE_ID_META_KEY = '_remote_id';
+
+	/**
+	 * The key of the metadata that holds the URL of the origin site
+	 *
+	 * @var string
+	 */
+	const SITE_URL_META_KEY = '_remote_site_url';
+
+	/**
 	 * Initializer.
 	 */
 	public static function init() {
@@ -43,6 +57,7 @@ class Admin {
 		add_action( 'save_post', array( __CLASS__, 'save_meta_box' ) );
 		add_filter( 'get_edit_post_link', array( __CLASS__, 'get_edit_post_link' ), 10, 2 );
 		add_filter( 'post_row_actions', array( __CLASS__, 'post_row_actions' ), 99, 2 ); // After the Memberships plugin.
+		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap' ), 20, 4 );
 	}
 
 	/**
@@ -117,7 +132,9 @@ class Admin {
 	public static function get_edit_post_link( $link, $post_id ) {
 		$managed_by_newspack_network = get_post_meta( $post_id, self::NETWORK_MANAGED_META_KEY, true );
 		if ( $managed_by_newspack_network ) {
-			$link = str_replace( get_bloginfo( 'url' ), $managed_by_newspack_network, $link );
+			$remote_url = get_post_meta( $post_id, self::SITE_URL_META_KEY, true );
+			$remote_id  = get_post_meta( $post_id, self::REMOTE_ID_META_KEY, true );
+			$link       = sprintf( '%s/wp-admin/post.php?post=%d&action=edit', $remote_url, $remote_id );
 		}
 		return $link;
 	}
@@ -133,11 +150,12 @@ class Admin {
 	 */
 	public static function post_row_actions( $actions, $post ) {
 		$managed_by_newspack_network = get_post_meta( $post->ID, self::NETWORK_MANAGED_META_KEY, true );
+		$remote_url                  = get_post_meta( $post->ID, self::SITE_URL_META_KEY, true );
 		if ( ! $managed_by_newspack_network ) {
 			return $actions;
 		}
-		$link     = get_edit_post_link( $post->ID );
-		$link_tag = sprintf( '<a href="%s" target="_blank">%s</a>', $link, $managed_by_newspack_network );
+		$link     = self::get_edit_post_link( '', $post->ID );
+		$link_tag = sprintf( '<a href="%s" target="_blank">%s</a>', $link, $remote_url );
 		return [
 			'none' => sprintf(
 				// translators: %s is the site URL with a link to edit the post.
@@ -145,5 +163,25 @@ class Admin {
 				$link_tag
 			),
 		];
+	}
+
+	/**
+	 * Blocks any user from editing a user membership that is managed in another site of the network.
+	 *
+	 * @param array  $caps The array of required primitive capabilities or roles for the requested capability.
+	 * @param string $cap The requested capability.
+	 * @param int    $user_id The user ID we are checking permissions for.
+	 * @param array  $args The context args passed to the check.
+	 * @return array
+	 */
+	public static function map_meta_cap( $caps, $cap, $user_id, $args ) {
+		if ( 'edit_post' === $cap ) {
+			$post_id                     = $args[0];
+			$managed_by_newspack_network = get_post_meta( $post_id, self::NETWORK_MANAGED_META_KEY, true );
+			if ( $managed_by_newspack_network ) {
+				$caps = [ 'do_not_allow' ];
+			}
+		}
+		return $caps;
 	}
 }

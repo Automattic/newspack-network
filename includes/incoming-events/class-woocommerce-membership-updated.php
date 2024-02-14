@@ -95,7 +95,9 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
-		update_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, $this->get_site() );
+		update_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
+		update_post_meta( $user_membership->get_id(), Memberships_Admin::REMOTE_ID_META_KEY, $this->get_membership_id() );
+		update_post_meta( $user_membership->get_id(), Memberships_Admin::SITE_URL_META_KEY, $this->get_site() );
 
 		$user_membership->update_status( $this->get_new_status() );
 		$user_membership->add_note(
@@ -126,6 +128,15 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 	 */
 	public function get_new_status() {
 		return $this->data->new_status ?? null;
+	}
+
+	/**
+	 * Get the original membership id
+	 *
+	 * @return ?string
+	 */
+	public function get_membership_id() {
+		return $this->data->membership_id ?? null;
 	}
 
 }

@@ -84,8 +84,8 @@ class Events {
 		return [
 			'email'           => $user_email,
 			'user_id'         => $user->ID,
-			'plan_id'         => $plan_id,
 			'plan_network_id' => $plan_network_id,
+			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $new_status,
 		];
 	}
@@ -152,8 +152,8 @@ class Events {
 		return [
 			'email'           => $user_email,
 			'user_id'         => $user_id,
-			'plan_id'         => $plan_id,
 			'plan_network_id' => $plan_network_id,
+			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $user_membership->get_status(),
 		];
 
