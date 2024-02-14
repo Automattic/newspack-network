@@ -12,9 +12,9 @@ use Newspack_Network\Node\Canonical_Url;
 use Newspack_Network\Utils\Users as User_Utils;
 
 /**
- * Class to handle the Canonical Url Updated Event
+ * Class to handle the Donation New
  *
- * This event is always sent from the Hub and received by Nodes.
+ * This will update the local "network_donor" reader data with the information that they are donors in another site in the network
  */
 class Donation_New extends Abstract_Incoming_Event {
 

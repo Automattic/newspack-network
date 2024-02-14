@@ -19,12 +19,12 @@ class Subscription_Changed extends Woo_Item_Changed {
 	 *
 	 * @return void
 	 */
-	public function post_process_in_hub() {
+	public function always_process_in_hub() {
 		$email = $this->get_email();
 		if ( ! $email ) {
 			return;
 		}
-		
+
 		$subscription_id = $this->get_id();
 
 		if ( ! $subscription_id ) {
@@ -32,8 +32,8 @@ class Subscription_Changed extends Woo_Item_Changed {
 		}
 
 		Subscriptions::persist( $this );
-		
+
 	}
 
-	
+
 }
