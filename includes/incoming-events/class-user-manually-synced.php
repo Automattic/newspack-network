@@ -16,7 +16,7 @@ use Newspack_Network\Utils\Users as User_Utils;
  *
  * This event is always sent from the Hub and received by Nodes.
  */
-class User_Synced extends Abstract_Incoming_Event {
+class User_Manually_Synced extends Abstract_Incoming_Event {
 
 	/**
 	 * Processes the event
@@ -43,7 +43,7 @@ class User_Synced extends Abstract_Incoming_Event {
 	 */
 	public function maybe_sync_user() {
 		$email = $this->get_email();
-		Debugger::log( 'Processing user_synced with email: ' . $email );
+		Debugger::log( 'Processing user_manually_synced with email: ' . $email );
 		if ( ! $email ) {
 			return;
 		}

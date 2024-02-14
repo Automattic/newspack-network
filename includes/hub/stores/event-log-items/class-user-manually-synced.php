@@ -12,7 +12,7 @@ use Newspack_Network\Hub\Stores\Abstract_Event_Log_Item;
 /**
  * Class to handle the User Updated Log Item
  */
-class User_Synced extends Abstract_Event_Log_Item {
+class User_Manually_Synced extends Abstract_Event_Log_Item {
 
 	/**
 	 * Gets a summary for this event
