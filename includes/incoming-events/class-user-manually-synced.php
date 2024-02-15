@@ -84,8 +84,8 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 				Debugger::log( 'Manually syncing user meta: ' . $meta_key );
 				update_user_meta( $user->ID, $meta_key, $meta_value );
 			}
-		}
 
-		User_Utils::maybe_sideload_avatar( $user->ID, $data->meta, true );
+			User_Utils::maybe_sideload_avatar( $user->ID, $data->meta, true );
+		}
 	}
 }

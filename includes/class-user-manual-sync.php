@@ -16,68 +16,6 @@ use Newspack_Network\Debugger;
 class User_Manual_Sync {
 
 	/**
-	 * The metadata we're syncing.
-	 *
-	 * @var array
-	 */
-	public static $meta_to_sync = [
-		// Social Links.
-		'facebook',
-		'instagram',
-		'linkedin',
-		'myspace',
-		'pinterest',
-		'soundcloud',
-		'tumblr',
-		'twitter',
-		'youtube',
-		'wikipedia',
-
-		// Core bio.
-		'first_name',
-		'last_name',
-		'description',
-
-		// Newspack.
-		'newspack_job_title',
-		'newspack_role',
-		'newspack_employer',
-		'newspack_phone_number',
-
-		// Yoast SEO.
-		'wpseo_title',
-		'wpseo_metadesc',
-		'wpseo_noindex_author',
-		'wpseo_content_analysis_disable',
-		'wpseo_keyword_analysis_disable',
-		'wpseo_inclusive_language_analysis_disable',
-
-		// Simple Local Avatars.
-		'simple_local_avatar',
-		'simple_local_avatar_rating',
-	];
-
-	/**
-	 * Meta keys we watched but we don't want to update in the same way we do with all the others.
-	 *
-	 * @var array
-	 */
-	public static $read_only_meta = [
-		'simple_local_avatar',  // The avatar is sideloaded in a different way.
-	];
-
-	/**
-	 * The user properties we're syncing.
-	 *
-	 * @var array
-	 */
-	public static $user_props = [
-		'display_name',
-		'user_email',
-		'user_url',
-	];
-
-	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
@@ -111,11 +49,11 @@ class User_Manual_Sync {
 		$synced_props    = [];
 
 		// Create an array of all of the synced user meta values.
-		foreach ( self::$meta_to_sync as $key ) {
+		foreach ( User_Update_Watcher::$watched_meta as $key ) {
 			$synced_metadata[ $key ] = $user_data->$key;
 		}
 
-		foreach ( self::$user_props as $key ) {
+		foreach ( User_Update_Watcher::$user_props as $key ) {
 			$synced_props[ $key ] = $user_data->$key;
 		}
 
@@ -137,10 +75,9 @@ class User_Manual_Sync {
 	public static function get_manual_sync_link( $user ) {
 		$url = add_query_arg(
 			array(
-				'user_id'  => \esc_attr( $user->ID ),
-				'action'   => 'np_network_manual_user_sync',
-				'uid'      => \esc_attr( $user->ID ),
-				'_wpnonce' => \wp_create_nonce( 'np_network_manual_user_sync' ),
+				'user_id'                       => \esc_attr( $user->ID ),
+				'np_network_manual_sync_action' => 'np_network_manual_user_sync',
+				'_wpnonce'                      => \wp_create_nonce( 'np_network_manual_user_sync' ),
 			),
 			'/wp-admin/user-edit.php'
 		);
@@ -154,7 +91,6 @@ class User_Manual_Sync {
 	 * @param WP_User $user The current WP_User object.
 	 */
 	public static function add_manual_sync_button( $user ) {
-		// TODO: should this option limited to specific roles?
 		if ( \current_user_can( 'edit_user', $user->ID ) ) :
 			?>
 		<div class="newspack-network-sync-user">
@@ -184,13 +120,11 @@ class User_Manual_Sync {
 	 */
 	public static function process_admin_action() {
 		/** Allowed actions */
-		$actions = [
-			'np_network_manual_user_sync',
-		];
+		$sync_action = 'np_network_manual_user_sync';
 
 		/** Add notice if admin action was successful. */
-		if ( isset( $_GET['update'] ) && in_array( $_GET['update'], $actions, true ) ) {
-			$update  = \sanitize_text_field( \wp_unslash( $_GET['update'] ) );
+		if ( isset( $_GET['np_network_manual_sync_update'] ) && $_GET['np_network_manual_sync_update'] === $sync_action ) {
+			$update  = \sanitize_text_field( \wp_unslash( $_GET['np_network_manual_sync_update'] ) );
 			$message = __( 'This user is scheduled to be synced.', 'newspack-network' );
 			if ( ! empty( $message ) ) {
 				\add_action(
@@ -204,13 +138,13 @@ class User_Manual_Sync {
 			}
 		}
 
-		if ( ! isset( $_GET['action'] ) || ! in_array( $_GET['action'], $actions, true ) ) {
+		if ( ! isset( $_GET['np_network_manual_sync_action'] ) || $_GET['np_network_manual_sync_action'] !== $sync_action ) {
 			return;
 		}
 
-		$action = \sanitize_text_field( \wp_unslash( $_GET['action'] ) );
+		$action = \sanitize_text_field( \wp_unslash( $_GET['np_network_manual_sync_action'] ) );
 
-		if ( ! isset( $_GET['uid'] ) ) {
+		if ( ! isset( $_GET['user_id'] ) ) {
 			\wp_die( \esc_html__( 'Invalid request.', 'newspack' ) );
 		}
 
@@ -218,7 +152,7 @@ class User_Manual_Sync {
 			\wp_die( \esc_html__( 'Invalid request.', 'newspack' ) );
 		}
 
-		$user_id = \absint( \wp_unslash( $_GET['uid'] ) );
+		$user_id = \absint( \wp_unslash( $_GET['user_id'] ) );
 
 		if ( ! \current_user_can( 'edit_user', $user_id ) ) {
 			\wp_die( \esc_html__( 'You do not have permission to do that.', 'newspack' ) );
@@ -232,7 +166,7 @@ class User_Manual_Sync {
 
 		do_action( 'newspack_network_manual_sync_user', $user );
 
-		$redirect = \add_query_arg( [ 'update' => $action ], \remove_query_arg( [ 'action', 'uid', '_wpnonce' ] ) );
+		$redirect = \add_query_arg( [ 'np_network_manual_sync_update' => $action ], \remove_query_arg( [ 'np_network_manual_sync_action', '_wpnonce' ] ) );
 		\wp_safe_redirect( $redirect );
 		exit;
 	}
