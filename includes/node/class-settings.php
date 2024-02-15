@@ -9,6 +9,7 @@ namespace Newspack_Network\Node;
 
 use Newspack_Network\Admin;
 use Newspack_Network\Crypto;
+use Newspack_Network\Hub\Node as Hub_Node;
 use WP_Error;
 
 /**
@@ -48,6 +49,7 @@ class Settings {
 		add_action( 'admin_menu', [ __CLASS__, 'add_menu' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
 		add_action( 'admin_init', [ __CLASS__, 'process_connection_form' ] );
+		add_action( 'admin_bar_menu', [ __CLASS__, 'admin_bar_menu' ], 100 );
 	}
 
 	/**
@@ -563,5 +565,33 @@ class Settings {
 			<p><?php echo esc_html( self::$connection_error ); ?></p>
 			</div>
 		<?php
+	}
+	
+	/**
+	 * Adds the nodes and their bookmarks to the Admin Bar menu
+	 *
+	 * @param \WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+	 * @return void
+	 */
+	public static function admin_bar_menu( $wp_admin_bar ) {
+		$wp_admin_bar->add_node(
+			[
+				'id'     => 'hub',
+				'title'  => 'Hub',
+				'href'   => false,
+				'parent' => 'site-name',
+			]
+		);
+
+		foreach ( Hub_Node::get_bookmarks( self::get_hub_url() ) as $bookmark ) {
+			$wp_admin_bar->add_node(
+				[
+					'id'     => 'hub-' . sanitize_title( $bookmark['label'] ),
+					'title'  => $bookmark['label'],
+					'href'   => $bookmark['url'],
+					'parent' => 'hub',
+				]
+			);
+		}
 	}
 }

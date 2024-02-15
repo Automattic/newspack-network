@@ -54,7 +54,7 @@ class Nodes_List {
 				function ( $bookmark ) {
 					return sprintf( '<a href="%s" target="_blank">%s</a>', esc_url( $bookmark['url'] ), esc_html( $bookmark['label'] ) );
 				},
-				$node->get_bookmarks()
+				Node::get_bookmarks( $node->get_url() )
 			);
 			$allowed_tags = [
 				'a' => [
@@ -107,7 +107,7 @@ class Nodes_List {
 			];
 			$wp_admin_bar->add_node( $args );
 
-			foreach ( $node->get_bookmarks() as $bookmark ) {
+			foreach ( Node::get_bookmarks( $node->get_url() ) as $bookmark ) {
 				$sub_item_id = $item_id . '-' . sanitize_title( $bookmark['label'] );
 				$args        = [
 					'id'     => $sub_item_id,

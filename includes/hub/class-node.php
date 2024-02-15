@@ -118,11 +118,12 @@ class Node {
 	/**
 	 * Gets a collection of bookmarks for this Node
 	 *
+	 * @param  string $url The URL of the Node.
 	 * @return array
 	 */
-	public function get_bookmarks() {
+	public static function get_bookmarks( $url ) {
 
-		$base_url = trailingslashit( $this->get_url() );
+		$base_url = trailingslashit( $url );
 
 		return [
 			[
