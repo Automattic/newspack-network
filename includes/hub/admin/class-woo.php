@@ -36,7 +36,6 @@ abstract class Woo {
 	 * Runs the initialization.
 	 */
 	public static function init() {
-
 		$class_name         = get_called_class();
 		$db_class_name      = str_replace( 'Admin', 'Database', $class_name );
 		self::$post_types[] = $db_class_name::POST_TYPE_SLUG;
@@ -180,13 +179,30 @@ abstract class Woo {
 	public static function parse_query( $query ) {
 		global $pagenow;
 
-		if ( ! is_admin() || 'edit.php' !== $pagenow || ! $query->is_main_query() || ! in_array( $query->query_vars['post_type'], self::$post_types, true ) ) {
+		if ( ! is_admin() || 'edit.php' !== $pagenow || empty( $query->query_vars['s'] ) || ! in_array( $query->query_vars['post_type'], self::$post_types, true ) ) {
 			return;
 		}
 
-		error_log( 'Query: ' . $query->query_vars['s'] );
+		$search_term = $query->query_vars['s'];
 
-		// Get Post IDs by query.
+		// Query by name and/or email meta.
+		$meta_query = [
+			'relation' => 'OR',
+			[
+				'key'     => 'user_name',
+				'value'   => sanitize_text_field( $search_term ),
+				'compare' => 'LIKE',
+			],
+			[
+				'key'     => 'user_email',
+				'value'   => sanitize_text_field( $search_term ),
+				'compare' => 'LIKE',
+			]
+		];
+
+		$query->set( 'meta_query', $meta_query );
+
+		unset( $query->query_vars['s'] );
 	}
 
 
