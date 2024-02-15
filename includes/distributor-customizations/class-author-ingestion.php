@@ -142,7 +142,6 @@ class Author_Ingestion {
 			Debugger::log( $coauthors );
 			$coauthors_plus->add_coauthors( $post_id, $coauthors );
 		}
-
 	}
 
 	/**
@@ -162,7 +161,5 @@ class Author_Ingestion {
 		$distributed_authors = $post_array['newspack_network_authors'];
 
 		self::ingest_authors_for_post( $new_post_id, $distributed_authors );
-
 	}
-
 }

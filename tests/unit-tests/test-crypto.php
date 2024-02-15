@@ -5,7 +5,7 @@
  * @package Newspack_Network
  */
 
-use \Newspack_Network\Crypto;
+use Newspack_Network\Crypto;
 
 /**
  * Test the Node class.
@@ -51,5 +51,4 @@ class TestCrypto extends WP_UnitTestCase {
 		$signed_message = Crypto::encrypt_message( 'test', $keys, $nonce );
 		$this->assertSame( 'test', Crypto::decrypt_message( $signed_message, $keys, $nonce ) );
 	}
-
 }

@@ -38,7 +38,6 @@ class Nodes_List {
 		unset( $columns['stats'] );
 		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
-
 	}
 
 	/**
@@ -120,5 +119,4 @@ class Nodes_List {
 			}
 		}
 	}
-
 }

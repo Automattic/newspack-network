@@ -141,7 +141,7 @@ class Settings {
 	 */
 	public static function hub_url_callback() {
 		$content = get_option( 'newspack_node_hub_url' );
-		echo sprintf(
+		printf(
 			'<input type="text" name="%1$s" value="%2$s">',
 			'newspack_node_hub_url',
 			esc_html( $content )
@@ -155,7 +155,7 @@ class Settings {
 	 */
 	public static function secret_key_callback() {
 		$content = get_option( 'newspack_node_secret_key' );
-		echo sprintf(
+		printf(
 			'<input type="text" name="%1$s" value="%2$s">',
 			'newspack_node_secret_key',
 			esc_html( $content )
@@ -264,7 +264,6 @@ class Settings {
 		<?php
 
 		self::render_webhooks_requests();
-
 	}
 
 	/**
@@ -360,7 +359,5 @@ class Settings {
 		</table>
 
 		<?php
-
 	}
-
 }

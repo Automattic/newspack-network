@@ -40,7 +40,7 @@ abstract class Abstract_Event_Log_Item {
 	 *
 	 * @var string
 	 */
-	private $action;
+	private $action_name;
 
 	/**
 	 * The data associated with the Event Log Item.
@@ -175,6 +175,4 @@ abstract class Abstract_Event_Log_Item {
 	public function get_timestamp() {
 		return $this->timestamp;
 	}
-
-
 }

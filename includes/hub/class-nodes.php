@@ -258,7 +258,5 @@ class Nodes {
 			$secret_key = Crypto::generate_secret_key();
 			update_post_meta( $post_id, 'secret-key', $secret_key );
 		}
-
 	}
-
 }

@@ -76,5 +76,4 @@ class Donation_New extends Abstract_Incoming_Event {
 		\Newspack\Reader_Data::update_item( $existing_user->ID, 'network_donor', wp_json_encode( $network_donor_data ) );
 		Debugger::log( 'Updated ' . $email . ' network donor status with "' . $recurrence . '" for node ' . $node );
 	}
-
 }
