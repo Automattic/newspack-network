@@ -29,5 +29,4 @@ class Debugger {
 		}
 		error_log( "[{$pid}] {$caller['file']}:{$caller['line']} {$message}" ); //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
-
 }

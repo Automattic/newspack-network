@@ -57,5 +57,4 @@ class Initializer {
 	public static function activation_hook() {
 		add_role( NEWSPACK_NETWORK_READER_ROLE, __( 'Network Reader', 'newspack-network' ) ); // phpcs:ignore
 	}
-
 }

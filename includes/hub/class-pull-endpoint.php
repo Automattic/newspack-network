@@ -115,7 +115,5 @@ class Pull_Endpoint {
 		);
 
 		return new WP_REST_Response( $response_body );
-
 	}
-
 }

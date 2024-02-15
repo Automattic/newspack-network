@@ -87,7 +87,6 @@ class Author_Distribution {
 		}
 
 		return $post_array;
-
 	}
 
 	/**
@@ -135,7 +134,6 @@ class Author_Distribution {
 		}
 
 		return $authors;
-
 	}
 
 	/**
@@ -240,5 +238,4 @@ class Author_Distribution {
 
 		return $response;
 	}
-
 }

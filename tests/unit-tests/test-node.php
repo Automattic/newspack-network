@@ -5,8 +5,8 @@
  * @package Newspack_Network_Hub
  */
 
-use \Newspack_Network\Hub\Nodes;
-use \Newspack_Network\Hub\Node;
+use Newspack_Network\Hub\Nodes;
+use Newspack_Network\Hub\Node;
 
 /**
  * Test the Node class.
@@ -43,7 +43,6 @@ class TestNode extends WP_UnitTestCase {
 		$node = new Node( 'asd' );
 		$this->assertInstanceOf( Node::class, $node );
 		$this->assertNull( $node->get_id() );
-
 	}
 	
 	/**

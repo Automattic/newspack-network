@@ -32,7 +32,6 @@ class Orders extends Woo {
 		$columns['subscription_relationship'] = __( 'Subscription Relationship', 'newspack-network' );
 		$columns['total']                     = __( 'Total', 'newspack-network' );
 		return $columns;
-
 	}
 
 	/**
@@ -99,7 +98,5 @@ class Orders extends Woo {
 				echo esc_html( $item->get_formatted_total() );
 				break;
 		}
-
 	}
-
 }

@@ -144,7 +144,6 @@ abstract class Woo {
 		$current_node = isset( $_GET['node_id'] ) ? sanitize_text_field( $_GET['node_id'] ) : '';
 
 		Nodes::nodes_dropdown( $current_node );
-
 	}
 
 	/**
@@ -169,7 +168,6 @@ abstract class Woo {
 		];
 
 		return null;
-		
 	}
 
 	/**
@@ -188,5 +186,4 @@ abstract class Woo {
 	 * @return void
 	 */
 	abstract public static function posts_columns_values( $column, $post_id );
-
 }

@@ -37,7 +37,6 @@ class Subscriptions extends Woo {
 		$columns['end_date']          = __( 'End Date', 'newspack-network' );
 		$columns['orders']            = __( 'Orders', 'newspack-network' );
 		return $columns;
-
 	}
 
 	/**
@@ -113,7 +112,5 @@ class Subscriptions extends Woo {
 				printf( '%s<br/>Via %s', $item->get_formatted_total(), $item->get_payment_method_title() ); // phpcs:ignore
 				break;
 		}
-
 	}
-
 }
