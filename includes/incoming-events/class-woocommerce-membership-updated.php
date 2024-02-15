@@ -109,7 +109,6 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 		);
 
 		Debugger::log( 'User membership updated' );
-
 	}
 
 	/**
@@ -138,5 +137,4 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 	public function get_membership_id() {
 		return $this->data->membership_id ?? null;
 	}
-
 }

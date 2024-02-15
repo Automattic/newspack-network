@@ -156,7 +156,5 @@ class Events {
 			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $user_membership->get_status(),
 		];
-
 	}
-
 }
