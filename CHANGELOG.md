@@ -1,3 +1,19 @@
+# [1.2.0-alpha.2](https://github.com/Automattic/newspack-network/compare/v1.2.0-alpha.1...v1.2.0-alpha.2) (2024-02-15)
+
+
+### Bug Fixes
+
+* assorted error handling fixes ([#52](https://github.com/Automattic/newspack-network/issues/52)) ([234f883](https://github.com/Automattic/newspack-network/commit/234f883716dab7ce9ba2bac8a2bf93e58bbeb887))
+* dynamic class property deprecated warnings ([#47](https://github.com/Automattic/newspack-network/issues/47)) ([693865c](https://github.com/Automattic/newspack-network/commit/693865c71ea18e3b3aff2810cc61ec407144dd43))
+* prevent coauthors capability check infinite loop ([#46](https://github.com/Automattic/newspack-network/issues/46)) ([9565cef](https://github.com/Automattic/newspack-network/commit/9565cefeedd7cfc518b35dd84cce21b171664781))
+* set Yoast primary category ([#41](https://github.com/Automattic/newspack-network/issues/41)) ([3457d19](https://github.com/Automattic/newspack-network/commit/3457d19ab5aea56d13ea2f7179dd1296d563ae7e))
+
+
+### Features
+
+* sync billing and shipping addresses ([#50](https://github.com/Automattic/newspack-network/issues/50)) ([6a05580](https://github.com/Automattic/newspack-network/commit/6a055808f244ec2ad790a13d068431feb6acdc17))
+* sync publish, trash post statuses ([#42](https://github.com/Automattic/newspack-network/issues/42)) ([fd5d8b9](https://github.com/Automattic/newspack-network/commit/fd5d8b9d2c613486a43f061df1caf73bd6fb3979))
+
 # [1.2.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.1.0...v1.2.0-alpha.1) (2024-02-08)
 
 
