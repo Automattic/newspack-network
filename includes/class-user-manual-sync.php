@@ -156,7 +156,7 @@ class User_Manual_Sync {
 	public static function add_manual_sync_button( $user ) {
 		// TODO: should this option limited to specific roles?
 		if ( \current_user_can( 'edit_user', $user->ID ) ) :
-		?>
+			?>
 		<div class="newspack-network-sync-user">
 			<h2><?php \esc_html_e( 'Newspack Network Tools', 'newspack-network' ); ?></h2>
 			<table class="form-table" role="presentation">
