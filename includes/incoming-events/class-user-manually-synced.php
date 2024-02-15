@@ -55,15 +55,18 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 			return;
 		}
 
+		// Get data passed for user.
+		$data = $this->get_data();
+
+		// Update user role if changed.
 		$user_current_role = $user->roles;
-		$new_role          = $this->data->role ?? '';
+		$new_role          = $data->role ?? '';
 
 		if ( ! empty( $new_role ) && $user_current_role !== $new_role ) {
 			$user->set_role( $new_role );
 		}
 
-		$data = $this->get_data();
-
+		// Loop through user props and update.
 		if ( isset( $data->prop ) ) {
 			$update_array = [
 				'ID' => $user->ID,
@@ -71,10 +74,11 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 			foreach ( $data->prop as $prop_key => $prop_value ) {
 				$update_array[ $prop_key ] = $prop_value;
 			}
-			Debugger::log( 'Updating user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+			Debugger::log( 'Manually syncing user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 			wp_update_user( $update_array );
 		}
 
+		// Loop through user meta and update.
 		if ( isset( $data->meta ) ) {
 			foreach ( $data->meta as $meta_key => $meta_value ) {
 				Debugger::log( 'Manually syncing user meta: ' . $meta_key );

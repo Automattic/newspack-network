@@ -1,6 +1,6 @@
 <?php
 /**
- * Desc TK
+ * Manually sync individual users to network sites.
  *
  * @package Newspack
  */
@@ -63,7 +63,7 @@ class User_Manual_Sync {
 	 * @var array
 	 */
 	public static $read_only_meta = [
-		'simple_local_avatar', // The avatar is sideloaded in a different way.
+		'simple_local_avatar',  // The avatar is sideloaded in a different way.
 	];
 
 	/**
@@ -154,9 +154,9 @@ class User_Manual_Sync {
 	 * @param WP_User $user The current WP_User object.
 	 */
 	public static function add_manual_sync_button( $user ) {
-		// TODO: should this be limited to specific roles? Author, Editor, Contributor... and not Subscriber?
+		// TODO: should this option limited to specific roles?
 		if ( \current_user_can( 'edit_user', $user->ID ) ) :
-			?>
+		?>
 		<div class="newspack-network-sync-user">
 			<h2><?php \esc_html_e( 'Newspack Network Tools', 'newspack-network' ); ?></h2>
 			<table class="form-table" role="presentation">
@@ -169,7 +169,7 @@ class User_Manual_Sync {
 							<?php esc_html_e( 'Sync user across network', 'newspack-network' ); ?>
 						</a>
 						<p class="description">
-							<?php esc_html_e( 'Manually sync this user\'s role across all sites in your network. If this is a new user, clicking this button will also propigate the user account across your network.', 'newspack-network' ); ?>
+							<?php esc_html_e( 'Manually sync this user\'s information across all sites in your network, including their role. If this is a new user, clicking this button will also propigate the user account across your network.', 'newspack-network' ); ?>
 						</p>
 					</td>
 				</tr>
