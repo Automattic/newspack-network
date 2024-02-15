@@ -185,26 +185,27 @@ abstract class Woo {
 
 		$search_term = $query->query_vars['s'];
 
-		// Query by name and/or email meta.
-		$meta_query = [
-			'relation' => 'OR',
-			[
-				'key'     => 'user_name',
-				'value'   => sanitize_text_field( $search_term ),
-				'compare' => 'LIKE',
-			],
-			[
-				'key'     => 'user_email',
-				'value'   => sanitize_text_field( $search_term ),
-				'compare' => 'LIKE',
-			]
-		];
+		if ( ! is_numeric( $search_term ) ) {
+			// Query by name and/or email meta.
+			$meta_query = [
+				'relation' => 'OR',
+				[
+					'key'     => 'user_name',
+					'value'   => sanitize_text_field( $search_term ),
+					'compare' => 'LIKE',
+				],
+				[
+					'key'     => 'user_email',
+					'value'   => sanitize_text_field( $search_term ),
+					'compare' => 'LIKE',
+				],
+			];
 
-		$query->set( 'meta_query', $meta_query );
+			$query->set( 'meta_query', $meta_query );
 
-		unset( $query->query_vars['s'] );
+			unset( $query->query_vars['s'] );
+		}
 	}
-
 
 	/**
 	 * Modify columns on post type table
