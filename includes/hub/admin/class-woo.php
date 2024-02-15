@@ -46,6 +46,7 @@ abstract class Woo {
 
 		add_filter( 'manage_' . $db_class_name::POST_TYPE_SLUG . '_posts_columns', [ $class_name, 'posts_columns' ] );
 		add_action( 'manage_' . $db_class_name::POST_TYPE_SLUG . '_posts_custom_column', [ $class_name, 'posts_columns_values' ], 10, 2 );
+		add_action( 'parse_query', [ $class_name, 'parse_query' ] );
 
 		add_filter( 'get_edit_post_link', [ $class_name, 'get_edit_post_link' ], 10, 2 );
 
@@ -169,6 +170,25 @@ abstract class Woo {
 
 		return null;
 	}
+
+	/**
+	 * Filters search query to include custom fields
+	 *
+	 * @param \WP_Query $query  The Query object.
+	 * @return void
+	 */
+	public static function parse_query( $query ) {
+		global $pagenow;
+
+		if ( ! is_admin() || 'edit.php' !== $pagenow || ! $query->is_main_query() || ! in_array( $query->query_vars['post_type'], self::$post_types, true ) ) {
+			return;
+		}
+
+		error_log( 'Query: ' . $query->query_vars['s'] );
+
+		// Get Post IDs by query.
+	}
+
 
 	/**
 	 * Modify columns on post type table
