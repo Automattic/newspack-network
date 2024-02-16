@@ -15,7 +15,7 @@ namespace Newspack_Network\Woocommerce_Memberships;
 class Admin {
 
 	/**
-	 * The membership plan custom post type.
+	 * The membership plan custom post type (defined in the woocommerce-memberships plugin).
 	 *
 	 * @var string
 	 */
