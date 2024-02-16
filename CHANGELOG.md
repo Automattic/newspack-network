@@ -1,3 +1,10 @@
+# [1.2.0-alpha.3](https://github.com/Automattic/newspack-network/compare/v1.2.0-alpha.2...v1.2.0-alpha.3) (2024-02-16)
+
+
+### Bug Fixes
+
+* race condition when creating a Node ([1946473](https://github.com/Automattic/newspack-network/commit/1946473d0d1baf2bef2c66b5377e0e48b630df75))
+
 # [1.2.0-alpha.2](https://github.com/Automattic/newspack-network/compare/v1.2.0-alpha.1...v1.2.0-alpha.2) (2024-02-15)
 
 
