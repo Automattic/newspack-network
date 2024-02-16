@@ -150,7 +150,7 @@ class Data_Backfill {
 					self::$results[ $action ]['processed']++;
 				}
 			} elseif ( $verbose ) {
-				WP_CLI::line( sprintf( '👉 ' . 'User %s (#%d) registered on %s.', $user->user_email, $user->ID, $user->user_registered ) );
+				WP_CLI::line( '👉 ' . sprintf( 'User %s (#%d) registered on %s.', $user->user_email, $user->ID, $user->user_registered ) );
 			}
 			if ( self::$progress ) {
 				self::$progress->tick();
@@ -217,7 +217,7 @@ class Data_Backfill {
 	 * ## OPTIONS
 	 *
 	 * <action>
-	 * : The action to backfill.
+	 * : The action to backfill. Choose "all" to backfill all actions.
 	 *
 	 * [--start=<start>]
 	 * : The start date for the backfill.
@@ -248,7 +248,7 @@ class Data_Backfill {
 
 		WP_CLI::line( '' );
 
-		if ( ! in_array( $action, array_keys( Accepted_Actions::ACTIONS ) ) ) {
+		if ( $action !== 'all' && ! in_array( $action, array_keys( Accepted_Actions::ACTIONS ) ) ) {
 			WP_CLI::error( 'Invalid action.' );
 		}
 
@@ -275,7 +275,11 @@ class Data_Backfill {
 		}
 
 		WP_CLI::line( '' );
-		WP_CLI::line( sprintf( 'Backfilling data for action %s, from %s to %s.', $action, $start, $end ) );
+		if ( $action === 'all' ) {
+			WP_CLI::line( sprintf( 'Backfilling data for all supported actions, from %s to %s.', $start, $end ) );
+		} else {
+			WP_CLI::line( sprintf( 'Backfilling data for action %s, from %s to %s.', $action, $start, $end ) );
+		}
 		WP_CLI::line( '' );
 
 		switch ( $action ) {
@@ -283,6 +287,10 @@ class Data_Backfill {
 				self::process_reader_registered( $start, $end, $live, $verbose );
 				break;
 			case 'donation_new':
+				self::process_donation_new( $start, $end, $live, $verbose );
+				break;
+			case 'all':
+				self::process_reader_registered( $start, $end, $live, $verbose );
 				self::process_donation_new( $start, $end, $live, $verbose );
 				break;
 			default:
