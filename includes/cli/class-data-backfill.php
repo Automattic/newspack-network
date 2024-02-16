@@ -132,16 +132,6 @@ class Data_Backfill {
 			if ( $live ) {
 				$timestamp = strtotime( $user->user_registered );
 				if ( Site_Role::is_hub() ) {
-					$maybe_event = \Newspack_Network\Hub\Stores\Event_Log::get(
-						[
-							'action_name' => $action,
-							'email'       => $user->user_email,
-						]
-					);
-					if ( ! empty( $maybe_event ) ) {
-						self::$results[ $action ]['duplicate']++;
-						continue;
-					}
 					$event = new \Newspack_Network\Incoming_Events\Abstract_Incoming_Event(
 						get_bloginfo( 'url' ),
 						$user_data,
@@ -149,7 +139,7 @@ class Data_Backfill {
 						$action
 					);
 					$event->process_in_hub();
-					self::$results[ $action ]['processed']++;
+					self::$results[ $action ][ $event->is_persisted ? 'processed' : 'duplicate' ]++;
 				} else {
 					$requests = self::find_webhook_requests( $action, $timestamp, $user_data );
 					if ( count( $requests ) > 0 ) {
@@ -160,7 +150,7 @@ class Data_Backfill {
 					self::$results[ $action ]['processed']++;
 				}
 			} elseif ( $verbose ) {
-				WP_CLI::line( sprintf( 'User %s (#%d) registered on %s.', $user->user_email, $user->ID, $user->user_registered ) );
+				WP_CLI::line( sprintf( '👉 ' . 'User %s (#%d) registered on %s.', $user->user_email, $user->ID, $user->user_registered ) );
 			}
 			if ( self::$progress ) {
 				self::$progress->tick();
@@ -192,19 +182,9 @@ class Data_Backfill {
 			$order_id = $order->get_id();
 			$order_data = \Newspack\Data_Events\Utils::get_order_data( $order_id );
 
+			$timestamp = strtotime( $order->get_date_completed() );
 			if ( $live ) {
-				$timestamp = strtotime( $order->get_date_completed() );
 				if ( Site_Role::is_hub() ) {
-					$maybe_event = \Newspack_Network\Hub\Stores\Event_Log::get(
-						[
-							'action_name' => $action,
-							'search'      => "\"order_id\":{$order_id}",
-						]
-					);
-					if ( ! empty( $maybe_event ) ) {
-						self::$results[ $action ]['duplicate']++;
-						continue;
-					}
 					$event = new \Newspack_Network\Incoming_Events\Abstract_Incoming_Event(
 						get_bloginfo( 'url' ),
 						$order_data,
@@ -212,7 +192,7 @@ class Data_Backfill {
 						$action
 					);
 					$event->process_in_hub();
-					self::$results[ $action ]['processed']++;
+					self::$results[ $action ][ $event->is_persisted ? 'processed' : 'duplicate' ]++;
 				} else {
 					$requests = self::find_webhook_requests( $action, $timestamp, $order_data );
 					if ( count( $requests ) > 0 ) {
@@ -223,7 +203,7 @@ class Data_Backfill {
 					self::$results[ $action ]['processed']++;
 				}
 			} elseif ( $verbose ) {
-				WP_CLI::line( sprintf( 'Order #%d completed on %s.', $user->ID, $user->user_registered ) );
+				WP_CLI::line( '👉 ' . sprintf( 'Order #%d completed on %s.', $order_id, gmdate( 'Y-m-d H:i:s', $timestamp ) ) );
 			}
 			if ( self::$progress ) {
 				self::$progress->tick();
@@ -281,7 +261,7 @@ class Data_Backfill {
 		if ( $is_hub ) {
 			WP_CLI::line( 'Running on a Hub site – will create events for the event log.' );
 		} else {
-			WP_CLI::line( 'Running on a Node site – will create webhook requests. This may result in duplicate requests if the request queue was cleared already.' );
+			WP_CLI::line( 'Running on a Node site – will create webhook requests. This may result in duplicate requests if the request queue was cleared already, but the Hub will handle the duplicates.' );
 		}
 		WP_CLI::line( '' );
 
@@ -313,15 +293,19 @@ class Data_Backfill {
 		if ( self::$progress ) {
 			self::$progress->finish();
 		}
-		WP_CLI::line( '' );
-		WP_CLI::success(
-			sprintf(
-				'Processed %d %s events, skipped %d as duplicates.',
-				self::$results[ $action ]['processed'],
-				$action,
-				self::$results[ $action ]['duplicate']
-			)
-		);
+		if ( $live ) {
+			WP_CLI::line( '' );
+			WP_CLI::success(
+				sprintf(
+					'Processed %d %s events, skipped %d as duplicates.',
+					self::$results[ $action ]['processed'],
+					$action,
+					self::$results[ $action ]['duplicate']
+				)
+			);
+		}
 		WP_CLI::line( '' );
 	}
+
+	// TODO: a script to run the above on all nodes of the network.
 }

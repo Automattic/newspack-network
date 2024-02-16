@@ -54,6 +54,13 @@ class Abstract_Incoming_Event {
 	protected $action_name;
 
 	/**
+	 * Has this event been persisted in the Event Log?
+	 *
+	 * @var string
+	 */
+	public $is_persisted = false;
+
+	/**
 	 * Constructs a new Incoming Event
 	 *
 	 * @param string       $site      The origin site URL.
