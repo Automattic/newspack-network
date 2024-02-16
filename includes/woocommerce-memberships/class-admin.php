@@ -85,7 +85,7 @@ class Admin {
 		?>
 		<label for="newspack-network-id"><?php esc_html_e( 'Network ID', 'newspack-network' ); ?></label>
 		<input type="text" id="newspack-network-id" name="newspack_network_id" value="<?php echo esc_attr( $network_id ); ?>" />
-		<p><?php esc_html_e( 'If a Network ID is informed, the user memberships will be propagated to the network. The user will be granted with the membership with the matching Network ID in all other sites in the network.', 'newspack-network' ); ?></p>
+		<p><?php esc_html_e( 'If a Network ID is set, the user memberships will be propagated on the network. Users will be granted the membership with the matching Network ID in all other sites in the network.', 'newspack-network' ); ?></p>
 		<?php
 	}
 
