@@ -24,6 +24,10 @@ class Data_Backfill {
 			'processed' => 0,
 			'duplicate' => 0,
 		],
+		'donation_new'      => [
+			'processed' => 0,
+			'duplicate' => 0,
+		],
 	];
 
 	/**
@@ -54,6 +58,41 @@ class Data_Backfill {
 	}
 
 	/**
+	 * Find existing webhook requests for a given action and data.
+	 *
+	 * @param string $action The action name.
+	 * @param int    $timestamp The timestamp.
+	 * @param array  $data The data.
+	 */
+	private static function find_webhook_requests( $action, $timestamp, $data ) {
+		return get_posts(
+			[
+				'post_type'   => \Newspack\Data_Events\Webhooks::REQUEST_POST_TYPE,
+				'post_title'  => $action,
+				'post_status' => 'any',
+				'meta_query'  => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					'relation' => 'AND',
+					[
+						'key'     => 'timestamp',
+						'value'   => $timestamp,
+						'compare' => '=',
+					],
+					[
+						'key'     => 'action_name',
+						'value'   => $action,
+						'compare' => '=',
+					],
+					[
+						'key'     => 'data',
+						'value'   => wp_json_encode( $data ),
+						'compare' => '=',
+					],
+				],
+			]
+		);
+	}
+
+	/**
 	 * Process reader_registered events.
 	 *
 	 * @param string $start The start date.
@@ -62,19 +101,6 @@ class Data_Backfill {
 	 * @param bool   $verbose Whether to output verbose information.
 	 */
 	private static function process_reader_registered( $start, $end, $live, $verbose ) {
-		$is_hub = Site_Role::is_hub();
-		$is_node = Site_Role::is_node();
-		if ( ! $is_hub && ! $is_node ) {
-			WP_CLI::error( 'This command can only be run on a Hub or Node site.' );
-		}
-
-		if ( $is_hub ) {
-			WP_CLI::line( 'Running on a Hub site – will create events for the event log.' );
-		} else {
-			WP_CLI::line( 'Running on a Node site – will create webhook requests. This may result in duplicate requests if the request queue was cleared already.' );
-		}
-		WP_CLI::line( '' );
-
 		$action = 'reader_registered';
 		// Get all users registered between $start and $end.
 		$users = get_users(
@@ -105,8 +131,7 @@ class Data_Backfill {
 			];
 			if ( $live ) {
 				$timestamp = strtotime( $user->user_registered );
-				if ( $is_hub ) {
-					// Check against duplicate events.
+				if ( Site_Role::is_hub() ) {
 					$maybe_event = \Newspack_Network\Hub\Stores\Event_Log::get(
 						[
 							'action_name' => $action,
@@ -114,10 +139,9 @@ class Data_Backfill {
 						]
 					);
 					if ( ! empty( $maybe_event ) ) {
-						self::$results['reader_registered']['duplicate']++;
+						self::$results[ $action ]['duplicate']++;
 						continue;
 					}
-					// Add a user registration to the event log, with the timestamp of the registration.
 					$event = new \Newspack_Network\Incoming_Events\Abstract_Incoming_Event(
 						get_bloginfo( 'url' ),
 						$user_data,
@@ -125,42 +149,81 @@ class Data_Backfill {
 						$action
 					);
 					$event->process_in_hub();
-					self::$results['reader_registered']['processed']++;
+					self::$results[ $action ]['processed']++;
 				} else {
-					$requests = get_posts(
-						[
-							'post_type'   => \Newspack\Data_Events\Webhooks::REQUEST_POST_TYPE,
-							'post_title'  => $action,
-							'post_status' => 'any',
-							'meta_query'  => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-								'relation' => 'AND',
-								[
-									'key'     => 'timestamp',
-									'value'   => $timestamp,
-									'compare' => '=',
-								],
-								[
-									'key'     => 'action_name',
-									'value'   => $action,
-									'compare' => '=',
-								],
-								[
-									'key'     => 'data',
-									'value'   => wp_json_encode( $user_data ),
-									'compare' => '=',
-								],
-							],
-						]
-					);
+					$requests = self::find_webhook_requests( $action, $timestamp, $user_data );
 					if ( count( $requests ) > 0 ) {
-						self::$results['reader_registered']['duplicate']++;
+						self::$results[ $action ]['duplicate']++;
 						continue;
 					}
 					\Newspack\Data_Events\Webhooks::handle_dispatch( $action, $timestamp, $user_data );
-					self::$results['reader_registered']['processed']++;
+					self::$results[ $action ]['processed']++;
 				}
 			} elseif ( $verbose ) {
 				WP_CLI::line( sprintf( 'User %s (#%d) registered on %s.', $user->user_email, $user->ID, $user->user_registered ) );
+			}
+			if ( self::$progress ) {
+				self::$progress->tick();
+			}
+		}
+	}
+
+	/**
+	 * Process donation_new events.
+	 *
+	 * @param string $start The start date.
+	 * @param string $end The end date.
+	 * @param bool   $live Whether to run in live mode.
+	 * @param bool   $verbose Whether to output verbose information.
+	 */
+	private static function process_donation_new( $start, $end, $live, $verbose ) {
+		$action = 'donation_new';
+		$orders = wc_get_orders(
+			[
+				'status'       => 'completed',
+				'date_created' => $start . '...' . $end,
+				'limit'        => -1,
+			]
+		);
+		if ( ! $verbose ) {
+			self::$progress = \WP_CLI\Utils\make_progress_bar( 'Processing orders', count( $orders ) );
+		}
+		foreach ( $orders as $order ) {
+			$order_id = $order->get_id();
+			$order_data = \Newspack\Data_Events\Utils::get_order_data( $order_id );
+
+			if ( $live ) {
+				$timestamp = strtotime( $order->get_date_completed() );
+				if ( Site_Role::is_hub() ) {
+					$maybe_event = \Newspack_Network\Hub\Stores\Event_Log::get(
+						[
+							'action_name' => $action,
+							'search'      => "\"order_id\":{$order_id}",
+						]
+					);
+					if ( ! empty( $maybe_event ) ) {
+						self::$results[ $action ]['duplicate']++;
+						continue;
+					}
+					$event = new \Newspack_Network\Incoming_Events\Abstract_Incoming_Event(
+						get_bloginfo( 'url' ),
+						$order_data,
+						$timestamp,
+						$action
+					);
+					$event->process_in_hub();
+					self::$results[ $action ]['processed']++;
+				} else {
+					$requests = self::find_webhook_requests( $action, $timestamp, $order_data );
+					if ( count( $requests ) > 0 ) {
+						self::$results[ $action ]['duplicate']++;
+						continue;
+					}
+					\Newspack\Data_Events\Webhooks::handle_dispatch( $action, $timestamp, $order_data );
+					self::$results[ $action ]['processed']++;
+				}
+			} elseif ( $verbose ) {
+				WP_CLI::line( sprintf( 'Order #%d completed on %s.', $user->ID, $user->user_registered ) );
 			}
 			if ( self::$progress ) {
 				self::$progress->tick();
@@ -209,6 +272,19 @@ class Data_Backfill {
 			WP_CLI::error( 'Invalid action.' );
 		}
 
+		$is_hub = Site_Role::is_hub();
+		$is_node = Site_Role::is_node();
+		if ( ! $is_hub && ! $is_node ) {
+			WP_CLI::error( 'This command can only be run on a Hub or Node site.' );
+		}
+
+		if ( $is_hub ) {
+			WP_CLI::line( 'Running on a Hub site – will create events for the event log.' );
+		} else {
+			WP_CLI::line( 'Running on a Node site – will create webhook requests. This may result in duplicate requests if the request queue was cleared already.' );
+		}
+		WP_CLI::line( '' );
+
 		if ( ! method_exists( '\Newspack\Reader_Activation', 'get_reader_roles' ) ) {
 			WP_CLI::error( 'Incompatible Newspack plugin version.' );
 		}
@@ -226,6 +302,9 @@ class Data_Backfill {
 			case 'reader_registered':
 				self::process_reader_registered( $start, $end, $live, $verbose );
 				break;
+			case 'donation_new':
+				self::process_donation_new( $start, $end, $live, $verbose );
+				break;
 			default:
 				WP_CLI::error( 'Backfilling data for this action is not supported yet.' );
 				break;
@@ -237,9 +316,10 @@ class Data_Backfill {
 		WP_CLI::line( '' );
 		WP_CLI::success(
 			sprintf(
-				'Processed %d reader_registered events, skipped %d as duplicates.',
-				self::$results['reader_registered']['processed'],
-				self::$results['reader_registered']['duplicate']
+				'Processed %d %s events, skipped %d as duplicates.',
+				self::$results[ $action ]['processed'],
+				$action,
+				self::$results[ $action ]['duplicate']
 			)
 		);
 		WP_CLI::line( '' );
