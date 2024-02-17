@@ -63,7 +63,12 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 		$new_role          = $data->role ?? '';
 
 		if ( ! empty( $new_role ) && $user_current_role !== $new_role ) {
-			$user->set_role( $new_role );
+			wp_update_user(
+				[
+					'ID'   => $user->ID,
+					'role' => $new_role,
+				]
+			);
 		}
 
 		// Loop through user props and update.
