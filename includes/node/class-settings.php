@@ -32,6 +32,7 @@ class Settings {
 	 */
 	public static function init() {
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
+		add_action( 'admin_notices', [ __CLASS__, 'linking_interface_notice' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_menu' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
 	}
@@ -141,6 +142,10 @@ class Settings {
 	 */
 	public static function hub_url_callback() {
 		$content = get_option( 'newspack_node_hub_url' );
+		$referrer = self::get_referrer();
+		if ( Admin::is_updating_from_url() && $referrer ) {
+			$content = $referrer;
+		}
 		printf(
 			'<input type="text" name="%1$s" value="%2$s">',
 			'newspack_node_hub_url',
@@ -155,6 +160,10 @@ class Settings {
 	 */
 	public static function secret_key_callback() {
 		$content = get_option( 'newspack_node_secret_key' );
+		$secret_key = self::get_secret_key_from_url();
+		if ( Admin::is_updating_from_url() && $secret_key ) {
+			$content = $secret_key;
+		}
 		printf(
 			'<input type="text" name="%1$s" value="%2$s">',
 			'newspack_node_secret_key',
@@ -206,6 +215,72 @@ class Settings {
 	}
 
 	/**
+	 * Get secret key from URL.
+	 */
+	private static function get_secret_key_from_url() {
+		return filter_input( INPUT_GET, 'secret_key', FILTER_SANITIZE_SPECIAL_CHARS );
+	}
+
+	/**
+	 * Get referrer.
+	 */
+	private static function get_referrer() {
+		return isset( $_SERVER['HTTP_REFERER'] ) ? \esc_url_raw( \wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
+	}
+
+	/**
+	 * Render linking receiving interface.
+	 */
+	public static function linking_interface_notice() {
+		if ( ! Admin::is_updating_from_url() ) {
+			return;
+		}
+		$referrer = self::get_referrer();
+		if ( isset( $_REQUEST['settings-updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			// Remove the params from URL - settings were just saved.
+			if ( $referrer ) {
+				if ( ! \Newspack_Network\Site_Role::get() ) {
+					update_option( \Newspack_Network\Site_Role::OPTION_NAME, \Newspack_Network\Site_Role::NODE_ROLE );
+				}
+				$referrer = remove_query_arg( [ 'secret_key', 'action' ], $referrer );
+				wp_safe_redirect( $referrer );
+				exit;
+			}
+			return;
+		}
+		$secret_key = self::get_secret_key_from_url();
+		if ( ! $secret_key || ! $referrer ) {
+			return;
+		}
+		$existing_secret_key = self::get_secret_key();
+		$hub_url = self::get_hub_url();
+		if ( $existing_secret_key === $secret_key && $referrer === $hub_url ) {
+			?>
+			<div id="message" class="updated notice is-dismissible">
+				<p><?php esc_html_e( 'This site is already linked to this Hub.', 'newspack-network' ); ?></p>
+			</div>
+			<?php
+			return;
+		}
+		?>
+		<div id="message" class="notice">
+			<h2>
+				<?php esc_html_e( 'Link this site to the Hub', 'newspack-network' ); ?>
+			</h2>
+			<p>
+			<?php
+			printf(
+				/* translators: %s is the Hub URL */
+				esc_html__( 'Click "Save Changes" below to link this site to the hub at %s.', 'newspack-network' ),
+				esc_html( $referrer )
+			);
+			?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Renders the settings page
 	 *
 	 * @return void
@@ -220,7 +295,7 @@ class Settings {
 				settings_fields( self::SETTINGS_SECTION );
 			?>
 				<p class='submit'>
-						<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Save Changes' ); ?>' />
+					<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Save Changes' ); ?>' />
 				</p>
 			</form>
 			<hr />

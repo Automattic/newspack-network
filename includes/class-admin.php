@@ -21,6 +21,11 @@ class Admin {
 	const SETTINGS_SECTION = 'newspack_network_settings';
 
 	/**
+	 * The action name for the link-site functionality.
+	 */
+	const LINK_ACTION_NAME = 'newspack-network-link-site';
+
+	/**
 	 * Runs the initialization.
 	 */
 	public static function init() {
@@ -185,5 +190,13 @@ class Admin {
 	 * @return void
 	 */
 	public static function enqueue_scripts() {
+	}
+
+	/**
+	 * Is updating the Node settings from URL?
+	 */
+	public static function is_updating_from_url() {
+		$action = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS );
+		return $action === self::LINK_ACTION_NAME;
 	}
 }

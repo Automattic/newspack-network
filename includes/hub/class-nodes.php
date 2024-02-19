@@ -16,7 +16,7 @@ use Newspack_Network\Admin as Network_Admin;
 class Nodes {
 
 	/**
-	 * POST_TYPE_SLUG for Newsletter Lists.
+	 * POST_TYPE_SLUG for the Nodes.
 	 */
 	const POST_TYPE_SLUG = 'newspack_hub_nodes';
 
@@ -156,7 +156,7 @@ class Nodes {
 		add_meta_box(
 			'newspack-network-metabox',
 			__( 'Node details' ),
-			[ __CLASS__, 'metabox_content' ],
+			[ __CLASS__, 'node_details_metabox_content' ],
 			self::POST_TYPE_SLUG,
 			'normal',
 			'core'
@@ -188,13 +188,30 @@ class Nodes {
 	}
 
 	/**
+	 * Get linking URL.
+	 *
+	 * @param WP_Post $node_post The node post.
+	 */
+	private static function get_site_link_url( $node_post ) {
+		$node_url   = get_post_meta( $node_post->ID, 'node-url', true );
+		$secret_key = get_post_meta( $node_post->ID, 'secret-key', true );
+		return add_query_arg(
+			[
+				'page'       => \Newspack_Network\Node\Settings::PAGE_SLUG,
+				'secret_key' => $secret_key,
+				'action'     => \Newspack_Network\Admin::LINK_ACTION_NAME,
+			],
+			$node_url . '/wp-admin/admin.php'
+		);
+	}
+
+	/**
 	 * Outputs metabox content
 	 *
 	 * @param WP_Post $post The current post.
 	 * @return void
 	 */
-	public static function metabox_content( $post ) {
-
+	public static function node_details_metabox_content( $post ) {
 		wp_nonce_field( 'newspack_hub_save_node', 'newspack_hub_save_node_nonce' );
 
 		$node_url   = get_post_meta( $post->ID, 'node-url', true );
@@ -206,11 +223,18 @@ class Nodes {
 		</div>
 
 		<?php if ( $secret_key ) : ?>
-
 			<div class="misc-pub-section">
-				Secret Key: <?php echo esc_attr( $secret_key ); ?>
+				Secret Key: <code><?php echo esc_html( $secret_key ); ?></code>
 			</div>
-
+			<div class="misc-pub-section">
+				<a
+					target="_blank"
+					class="button"
+					href="<?php echo esc_url( self::get_site_link_url( $post ) ); ?>"
+				>
+					<?php esc_html_e( 'Link the site', 'newspack-network' ); ?>
+				</a>
+			</div>
 		<?php endif; ?>
 		<?php
 	}

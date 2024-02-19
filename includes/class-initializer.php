@@ -29,8 +29,11 @@ class Initializer {
 			Hub\Newspack_Ads_GAM::init();
 		}
 
-		if ( Site_Role::is_node() ) {
+		// Allow to access node settings before the site has a role, so it can be set via URL.
+		if ( Site_Role::is_node() || ! Site_Role::get() ) {
 			Node\Settings::init();
+		}
+		if ( Site_Role::is_node() ) {
 			if ( Node\Settings::get_hub_url() ) {
 				Node\Webhook::init();
 				Node\Pulling::init();
