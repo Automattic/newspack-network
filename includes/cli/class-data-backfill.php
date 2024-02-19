@@ -130,7 +130,8 @@ class Data_Backfill {
 			];
 			if ( $live ) {
 				self::process_event_entity( $user_data, strtotime( $user->user_registered ), 'reader_registered' );
-			} elseif ( $verbose ) {
+			}
+			if ( $verbose ) {
 				WP_CLI::line( '👉 ' . sprintf( 'User %s (#%d) registered on %s.', $user->user_email, $user->ID, $user->user_registered ) );
 			}
 			if ( self::$progress ) {
@@ -165,7 +166,8 @@ class Data_Backfill {
 			$timestamp = strtotime( $order->get_date_completed() );
 			if ( $live ) {
 				self::process_event_entity( $order_data, $timestamp, 'donation_new' );
-			} elseif ( $verbose ) {
+			}
+			if ( $verbose ) {
 				WP_CLI::line( '👉 ' . sprintf( 'Order #%d completed on %s.', $order_id, gmdate( 'Y-m-d H:i:s', $timestamp ) ) );
 			}
 			if ( self::$progress ) {
@@ -210,7 +212,8 @@ class Data_Backfill {
 			$timestamp = strtotime( $subscription->get_date( 'cancelled' ) );
 			if ( $live ) {
 				self::process_event_entity( $subscription_data, $timestamp, 'donation_subscription_cancelled' );
-			} elseif ( $verbose ) {
+			}
+			if ( $verbose ) {
 				WP_CLI::line( '👉 ' . sprintf( 'Subscription #%d cancelled on %s.', $subscription->get_id(), gmdate( 'Y-m-d H:i:s', $timestamp ) ) );
 			}
 			if ( self::$progress ) {
