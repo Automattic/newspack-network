@@ -258,7 +258,7 @@ class Settings {
 		<form method="post">
 			<?php wp_nonce_field( Pulling::MANUAL_PULL_ACTION_NAME ); ?>
 			<input type="hidden" name="action" value="<?php echo esc_attr( Pulling::MANUAL_PULL_ACTION_NAME ); ?>">
-			<button class="button"><?php esc_html_e( 'Synchronize data', 'newspack-network' ); ?></button>
+			<button class="button"><?php esc_html_e( 'Synchronize latest data', 'newspack-network' ); ?></button>
 		</form>
 
 		<?php
