@@ -144,16 +144,11 @@ abstract class Memberships {
 	 */
 	public static function get_local_membership_plans() {
 		$membership_plans = [];
-		$plan_posts = get_posts(
-			[
-				'post_type' => 'wc_membership_plan',
-			]
-		);
-		foreach ( $plan_posts as $plan_post ) {
+		foreach ( wc_memberships_get_membership_plans() as $plan ) {
 			$membership_plans[] = [
-				'id'              => $plan_post->ID,
-				'name'            => $plan_post->post_title,
-				'network_pass_id' => get_post_meta( $plan_post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true ),
+				'id'              => $plan->post->ID,
+				'name'            => $plan->post->post_title,
+				'network_pass_id' => get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true ),
 			];
 		}
 		return $membership_plans;
