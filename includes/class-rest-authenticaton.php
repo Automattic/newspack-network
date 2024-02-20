@@ -101,7 +101,6 @@ class Rest_Authenticaton {
 		}
 
 		return true;
-
 	}
 
 	/**
@@ -154,7 +153,6 @@ class Rest_Authenticaton {
 		}
 
 		return $response;
-
 	}
 
 	/**
@@ -179,5 +177,4 @@ class Rest_Authenticaton {
 		}
 		return $permission;
 	}
-
 }

@@ -86,5 +86,4 @@ class Canonical_Url {
 
 		return self::filter_canonical_url( $canonical_url, $post );
 	}
-
 }

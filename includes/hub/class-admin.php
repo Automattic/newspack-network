@@ -23,5 +23,4 @@ class Admin {
 		Admin\Nodes_List::init();
 		Distributor_Settings::init();
 	}
-
 }

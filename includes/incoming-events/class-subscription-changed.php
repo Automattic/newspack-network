@@ -32,8 +32,5 @@ class Subscription_Changed extends Woo_Item_Changed {
 		}
 
 		Subscriptions::persist( $this );
-		
 	}
-
-	
 }

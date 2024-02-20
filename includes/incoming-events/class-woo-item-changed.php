@@ -74,5 +74,4 @@ abstract class Woo_Item_Changed extends Abstract_Incoming_Event {
 	public function get_subscription_relationship() {
 		return $this->data->subscription_relationship ?? null;
 	}
-	
 }

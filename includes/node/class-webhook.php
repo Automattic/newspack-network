@@ -84,7 +84,6 @@ class Webhook {
 		$body['site']  = get_bloginfo( 'url' );
 
 		return $body;
-
 	}
 
 	/**
@@ -104,7 +103,5 @@ class Webhook {
 		}
 
 		return Crypto::encrypt_message( $data, $secret_key, $nonce );
-
 	}
-
 }

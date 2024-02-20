@@ -55,5 +55,4 @@ class Site_Role {
 	public static function sanitize( $role ) {
 		return in_array( $role, [ 'hub', 'node' ], true ) ? $role : false;
 	}
-
 }

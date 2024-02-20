@@ -18,12 +18,14 @@ class Distributor_Customizations {
 	 * @return void
 	 */
 	public static function init() {
-		require_once NEWSPACK_NETWORK_PLUGIN_DIR . '/includes/distributor-customizations/global.php';
+		Distributor_Customizations\Pull_Permissions::init();
+		Distributor_Customizations\Publication_Date::init();
+		Distributor_Customizations\Cache_Bug_Workaround::init();
+		Distributor_Customizations\Yoast_Primary_Cat::init();
+		Distributor_Customizations\Sync_Post_Status::init();
 		Distributor_Customizations\Canonical_Url::init();
 		Distributor_Customizations\Author_Distribution::init();
 		Distributor_Customizations\Author_Ingestion::init();
 		Distributor_Customizations\Authorship_Filters::init();
 	}
-
-
 }

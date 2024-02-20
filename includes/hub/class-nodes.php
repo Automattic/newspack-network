@@ -259,6 +259,11 @@ class Nodes {
 			update_post_meta( $post_id, 'secret-key', $secret_key );
 		}
 
+		/**
+		 * Fires an action after a node is successfully saved (created/updated) in the Hub admin
+		 *
+		 * @param int $post_id The ID of the node post.
+		 */
+		do_action( 'newspack_network_node_saved', $post_id );
 	}
-
 }
