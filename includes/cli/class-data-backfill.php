@@ -18,16 +18,7 @@ class Data_Backfill {
 	 *
 	 * @var array
 	 */
-	private static $results = [
-		'reader_registered' => [
-			'processed' => 0,
-			'duplicate' => 0,
-		],
-		'donation_new'      => [
-			'processed' => 0,
-			'duplicate' => 0,
-		],
-	];
+	private static $results = [];
 
 	/**
 	 * WP_CLI progress handler.
@@ -228,10 +219,89 @@ class Data_Backfill {
 	}
 
 	/**
+	 * Process newspack_network_woo_membership_updated events.
+	 *
+	 * @param string $start The start date.
+	 * @param string $end The end date.
+	 * @param bool   $live Whether to run in live mode.
+	 * @param bool   $verbose Whether to output verbose information.
+	 */
+	private static function process_newspack_network_woo_membership_updated( $start, $end, $live, $verbose ) {
+		// Get all memberships created or updated between $start and $end.
+		$membership_posts_ids = get_posts(
+			[
+				'post_type'   => 'wc_user_membership',
+				'post_status' => 'any',
+				'numberposts' => -1,
+				'fields'      => 'ids',
+				'date_query'  => [
+					'column'    => 'post_modified_gmt',
+					'after'     => $start,
+					'before'    => $end,
+					'inclusive' => true,
+				],
+			]
+		);
+		if ( ! $verbose ) {
+			self::$progress = \WP_CLI\Utils\make_progress_bar( 'Processing memberships', count( $membership_posts_ids ) );
+		}
+		foreach ( $membership_posts_ids as $post_id ) {
+			$membership = new \WC_Memberships_User_Membership( $post_id );
+			$status = $membership->get_status();
+			$plan_network_id = get_post_meta( $membership->get_plan()->get_id(), \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true );
+			if ( ! $plan_network_id ) {
+				if ( $verbose ) {
+					WP_CLI::line( sprintf( 'Skipping membership #%d with status %s, the plan has no network ID.', $membership->get_id(), $status ) );
+				}
+				self::increment_results_counter( 'newspack_network_woo_membership_updated', 'skipped' );
+				continue;
+			}
+			$membership_data = [
+				'email'           => $membership->get_user()->user_email,
+				'user_id'         => $membership->get_user()->ID,
+				'plan_network_id' => $plan_network_id,
+				'membership_id'   => $membership->get_id(),
+				'new_status'      => $status,
+			];
+			if ( $status === 'active' ) {
+				$timestamp = strtotime( $membership->get_start_date() );
+			} else {
+				$timestamp = strtotime( $membership->get_end_date() );
+			}
+			if ( $live ) {
+				self::process_event_entity( $membership_data, $timestamp, 'newspack_network_woo_membership_updated' );
+			}
+			if ( $verbose ) {
+				WP_CLI::line( '👉 ' . sprintf( 'Membership #%d with status %s on %s, linked with network ID "%s".', $membership->get_id(), $status, gmdate( 'Y-m-d H:i:s', $timestamp ), $plan_network_id ) );
+			}
+			if ( self::$progress ) {
+				self::$progress->tick();
+			}
+		}
+	}
+
+	/**
+	 * Increment the results counter.
+	 *
+	 * @param string $action The action.
+	 * @param string $counter The counter.
+	 */
+	private static function increment_results_counter( $action, $counter ) {
+		if ( ! isset( self::$results[ $action ] ) ) {
+			self::$results[ $action ] = [
+				'processed' => 0,
+				'duplicate' => 0,
+				'skipped'   => 0,
+			];
+		}
+		self::$results[ $action ][ $counter ]++;
+	}
+
+	/**
 	 * Process a WooCommerce entity.
 	 *
 	 * @param array  $data The data.
-	 * @param int    $timestamp The timestamp.
+	 * @param int    $timestamp The ti;mestamp.
 	 * @param string $action The action.
 	 */
 	private static function process_event_entity( $data, $timestamp, $action ) {
@@ -243,15 +313,15 @@ class Data_Backfill {
 				$action
 			);
 			$event->process_in_hub();
-			self::$results[ $action ][ $event->is_persisted ? 'processed' : 'duplicate' ]++;
+			self::increment_results_counter( $action, $event->is_persisted ? 'processed' : 'duplicate' );
 		} else {
 			$requests = self::find_webhook_requests( $action, $timestamp, $data );
 			if ( count( $requests ) > 0 ) {
-				self::$results[ $action ]['duplicate']++;
+				self::increment_results_counter( $action, 'duplicate' );
 				return;
 			}
 			\Newspack\Data_Events\Webhooks::handle_dispatch( $action, $timestamp, $data );
-			self::$results[ $action ]['processed']++;
+			self::increment_results_counter( $action, 'processed' );
 		}
 	}
 
@@ -336,10 +406,14 @@ class Data_Backfill {
 			case 'donation_subscription_cancelled':
 				self::process_donation_subscription_cancelled( $start, $end, $live, $verbose );
 				break;
+			case 'newspack_network_woo_membership_updated':
+				self::process_newspack_network_woo_membership_updated( $start, $end, $live, $verbose );
+				break;
 			case 'all':
 				self::process_reader_registered( $start, $end, $live, $verbose );
 				self::process_donation_new( $start, $end, $live, $verbose );
 				self::process_donation_subscription_cancelled( $start, $end, $live, $verbose );
+				self::process_newspack_network_woo_membership_updated( $start, $end, $live, $verbose );
 				break;
 			default:
 				WP_CLI::error( 'Backfilling data for this action is not supported yet.' );
@@ -351,14 +425,19 @@ class Data_Backfill {
 		}
 		if ( $live ) {
 			WP_CLI::line( '' );
-			WP_CLI::success(
-				sprintf(
-					'Processed %d %s events, skipped %d as duplicates.',
-					self::$results[ $action ]['processed'],
-					$action,
-					self::$results[ $action ]['duplicate']
-				)
-			);
+			foreach ( [ 'reader_registered', 'donation_new', 'donation_subscription_cancelled', 'newspack_network_woo_membership_updated' ] as $action_key ) {
+				if ( isset( self::$results[ $action_key ] ) ) {
+					WP_CLI::success(
+						sprintf(
+							'Processed %d %s events, ignored %d as duplicates and skipped %d.',
+							self::$results[ $action_key ]['processed'],
+							$action_key,
+							self::$results[ $action_key ]['duplicate'],
+							self::$results[ $action_key ]['skipped']
+						)
+					);
+				}
+			}
 		}
 		WP_CLI::line( '' );
 	}
