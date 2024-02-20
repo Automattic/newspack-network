@@ -21,14 +21,19 @@ class Nodes {
 	const POST_TYPE_SLUG = 'newspack_hub_nodes';
 
 	/**
+	 * HUB_NODES_SYNCED_OPTION for network nodes.
+	 */
+	const HUB_NODES_SYNCED_OPTION = 'newspack_hub_nodes_synced';
+
+	/**
 	 * Initialize this class and register hooks
 	 *
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'init', [ __CLASS__, 'register_nodes_init' ] );
+		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
-		add_action( 'save_post_' . self::POST_TYPE_SLUG, [ __CLASS__, 'sync_nodes_list' ] );
+		add_action( 'save_post_' . self::POST_TYPE_SLUG, [ __CLASS__, 'sync_nodes' ] );
 	}
 
 	/**
@@ -144,29 +149,6 @@ class Nodes {
 			'register_meta_box_cb' => [ __CLASS__, 'add_metabox' ],
 		);
 		register_post_type( self::POST_TYPE_SLUG, $args );
-	}
-
-	/**
-	 * Register the listeners to the Newspack Data Events API
-	 *
-	 * @return void
-	 */
-	public static function register_listener() {
-		if ( ! class_exists( 'Data_Events' ) ) {
-			return;
-		}
-
-		Data_Events::register_listener( 'newspack_network_nodes_synced', 'network_nodes_synced' );
-	}
-
-	/**
-	 * Initialize registration.
-	 *
-	 * @return void
-	 */
-	public static function register_nodes_init() {
-		self::register_post_type();
-		self::register_listener();
 	}
 
 	/**
@@ -297,27 +279,27 @@ class Nodes {
 	}
 
 	/**
-	 * Sync nodes list
+	 * Sync nodes data to all nodes in network.
 	 *
 	 * @param int $post_id The ID of the post being saved.
 	 * @return void
 	 */
-	public static function sync_nodes_list( $post_id ) {
+	public static function sync_nodes( $post_id ) {
 		$nodes = self::get_all_nodes();
 
 		if ( empty( $nodes ) ) {
 			return;
 		}
 
-		$node_data = [];
+		$nodes_data = [];
 		foreach ( $nodes as $node ) {
-			$node_data[] = [
+			$nodes_data[] = [
 				'id'    => $node->get_id(),
 				'title' => $node->get_name(),
 				'url'   => $node->get_url(),
 			];
 		}
 
-		do_action( 'newspack_network_nodes_synced', $node_data );
+		do_action( 'newspack_network_nodes_synced', $nodes_data );
 	}
 }

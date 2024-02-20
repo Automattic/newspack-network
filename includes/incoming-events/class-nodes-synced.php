@@ -8,6 +8,7 @@
 namespace Newspack_Network\Incoming_Events;
 
 use Newspack_Network\Debugger;
+use Newspack_Network\Hub\Nodes;
 
 /**
  * Class to handle the Nodes Synced Event
@@ -21,27 +22,37 @@ class Nodes_Synced extends Abstract_Incoming_Event {
 	 * @return void
 	 */
 	public function process_in_node() {
-		Debugger::log( 'Processing nodes_synced event.' );
+		Debugger::log( 'Processing network_nodes_synced event.' );
 		// Get data passed for node urls.
 		$data = $this->get_data();
+
 		// If the data is empty, return early.
 		if ( empty( $data ) ) {
-			Debugger::log( 'No data passed for nodes_synced event.' );
+			Debugger::log( 'No data passed for network_nodes_synced event.' );
 			return;
 		}
 
-		foreach ( $data as $key => $node ) {
-			if ( $data['url'] === get_site_url() ) {
-				unset( $data[ $key ] );
+		$nodes_data = $data->nodes_data;
+
+		// If the nodes data is empty, return early.
+		if ( empty( $nodes_data ) ) {
+			Debugger::log( 'No nodes data passed for network_nodes_synced event.' );
+			return;
+		}
+
+		foreach ( $nodes_data as $key => $node ) {
+			// We don't need top store data for the current node.
+			if ( $node['url'] === get_site_url() ) {
+				unset( $nodes_data[ $key ] );
 			}
 		}
 
-		$updated = update_option( 'newspack_hub_nodes_synced', $data );
+		$updated = update_option( Nodes::HUB_NODES_SYNCED_OPTION, $nodes_data );
 
 		if ( $updated ) {
-			Debugger::log( 'Nodes synced event processed.' );
+			Debugger::log( 'network_nodes_synced event processed. Synced ' . count( $nodes_data ) . ' nodes.' );
 		} else {
-			Debugger::log( 'Error processing nodes_synced event.' );
+			Debugger::log( 'Error processing network_nodes_synced event.' );
 		}
 	}
 }

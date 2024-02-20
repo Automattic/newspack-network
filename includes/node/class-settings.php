@@ -9,7 +9,7 @@ namespace Newspack_Network\Node;
 
 use Newspack_Network\Admin;
 use Newspack_Network\Crypto;
-use Newspack_Network\Hub\Node as Hub_Node;
+use Newspack_Network\Hub\Nodes as Hub_Nodes;
 use WP_Error;
 
 /**
@@ -574,29 +574,31 @@ class Settings {
 	 * @return void
 	 */
 	public static function admin_bar_menu( $wp_admin_bar ) {
-		$node_data   = get_option( 'newspack_hub_nodes_synced', [] );
-		$node_data[] = [
+		$nodes_data   = get_option( Hub_Nodes::HUB_NODES_SYNCED_OPTION, [] );
+		$nodes_data[] = [
+			'id'    => 0,
 			'url'   => self::get_hub_url(),
 			'title' => __( 'Hub', 'newspack-network' ),
 		];
 
-		foreach ( $node_data as $node ) {
+		foreach ( $nodes_data as $node ) {
+			$item_id = 'node-' . $node['id'];
 			$wp_admin_bar->add_node(
 				[
-					'id'     => 'node-' . sanitize_title( $node['id'] ),
+					'id'     => $item_id,
 					'title'  => $node['title'],
 					'href'   => $node['url'],
 					'parent' => 'site-name',
 				]
 			);
 
-			foreach ( Hub_Node::get_bookmarks( $node['url'] ) as $bookmark ) {
+			foreach ( Node::get_bookmarks( $node['url'] ) as $bookmark ) {
 				$wp_admin_bar->add_node(
 					[
-						'id'     => 'node-' . sanitize_title( $bookmark['label'] ),
+						'id'     => $item_id . '-' . sanitize_title( $bookmark['label'] ),
 						'title'  => $bookmark['label'],
 						'href'   => $bookmark['url'],
-						'parent' => 'node-' . $node['id'],
+						'parent' => $item_id,
 					]
 				);
 			}
