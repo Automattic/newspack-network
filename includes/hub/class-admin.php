@@ -21,6 +21,7 @@ class Admin {
 		Admin\Orders::init();
 		Admin\Users::init();
 		Admin\Nodes_List::init();
+		Admin\Esp_Metadata_Settings::init();
 		Distributor_Settings::init();
 	}
 }
