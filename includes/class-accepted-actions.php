@@ -35,6 +35,7 @@ class Accepted_Actions {
 		'donation_new'                       => 'Donation_New',
 		'donation_subscription_cancelled'    => 'Donation_Subscription_Cancelled',
 		'network_user_updated'               => 'User_Updated',
+		'esp_metadata_settings_updated'      => 'Esp_Metadata_Settings_Updated',
 	];
 
 	/**
@@ -50,5 +51,6 @@ class Accepted_Actions {
 		'donation_new',
 		'donation_subscription_cancelled',
 		'network_user_updated',
+		'esp_metadata_settings_updated',
 	];
 }

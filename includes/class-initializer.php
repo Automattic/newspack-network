@@ -42,6 +42,7 @@ class Initializer {
 		Reader_Roles_Filter::init();
 		User_Update_Watcher::init();
 		Distributor_Customizations::init();
+		Esp_Metadata_Sync::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
