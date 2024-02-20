@@ -574,24 +574,32 @@ class Settings {
 	 * @return void
 	 */
 	public static function admin_bar_menu( $wp_admin_bar ) {
-		$wp_admin_bar->add_node(
-			[
-				'id'     => 'hub',
-				'title'  => 'Hub',
-				'href'   => false,
-				'parent' => 'site-name',
-			]
-		);
+		$node_data   = get_option( 'newspack_hub_nodes_synced', [] );
+		$node_data[] = [
+			'url'   => self::get_hub_url(),
+			'title' => __( 'Hub', 'newspack-network' ),
+		];
 
-		foreach ( Hub_Node::get_bookmarks( self::get_hub_url() ) as $bookmark ) {
+		foreach ( $node_data as $node ) {
 			$wp_admin_bar->add_node(
 				[
-					'id'     => 'hub-' . sanitize_title( $bookmark['label'] ),
-					'title'  => $bookmark['label'],
-					'href'   => $bookmark['url'],
-					'parent' => 'hub',
+					'id'     => 'node-' . sanitize_title( $node['id'] ),
+					'title'  => $node['title'],
+					'href'   => $node['url'],
+					'parent' => 'site-name',
 				]
 			);
+
+			foreach ( Hub_Node::get_bookmarks( $node['url'] ) as $bookmark ) {
+				$wp_admin_bar->add_node(
+					[
+						'id'     => 'node-' . sanitize_title( $bookmark['label'] ),
+						'title'  => $bookmark['label'],
+						'href'   => $bookmark['url'],
+						'parent' => 'node-' . $node['id'],
+					]
+				);
+			}
 		}
 	}
 }
