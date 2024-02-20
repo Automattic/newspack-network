@@ -14,16 +14,10 @@ use Newspack_Network\Admin as Network_Admin;
  * Class to handle Nodes post type
  */
 class Nodes {
-
 	/**
 	 * POST_TYPE_SLUG for the Nodes.
 	 */
 	const POST_TYPE_SLUG = 'newspack_hub_nodes';
-
-	/**
-	 * HUB_NODES_SYNCED_OPTION for network nodes.
-	 */
-	const HUB_NODES_SYNCED_OPTION = 'newspack_hub_nodes_synced';
 
 	/**
 	 * Initialize this class and register hooks

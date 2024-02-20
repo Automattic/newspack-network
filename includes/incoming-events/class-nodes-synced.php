@@ -8,7 +8,7 @@
 namespace Newspack_Network\Incoming_Events;
 
 use Newspack_Network\Debugger;
-use Newspack_Network\Hub\Nodes;
+use Newspack_Network\Hub\Node;
 
 /**
  * Class to handle the Nodes Synced Event
@@ -47,7 +47,7 @@ class Nodes_Synced extends Abstract_Incoming_Event {
 			}
 		}
 
-		$updated = update_option( Nodes::HUB_NODES_SYNCED_OPTION, $nodes_data );
+		$updated = update_option( Node::HUB_NODES_SYNCED_OPTION, $nodes_data );
 
 		if ( $updated ) {
 			Debugger::log( 'network_nodes_synced event processed. Synced ' . count( $nodes_data ) . ' nodes.' );

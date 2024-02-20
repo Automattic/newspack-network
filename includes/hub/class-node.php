@@ -15,6 +15,10 @@ use WP_Post;
  * Class to represent one Node of the netowrk
  */
 class Node {
+	/**
+	 * HUB_NODES_SYNCED_OPTION for network nodes.
+	 */
+	const HUB_NODES_SYNCED_OPTION = 'newspack_hub_nodes_synced';
 
 	/**
 	 * The WP_Post object for this Node

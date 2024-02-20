@@ -9,6 +9,7 @@ namespace Newspack_Network\Node;
 
 use Newspack_Network\Admin;
 use Newspack_Network\Crypto;
+use Newspack_Network\Hub\Node as Hub_Node;
 use Newspack_Network\Hub\Nodes as Hub_Nodes;
 use WP_Error;
 
@@ -544,7 +545,7 @@ class Settings {
 			<div class="misc-pub-section">
 				<a
 					class="button"
-					href="<?php echo esc_url( wp_unslash( self::get_hub_url() ) ); ?>/wp-admin/edit.php?post_type=<?php echo esc_attr( \Newspack_Network\Hub\Nodes::POST_TYPE_SLUG ); ?>"
+					href="<?php echo esc_url( wp_unslash( self::get_hub_url() ) ); ?>/wp-admin/edit.php?post_type=<?php echo esc_attr( Hub_Nodes::POST_TYPE_SLUG ); ?>"
 				>
 					<?php esc_html_e( 'Go back to the Hub', 'newspack-network' ); ?>
 				</a>
@@ -574,7 +575,7 @@ class Settings {
 	 * @return void
 	 */
 	public static function admin_bar_menu( $wp_admin_bar ) {
-		$nodes_data   = get_option( Hub_Nodes::HUB_NODES_SYNCED_OPTION, [] );
+		$nodes_data   = get_option( Hub_Node::HUB_NODES_SYNCED_OPTION, [] );
 		$nodes_data[] = [
 			'id'    => 0,
 			'url'   => self::get_hub_url(),
@@ -592,7 +593,7 @@ class Settings {
 				]
 			);
 
-			foreach ( Node::get_bookmarks( $node['url'] ) as $bookmark ) {
+			foreach ( Hub_Node::get_bookmarks( $node['url'] ) as $bookmark ) {
 				$wp_admin_bar->add_node(
 					[
 						'id'     => $item_id . '-' . sanitize_title( $bookmark['label'] ),
