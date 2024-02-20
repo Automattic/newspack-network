@@ -20,7 +20,7 @@ class Esp_Metadata_Sync {
 	 *
 	 * @var string
 	 */
-	const OPTION_NAME = 'newspack_esp_metadata';
+	const OPTION_NAME = 'newspack_network_esp_metadata';
 
 	/**
 	 * Gets the current value of the Newspack ESP metadata option.
