@@ -35,6 +35,7 @@ class Accepted_Actions {
 		'donation_new'                       => 'Donation_New',
 		'donation_subscription_cancelled'    => 'Donation_Subscription_Cancelled',
 		'network_user_updated'               => 'User_Updated',
+		'network_manual_sync_user'           => 'User_Manually_Synced',
 	];
 
 	/**
@@ -50,5 +51,6 @@ class Accepted_Actions {
 		'donation_new',
 		'donation_subscription_cancelled',
 		'network_user_updated',
+		'network_manual_sync_user',
 	];
 }
