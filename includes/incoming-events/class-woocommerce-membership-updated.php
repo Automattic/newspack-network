@@ -49,7 +49,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
-		if ( ! class_exists( 'WC_Memberships' ) ) {
+		if ( ! function_exists( 'wc_memberships_get_user_membership' ) || ! function_exists( 'wc_memberships_create_user_membership' ) ) {
 			return;
 		}
 
@@ -76,7 +76,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 
 		$user_membership = wc_memberships_get_user_membership( $user->ID, $local_plan_id );
 
-		if ( ! $user_membership ) {
+		if ( null === $user_membership ) {
 			$user_membership = wc_memberships_create_user_membership(
 				[
 					'plan_id' => $local_plan_id,
