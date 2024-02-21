@@ -1,6 +1,6 @@
-<?php
+<?php // phpcs:ignore Squiz.Commenting.FileComment.Missing (something about the require_once below breaks the lint)
 /**
- * Class TestEspMetadataSync
+ * Class Test_Esp_Metadata_Sync
  *
  * @package Newspack_Network
  */
