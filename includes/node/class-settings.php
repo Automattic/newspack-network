@@ -240,7 +240,7 @@ class Settings {
 			// Remove the params from URL - settings were just saved.
 			if ( $referrer ) {
 				if ( ! \Newspack_Network\Site_Role::get() ) {
-					update_option( \Newspack_Network\Site_Role::OPTION_NAME, \Newspack_Network\Site_Role::NODE_ROLE );
+					\Newspack_Network\Site_Role::set_as_node();
 				}
 				$referrer = remove_query_arg( [ 'secret_key', 'action' ], $referrer );
 				wp_safe_redirect( $referrer );

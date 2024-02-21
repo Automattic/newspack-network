@@ -50,6 +50,15 @@ class Site_Role {
 	}
 
 	/**
+	 * Sets site role as "node".
+	 *
+	 * @return boolean True if the option was saved.
+	 */
+	public static function set_as_node() {
+		return update_option( self::OPTION_NAME, self::NODE_ROLE );
+	}
+
+	/**
 	 * Validates a value to be used as the site role
 	 *
 	 * @param string $role The new value to be used as the site role.
