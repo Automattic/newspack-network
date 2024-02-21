@@ -41,6 +41,7 @@ class Initializer {
 		Data_Listeners::init();
 		Reader_Roles_Filter::init();
 		User_Update_Watcher::init();
+		User_Manual_Sync::init();
 		Distributor_Customizations::init();
 
 		Woocommerce_Memberships\Admin::init();

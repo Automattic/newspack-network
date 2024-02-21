@@ -36,6 +36,7 @@ class Accepted_Actions {
 		'donation_subscription_cancelled'         => 'Donation_Subscription_Cancelled',
 		'network_user_updated'                    => 'User_Updated',
 		'newspack_network_woo_membership_updated' => 'Woocommerce_Membership_Updated',
+		'network_manual_sync_user'                => 'User_Manually_Synced',
 	];
 
 	/**
@@ -52,5 +53,6 @@ class Accepted_Actions {
 		'donation_subscription_cancelled',
 		'network_user_updated',
 		'newspack_network_woo_membership_updated',
+		'network_manual_sync_user',
 	];
 }
