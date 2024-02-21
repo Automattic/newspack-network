@@ -7,7 +7,6 @@
 
 namespace Newspack_Network;
 
-use Automattic\Jetpack\VideoPress\Data;
 use WP_CLI;
 
 /**
@@ -112,6 +111,12 @@ class Data_Backfill {
 				],
 				'fields'     => [ 'id', 'user_email', 'user_registered' ],
 				'number'     => -1,
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					[
+						'key'     => \Newspack_Network\Utils\Users::USER_META_REMOTE_SITE,
+						'compare' => 'NOT EXISTS',
+					],
+				],
 			]
 		);
 		if ( ! $verbose ) {
@@ -357,6 +362,4 @@ class Data_Backfill {
 		}
 		WP_CLI::line( '' );
 	}
-
-	// TODO: a script to run the above on all nodes of the network.
 }

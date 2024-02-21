@@ -13,6 +13,8 @@ use Newspack_Network\Debugger;
  * Class to watch the user for updates and trigger events
  */
 class Users {
+	const USER_META_REMOTE_SITE = 'newspack_remote_site';
+	const USER_META_REMOTE_ID = 'newspack_remote_id';
 
 	/**
 	 * Gets an existing user or creates a user propagated from another site in the Network
@@ -48,8 +50,8 @@ class Users {
 			return $user_id;
 		}
 
-		update_user_meta( $user_id, 'newspack_remote_site', $remote_site_url );
-		update_user_meta( $user_id, 'newspack_remote_id', $remote_id );
+		update_user_meta( $user_id, self::USER_META_REMOTE_SITE, $remote_site_url );
+		update_user_meta( $user_id, self::USER_META_REMOTE_ID, $remote_id );
 
 		return get_user_by( 'id', $user_id );
 	}
