@@ -191,12 +191,4 @@ class Admin {
 	 */
 	public static function enqueue_scripts() {
 	}
-
-	/**
-	 * Is updating the Node settings from URL?
-	 */
-	public static function is_updating_from_url() {
-		$action = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS );
-		return $action === self::LINK_ACTION_NAME;
-	}
 }

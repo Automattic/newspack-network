@@ -143,7 +143,7 @@ class Settings {
 	public static function hub_url_callback() {
 		$content = get_option( 'newspack_node_hub_url' );
 		$referrer = self::get_referrer();
-		if ( Admin::is_updating_from_url() && $referrer ) {
+		if ( self::is_updating_from_url() && $referrer ) {
 			$content = $referrer;
 		}
 		printf(
@@ -161,7 +161,7 @@ class Settings {
 	public static function secret_key_callback() {
 		$content = get_option( 'newspack_node_secret_key' );
 		$secret_key = self::get_secret_key_from_url();
-		if ( Admin::is_updating_from_url() && $secret_key ) {
+		if ( self::is_updating_from_url() && $secret_key ) {
 			$content = $secret_key;
 		}
 		printf(
@@ -232,7 +232,7 @@ class Settings {
 	 * Render linking receiving interface.
 	 */
 	public static function linking_interface_notice() {
-		if ( ! Admin::is_updating_from_url() ) {
+		if ( ! self::is_updating_from_url() ) {
 			return;
 		}
 		$referrer = self::get_referrer();
@@ -434,5 +434,13 @@ class Settings {
 		</table>
 
 		<?php
+	}
+
+	/**
+	 * Is updating the Node settings from URL?
+	 */
+	public static function is_updating_from_url() {
+		$action = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS );
+		return $action === Admin::LINK_ACTION_NAME;
 	}
 }
