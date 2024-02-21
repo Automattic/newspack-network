@@ -22,7 +22,7 @@ The Hub holds an Event Log, where we have the history of all events in all sites
 2. In that site, go to Newspack Network > Site Role and set this site as the Hub
 3. Go to Newspack Network > Nodes and add the nodes that will be part of the network
 4. Note that for each Node, a Secret key is generated. This key will be used to sign requests between Hub and Nodes.
-5. Click the "Link the site" button and then "Save Changes" (on the Node site) to link the sites.
+5. Click the "Link the site" button and then "Connect" (on the Node site) to link the sites.
 
 ## Techinical docs
 
