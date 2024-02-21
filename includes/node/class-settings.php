@@ -61,7 +61,9 @@ class Settings {
 	 * @return void
 	 */
 	public static function add_menu() {
-		Admin::add_submenu_page( __( 'Node Settings', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
+		if ( \Newspack_Network\Site_Role::is_node() || self::is_updating_from_url() ) {
+			Admin::add_submenu_page( __( 'Node Settings', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
+		}
 	}
 
 	/**
@@ -298,10 +300,14 @@ class Settings {
 					<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Save Changes' ); ?>' />
 				</p>
 			</form>
-			<hr />
-			<?php self::render_debug_tools(); ?>
 		</div>
 		<?php
+		if ( \Newspack_Network\Site_Role::is_node() ) {
+			?>
+			<hr />
+			<?php
+			self::render_debug_tools();
+		}
 	}
 
 	/**
