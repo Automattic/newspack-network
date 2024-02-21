@@ -27,6 +27,7 @@ class Initializer {
 			Hub\Database\Subscriptions::init();
 			Hub\Database\Orders::init();
 			Hub\Newspack_Ads_GAM::init();
+			Hub\Connect_Node::init();
 		}
 
 		// Allow to access node settings before the site has a role, so it can be set via URL.

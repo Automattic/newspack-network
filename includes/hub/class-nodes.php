@@ -188,24 +188,6 @@ class Nodes {
 	}
 
 	/**
-	 * Get linking URL.
-	 *
-	 * @param WP_Post $node_post The node post.
-	 */
-	private static function get_site_link_url( $node_post ) {
-		$node_url   = get_post_meta( $node_post->ID, 'node-url', true );
-		$secret_key = get_post_meta( $node_post->ID, 'secret-key', true );
-		return add_query_arg(
-			[
-				'page'       => \Newspack_Network\Node\Settings::PAGE_SLUG,
-				'secret_key' => $secret_key,
-				'action'     => \Newspack_Network\Admin::LINK_ACTION_NAME,
-			],
-			$node_url . '/wp-admin/admin.php'
-		);
-	}
-
-	/**
 	 * Outputs metabox content
 	 *
 	 * @param WP_Post $post The current post.
@@ -214,12 +196,12 @@ class Nodes {
 	public static function node_details_metabox_content( $post ) {
 		wp_nonce_field( 'newspack_hub_save_node', 'newspack_hub_save_node_nonce' );
 
-		$node_url   = get_post_meta( $post->ID, 'node-url', true );
-		$secret_key = get_post_meta( $post->ID, 'secret-key', true );
+		$node       = new Node( $post );
+		$secret_key = $node->get_secret_key();
 
 		?>
 		<div class="misc-pub-section">
-			Node URL: <input type="text" name="newspack-node-url" value="<?php echo esc_attr( $node_url ); ?>" />
+			Node URL: <input type="text" name="newspack-node-url" value="<?php echo esc_attr( $node->get_url() ); ?>" />
 		</div>
 
 		<?php if ( $secret_key ) : ?>
@@ -230,7 +212,7 @@ class Nodes {
 				<a
 					target="_blank"
 					class="button"
-					href="<?php echo esc_url( self::get_site_link_url( $post ) ); ?>"
+					href="<?php echo esc_url( $node->get_connect_link() ); ?>"
 				>
 					<?php esc_html_e( 'Link the site', 'newspack-network' ); ?>
 				</a>
