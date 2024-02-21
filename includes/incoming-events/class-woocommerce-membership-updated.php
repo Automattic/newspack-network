@@ -49,7 +49,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
-		if ( ! class_exists( 'WC_Memberships' ) ) {
+		if ( ! function_exists( 'wc_memberships_get_user_membership' ) || ! function_exists( 'wc_memberships_create_user_membership' ) ) {
 			return;
 		}
 
@@ -76,13 +76,17 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 
 		$user_membership = wc_memberships_get_user_membership( $user->ID, $local_plan_id );
 
-		if ( ! $user_membership ) {
+		if ( null === $user_membership ) {
 			$user_membership = wc_memberships_create_user_membership(
 				[
 					'plan_id' => $local_plan_id,
 					'user_id' => $user->ID,
 				]
 			);
+
+			update_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
+			update_post_meta( $user_membership->get_id(), Memberships_Admin::REMOTE_ID_META_KEY, $this->get_membership_id() );
+			update_post_meta( $user_membership->get_id(), Memberships_Admin::SITE_URL_META_KEY, $this->get_site() );
 		}
 
 		if ( is_wp_error( $user_membership ) ) {
@@ -94,10 +98,6 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			Debugger::log( 'Error creating membership plan' );
 			return;
 		}
-
-		update_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
-		update_post_meta( $user_membership->get_id(), Memberships_Admin::REMOTE_ID_META_KEY, $this->get_membership_id() );
-		update_post_meta( $user_membership->get_id(), Memberships_Admin::SITE_URL_META_KEY, $this->get_site() );
 
 		$user_membership->update_status( $this->get_new_status() );
 		$user_membership->add_note(
