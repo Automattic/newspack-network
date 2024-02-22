@@ -167,7 +167,9 @@ class Data_Backfill {
 		foreach ( $orders as $order ) {
 			$order_id = $order->get_id();
 			$order_data = \Newspack\Data_Events\Utils::get_order_data( $order_id );
-
+			if ( ! $order_data ) {
+				continue;
+			}
 			$timestamp = strtotime( $order->get_date_completed() );
 			if ( $live ) {
 				self::process_event_entity( $order_data, $timestamp, 'donation_new' );
@@ -215,7 +217,7 @@ class Data_Backfill {
 		foreach ( $subscriptions as $subscription ) {
 			$subscription_data = \Newspack\Data_Events\Utils::get_recurring_donation_data( $subscription );
 			if ( ! $subscription_data ) {
-				return;
+				continue;
 			}
 			$timestamp = strtotime( $subscription->get_date( 'cancelled' ) );
 			if ( $live ) {
