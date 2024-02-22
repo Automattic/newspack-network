@@ -143,6 +143,16 @@ class Abstract_Incoming_Event {
 	}
 
 	/**
+	 * Returns the formatted date for this event based on its timestamp
+	 *
+	 * @param string $format The date format.
+	 * @return string
+	 */
+	public function get_formatted_date( $format = 'Y-m-d H:i:s' ) {
+		return gmdate( $format, $this->timestamp );
+	}
+
+	/**
 	 * Returns the action name for this event
 	 *
 	 * @return string
