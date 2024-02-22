@@ -227,11 +227,11 @@ class Pulling {
 			update_option( self::LAST_ERROR_OPTION_NAME, '' );
 		}
 		$response = json_decode( $response, true );
-		if ( ! is_array( $response ) ) {
+		if ( ! is_array( $response['data'] ) ) {
 			return;
 		}
 
-		foreach ( $response as $event ) {
+		foreach ( $response['data'] as $event ) {
 			$action    = $event['action'] ?? false;
 			$site      = $event['site'] ?? false;
 			$data      = $event['data'] ?? false;

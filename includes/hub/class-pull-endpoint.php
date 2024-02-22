@@ -101,7 +101,7 @@ class Pull_Endpoint {
 
 		Debugger::log( count( $events ) . ' events found' );
 
-		$response_body = array_map(
+		$events_formatted = array_map(
 			function( $event ) {
 				return [
 					'id'        => $event->get_id(),
@@ -113,7 +113,11 @@ class Pull_Endpoint {
 			},
 			$events
 		);
-
+		$highest_returned_id = empty( $events_formatted ) ? 0 : max( array_column( $events_formatted, 'id' ) );
+		$response_body = [
+			'data'             => $events_formatted,
+			'more_items_count' => Event_Log::get_events_count_between( $highest_returned_id ),
+		];
 		return new WP_REST_Response( $response_body );
 	}
 }

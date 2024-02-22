@@ -86,13 +86,29 @@ class Event_Log {
 	 * @param array $args See {@see self::build_where_clause()} for supported arguments.
 	 * @return int
 	 */
-	public static function get_total_items( $args ) {
+	public static function get_total_items( $args = [] ) {
 		global $wpdb;
 		$table_name = Database::get_table_name();
 		$query      = "SELECT COUNT(*) FROM $table_name WHERE 1=1 [args]";
 		$query      = str_replace( '[args]', self::build_where_clause( $args ), $query );
 		$result     = $wpdb->get_var( $query ); //phpcs:ignore
 		return $result;
+	}
+
+	/**
+	 * Get count of items between the given event ID and the latest event.
+	 *
+	 * @param int $event_id The event ID to start from.
+	 * @return int
+	 */
+	public static function get_events_count_between( $event_id ) {
+		if ( $event_id === 0 ) {
+			return 0;
+		}
+		global $wpdb;
+		$table_name = Database::get_table_name();
+		$query = $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE id > %d", $event_id ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_var( $query ); //phpcs:ignore
 	}
 
 	/**
