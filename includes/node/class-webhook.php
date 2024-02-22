@@ -200,8 +200,9 @@ class Webhook {
 		$progress->finish();
 
 		if ( ! empty( $unprocessed_request_ids ) ) {
-			WP_CLI::warning( "The following requests could not be deleted:\n" . wp_json_encode( $unprocessed_request_ids ) );
+			WP_CLI::error( "The following requests could not be processed:\n" . wp_json_encode( $unprocessed_request_ids ) );
+			return;
 		}
-		WP_CLI::success( "Successfully processed {$processed_count}/{$requests_count} pending requests." );
+		WP_CLI::success( "Successfully processed {$processed_count}/{$requests_count} '{$status}' requests." );
 	}
 }
