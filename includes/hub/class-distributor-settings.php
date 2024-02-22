@@ -167,7 +167,7 @@ class Distributor_Settings {
 				settings_fields( self::SETTINGS_SECTION );
 			?>
 				<p class='submit'>
-						<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Save Changes' ); ?>' />
+					<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Save Changes' ); ?>' />
 				</p>
 			</form>
 		</div>

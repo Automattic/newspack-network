@@ -83,15 +83,30 @@ class Abstract_Incoming_Event {
 	public function process_in_hub() {
 		Debugger::log( 'Processing event' );
 		Event_Log::persist( $this );
-		$this->post_process_in_hub();
+		// only invoke post_process_in_hub if the event was triggered in a Node.
+		if ( 0 < $this->get_node_id() ) {
+			$this->post_process_in_hub();
+		}
+		$this->always_process_in_hub();
 	}
 
 	/**
 	 * Child classes should implement this method to do any post-processing in the Hub after the event is persisted in the Event Log
 	 *
+	 * This will only run for events coming from a Node, not for events that were triggered in the Hub itself
+	 *
 	 * @return void
 	 */
 	public function post_process_in_hub() {}
+
+	/**
+	 * Child classes should implement this method to do any post-processing in the Hub after the event is persisted in the Event Log
+	 *
+	 * This will run for all events, regardless of whether they were triggered in a Node or in the Hub itself
+	 *
+	 * @return void
+	 */
+	public function always_process_in_hub() {}
 
 	/**
 	 * Child classes should implement this method to do any processing when the Node processes the event
