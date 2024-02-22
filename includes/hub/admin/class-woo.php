@@ -36,7 +36,6 @@ abstract class Woo {
 	 * Runs the initialization.
 	 */
 	public static function init() {
-
 		$class_name         = get_called_class();
 		$db_class_name      = str_replace( 'Admin', 'Database', $class_name );
 		self::$post_types[] = $db_class_name::POST_TYPE_SLUG;
@@ -46,6 +45,7 @@ abstract class Woo {
 
 		add_filter( 'manage_' . $db_class_name::POST_TYPE_SLUG . '_posts_columns', [ $class_name, 'posts_columns' ] );
 		add_action( 'manage_' . $db_class_name::POST_TYPE_SLUG . '_posts_custom_column', [ $class_name, 'posts_columns_values' ], 10, 2 );
+		add_action( 'parse_query', [ $class_name, 'parse_query' ] );
 
 		add_filter( 'get_edit_post_link', [ $class_name, 'get_edit_post_link' ], 10, 2 );
 
@@ -168,6 +168,43 @@ abstract class Woo {
 		];
 
 		return null;
+	}
+
+	/**
+	 * Filters search query to include custom fields
+	 *
+	 * @param \WP_Query $query  The Query object.
+	 * @return void
+	 */
+	public static function parse_query( $query ) {
+		global $pagenow;
+
+		if ( ! is_admin() || 'edit.php' !== $pagenow || empty( $query->query_vars['s'] ) || ! in_array( $query->query_vars['post_type'], self::$post_types, true ) ) {
+			return;
+		}
+
+		$search_term = $query->query_vars['s'];
+
+		if ( ! is_numeric( $search_term ) ) {
+			// Query by name and/or email meta.
+			$meta_query = [
+				'relation' => 'OR',
+				[
+					'key'     => 'user_name',
+					'value'   => sanitize_text_field( $search_term ),
+					'compare' => 'LIKE',
+				],
+				[
+					'key'     => 'user_email',
+					'value'   => sanitize_text_field( $search_term ),
+					'compare' => 'LIKE',
+				],
+			];
+
+			$query->set( 'meta_query', $meta_query );
+
+			unset( $query->query_vars['s'] );
+		}
 	}
 
 	/**
