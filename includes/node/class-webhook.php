@@ -116,6 +116,7 @@ class Webhook {
 	 * 
 	 * @param array $args Indexed array of args.
 	 * @param array $assoc_args Associative array of args.
+	 * @return void
 	 *
 	 * ## OPTIONS
 	 *
