@@ -114,8 +114,8 @@ class Webhook {
 	/**
 	 * Process network requests
 	 * 
-	 * @param array $args Args sent to command.
-	 * @param array $assoc_args Key value pair of arguments sent to command.
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
 	 *
 	 * ## OPTIONS
 	 *
