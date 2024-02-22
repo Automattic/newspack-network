@@ -213,7 +213,10 @@ class Data_Backfill {
 			self::$progress = \WP_CLI\Utils\make_progress_bar( 'Processing subscriptions', count( $subscriptions ) );
 		}
 		foreach ( $subscriptions as $subscription ) {
-			$subscription_data = \Newspack\Data_Events\Utils::get_subscription_data( $subscription );
+			$subscription_data = \Newspack\Data_Events\Utils::get_recurring_donation_data( $subscription );
+			if ( ! $subscription_data ) {
+				return;
+			}
 			$timestamp = strtotime( $subscription->get_date( 'cancelled' ) );
 			if ( $live ) {
 				self::process_event_entity( $subscription_data, $timestamp, 'donation_subscription_cancelled' );
