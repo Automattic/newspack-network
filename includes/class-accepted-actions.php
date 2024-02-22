@@ -37,6 +37,7 @@ class Accepted_Actions {
 		'network_user_updated'                    => 'User_Updated',
 		'newspack_network_woo_membership_updated' => 'Woocommerce_Membership_Updated',
 		'network_manual_sync_user'                => 'User_Manually_Synced',
+		'network_nodes_synced'                    => 'Nodes_Synced',
 	];
 
 	/**
@@ -54,5 +55,6 @@ class Accepted_Actions {
 		'network_user_updated',
 		'newspack_network_woo_membership_updated',
 		'network_manual_sync_user',
+		'network_nodes_synced',
 	];
 }

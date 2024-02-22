@@ -15,6 +15,10 @@ use WP_Post;
  * Class to represent one Node of the netowrk
  */
 class Node {
+	/**
+	 * HUB_NODES_SYNCED_OPTION for network nodes.
+	 */
+	const HUB_NODES_SYNCED_OPTION = 'newspack_hub_nodes_synced';
 
 	/**
 	 * The WP_Post object for this Node
@@ -116,13 +120,13 @@ class Node {
 	}
 
 	/**
-	 * Gets a collection of bookmarks for this Node
+	 * Generates a collection of bookmarks for this Node
 	 *
+	 * @param  string $url The URL of the Node.
 	 * @return array
 	 */
-	public function get_bookmarks() {
-
-		$base_url = trailingslashit( $this->get_url() );
+	public static function generate_bookmarks( $url ) {
+		$base_url = trailingslashit( $url );
 
 		return [
 			[
@@ -154,5 +158,16 @@ class Node {
 				'url'   => $base_url . 'wp-admin/options-general.php',
 			],
 		];
+	}
+
+	/**
+	 * Gets a collection of bookmarks for this Node.
+	 *
+	 * @return array
+	 */
+	public function get_bookmarks() {
+		$base_url = $this->get_url();
+
+		return self::generate_bookmarks( $base_url );
 	}
 }

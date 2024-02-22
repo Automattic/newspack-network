@@ -9,6 +9,8 @@ namespace Newspack_Network\Node;
 
 use Newspack_Network\Admin;
 use Newspack_Network\Crypto;
+use Newspack_Network\Hub\Node as Hub_Node;
+use Newspack_Network\Hub\Nodes as Hub_Nodes;
 use WP_Error;
 
 /**
@@ -48,6 +50,7 @@ class Settings {
 		add_action( 'admin_menu', [ __CLASS__, 'add_menu' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
 		add_action( 'admin_init', [ __CLASS__, 'process_connection_form' ] );
+		add_action( 'admin_bar_menu', [ __CLASS__, 'admin_bar_menu' ], 100 );
 	}
 
 	/**
@@ -542,7 +545,7 @@ class Settings {
 			<div class="misc-pub-section">
 				<a
 					class="button"
-					href="<?php echo esc_url( wp_unslash( self::get_hub_url() ) ); ?>/wp-admin/edit.php?post_type=<?php echo esc_attr( \Newspack_Network\Hub\Nodes::POST_TYPE_SLUG ); ?>"
+					href="<?php echo esc_url( wp_unslash( self::get_hub_url() ) ); ?>/wp-admin/edit.php?post_type=<?php echo esc_attr( Hub_Nodes::POST_TYPE_SLUG ); ?>"
 				>
 					<?php esc_html_e( 'Go back to the Hub', 'newspack-network' ); ?>
 				</a>
@@ -563,5 +566,43 @@ class Settings {
 			<p><?php echo esc_html( self::$connection_error ); ?></p>
 			</div>
 		<?php
+	}
+	
+	/**
+	 * Adds the nodes and their bookmarks to the Admin Bar menu
+	 *
+	 * @param \WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+	 * @return void
+	 */
+	public static function admin_bar_menu( $wp_admin_bar ) {
+		$nodes_data   = get_option( Hub_Node::HUB_NODES_SYNCED_OPTION, [] );
+		$nodes_data[] = [
+			'id'    => 0,
+			'url'   => self::get_hub_url(),
+			'title' => __( 'Hub', 'newspack-network' ),
+		];
+
+		foreach ( $nodes_data as $node ) {
+			$item_id = 'node-' . $node['id'];
+			$wp_admin_bar->add_node(
+				[
+					'id'     => $item_id,
+					'title'  => $node['title'],
+					'href'   => $node['url'],
+					'parent' => 'site-name',
+				]
+			);
+
+			foreach ( Hub_Node::generate_bookmarks( $node['url'] ) as $bookmark ) {
+				$wp_admin_bar->add_node(
+					[
+						'id'     => $item_id . '-' . sanitize_title( $bookmark['label'] ),
+						'title'  => $bookmark['label'],
+						'href'   => $bookmark['url'],
+						'parent' => $item_id,
+					]
+				);
+			}
+		}
 	}
 }
