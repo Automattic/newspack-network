@@ -100,6 +100,22 @@ class Node {
 	}
 
 	/**
+	 * Retrieves the link to connect this Node to the Hub
+	 *
+	 * @return string
+	 */
+	public function get_connect_link() {
+		return add_query_arg(
+			[
+				'page'          => \Newspack_Network\Node\Settings::PAGE_SLUG,
+				'connect_nonce' => Connect_Node::generate_nonce( $this->get_id() ),
+				'action'        => \Newspack_Network\Admin::LINK_ACTION_NAME,
+			],
+			$this->get_url() . '/wp-admin/admin.php'
+		);
+	}
+
+	/**
 	 * Gets a collection of bookmarks for this Node
 	 *
 	 * @return array

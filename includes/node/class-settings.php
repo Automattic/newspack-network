@@ -9,6 +9,7 @@ namespace Newspack_Network\Node;
 
 use Newspack_Network\Admin;
 use Newspack_Network\Crypto;
+use WP_Error;
 
 /**
  * Class to handle Node settings page
@@ -26,6 +27,18 @@ class Settings {
 	const PAGE_SLUG = 'newspack-network-node'; // Same as the main admin page slug, it will become the first menu item.
 
 	/**
+	 * The action name for the link-site functionality nonce.
+	 */
+	const CONNECTION_NONCE_ACTION = 'newspack-network-connect-node';
+
+	/**
+	 * The connection error message.
+	 *
+	 * @var string
+	 */
+	public static $connection_error;
+
+	/**
 	 * Initialize this class and register hooks
 	 *
 	 * @return void
@@ -34,6 +47,7 @@ class Settings {
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
 		add_action( 'admin_menu', [ __CLASS__, 'add_menu' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
+		add_action( 'admin_init', [ __CLASS__, 'process_connection_form' ] );
 	}
 
 	/**
@@ -60,7 +74,9 @@ class Settings {
 	 * @return void
 	 */
 	public static function add_menu() {
-		Admin::add_submenu_page( __( 'Node Settings', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
+		if ( \Newspack_Network\Site_Role::is_node() || self::is_updating_from_url() || self::is_processing_connection_form() ) {
+			Admin::add_submenu_page( __( 'Node Settings', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render' ] );
+		}
 	}
 
 	/**
@@ -206,11 +222,74 @@ class Settings {
 	}
 
 	/**
+	 * Get referrer.
+	 */
+	private static function get_referrer() {
+		return isset( $_SERVER['HTTP_REFERER'] ) ? \esc_url_raw( \wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
+	}
+
+	/**
+	 * Render linking receiving interface.
+	 */
+	public static function linking_interface_notice() {
+		$referrer = self::get_referrer();
+
+		if ( ! $referrer ) {
+			return;
+		}
+
+		$existing_hub_url    = self::get_hub_url();
+		$existing_secret_key = self::get_secret_key();
+		$form_action         = add_query_arg( 'page', self::PAGE_SLUG, admin_url( 'admin.php' ) );
+		$connect_nonce       = filter_input( INPUT_GET, 'connect_nonce', FILTER_SANITIZE_SPECIAL_CHARS );
+
+		?>
+		<div id="message" class="notice">
+			<form method="POST" action="<?php echo esc_url( $form_action ); ?>">
+				<input type="hidden" name="newspack_node_hub_url" value="<?php echo esc_attr( $referrer ); ?>">
+				<input type="hidden" name="connection_nonce" value="<?php echo esc_attr( $connect_nonce ); ?>">
+				<?php wp_nonce_field( self::CONNECTION_NONCE_ACTION ); ?>
+				<h2>
+					<?php esc_html_e( 'Link this site to the Hub', 'newspack-network' ); ?>
+				</h2>
+				<p>
+				<?php
+				printf(
+					/* translators: %s is the Hub URL */
+					esc_html__( 'Are you sure you want to connect this site as Node to the Hub at %s?', 'newspack-network' ),
+					esc_html( $referrer )
+				);
+				?>
+				</p>
+				<?php if ( $existing_hub_url && $existing_secret_key ) : ?>
+					<p>
+					<?php
+					printf(
+						/* translators: %s is the Hub URL */
+						esc_html__( 'WARNING: This will reset your current connection to %s.', 'newspack-network' ),
+						esc_html( $existing_hub_url )
+					);
+					?>
+				</p>
+				<?php endif; ?>
+				<p class='submit'>
+					<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Connect!' ); ?>' />
+				</p>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Renders the settings page
 	 *
 	 * @return void
 	 */
 	public static function render() {
+		if ( self::is_updating_from_url() ) {
+			self::linking_interface_notice();
+			return;
+		}
 		?>
 		<div class='wrap'>
 			<?php settings_errors(); ?>
@@ -223,10 +302,14 @@ class Settings {
 					<input name='submit' type='submit' id='submit' class='button-primary' value='<?php _e( 'Save Changes' ); ?>' />
 				</p>
 			</form>
-			<hr />
-			<?php self::render_debug_tools(); ?>
 		</div>
 		<?php
+		if ( \Newspack_Network\Site_Role::is_node() ) {
+			?>
+			<hr />
+			<?php
+			self::render_debug_tools();
+		}
 	}
 
 	/**
@@ -258,7 +341,7 @@ class Settings {
 		<form method="post">
 			<?php wp_nonce_field( Pulling::MANUAL_PULL_ACTION_NAME ); ?>
 			<input type="hidden" name="action" value="<?php echo esc_attr( Pulling::MANUAL_PULL_ACTION_NAME ); ?>">
-			<button class="button"><?php esc_html_e( 'Synchronize data', 'newspack-network' ); ?></button>
+			<button class="button"><?php esc_html_e( 'Synchronize latest data', 'newspack-network' ); ?></button>
 		</form>
 
 		<?php
@@ -358,6 +441,127 @@ class Settings {
 			<?php endforeach; ?>
 		</table>
 
+		<?php
+	}
+
+	/**
+	 * Is updating the Node settings from URL?
+	 */
+	public static function is_updating_from_url() {
+		$action = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS );
+		return $action === Admin::LINK_ACTION_NAME;
+	}
+
+	/**
+	 * Checks if we are currently processing the connection form
+	 */
+	public static function is_processing_connection_form() {
+		return ! empty( $_POST['connection_nonce'] ) && ! empty( $_POST['newspack_node_hub_url'] ); // phpcs:ignore
+	}
+
+	/**
+	 * Process the connection form
+	 */
+	public static function process_connection_form() {
+		if ( empty( $_POST['connection_nonce'] ) || empty( $_POST['newspack_node_hub_url'] ) ) {
+			return;
+		}
+
+		if ( ! check_admin_referer( self::CONNECTION_NONCE_ACTION ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$hub_url = sanitize_text_field( $_POST['newspack_node_hub_url'] );
+		$nonce = sanitize_text_field( $_POST['connection_nonce'] );
+
+		$secret_key = self::request_secret_key( $hub_url, $nonce );
+
+		if ( is_wp_error( $secret_key ) ) {
+			self::$connection_error = $secret_key->get_error_message();
+			add_action( 'admin_notices', [ __CLASS__, 'notice_connection_error' ] );
+			return;
+		}
+
+		\Newspack_Network\Site_Role::set_as_node();
+		update_option( 'newspack_node_hub_url', $hub_url );
+		update_option( 'newspack_node_secret_key', $secret_key );
+
+		add_action( 'admin_notices', [ __CLASS__, 'notice_connection_success' ] );
+	}
+
+	/**
+	 * Requests the secret key from the Hub
+	 *
+	 * @param string $hub_url The Hub URL.
+	 * @param string $nonce The connection nonce.
+	 * @return string|\WP_Error
+	 */
+	private static function request_secret_key( $hub_url, $nonce ) {
+		$url      = trailingslashit( $hub_url ) . 'wp-json/newspack-network/v1/retrieve-key';
+		$params   = [
+			'site'  => get_bloginfo( 'url' ),
+			'nonce' => $nonce,
+		];
+
+		$response = wp_remote_post(
+			$url,
+			[
+				'body' => $params,
+			]
+		);
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+		if ( 200 !== $response_code ) {
+			$error_message = __( 'Error connecting to the Hub', 'newspack-network' );
+			if ( $response_body ) {
+				$error_message .= ': ' . $response_body;
+			}
+			return new \WP_Error( 'newspack-network-node-connect-error', $error_message );
+		}
+
+		$body = json_decode( $response_body, true );
+		return $body['secret_key'] ?? new \WP_Error( 'newspack-network-node-connect-error', __( 'Invalid response from the Hub', 'newspack-network' ) );
+	}
+
+	/**
+	 * Displays a success notice
+	 *
+	 * @return void
+	 */
+	public static function notice_connection_success() {
+		?>
+			<div class="notice notice-success is-dismissible">
+			<p><?php esc_html_e( 'Site connected!', 'newspack-network' ); ?></p>
+			<div class="misc-pub-section">
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_unslash( self::get_hub_url() ) ); ?>/wp-admin/edit.php?post_type=<?php echo esc_attr( \Newspack_Network\Hub\Nodes::POST_TYPE_SLUG ); ?>"
+				>
+					<?php esc_html_e( 'Go back to the Hub', 'newspack-network' ); ?>
+				</a>
+			</div>
+			</div>
+		<?php
+	}
+
+	/**
+	 * Displays a success notice
+	 *
+	 * @return void
+	 */
+	public static function notice_connection_error() {
+		?>
+			<div class="notice notice-error is-dismissible">
+			<p><?php esc_html_e( 'Error connecting the site', 'newspack-network' ); ?></p>
+			<p><?php echo esc_html( self::$connection_error ); ?></p>
+			</div>
 		<?php
 	}
 }
