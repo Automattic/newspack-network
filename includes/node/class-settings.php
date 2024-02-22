@@ -9,6 +9,7 @@ namespace Newspack_Network\Node;
 
 use Newspack_Network\Admin;
 use Newspack_Network\Crypto;
+use WP_Error;
 
 /**
  * Class to handle Node settings page
@@ -255,7 +256,7 @@ class Settings {
 				<?php
 				printf(
 					/* translators: %s is the Hub URL */
-					esc_html__( 'Are you sure you want to connect this site as Node to the Hub in %s?', 'newspack-network' ),
+					esc_html__( 'Are you sure you want to connect this site as Node to the Hub at %s?', 'newspack-network' ),
 					esc_html( $referrer )
 				);
 				?>
@@ -264,7 +265,7 @@ class Settings {
 					<p>
 					<?php
 					printf(
-					/* translators: %s is the Hub URL */
+						/* translators: %s is the Hub URL */
 						esc_html__( 'WARNING: This will reset your current connection to %s.', 'newspack-network' ),
 						esc_html( $existing_hub_url )
 					);
@@ -541,7 +542,7 @@ class Settings {
 			<div class="misc-pub-section">
 				<a
 					class="button"
-					href="<?php echo esc_url( self::get_hub_url() ); ?>/wp-admin/edit.php?post_type=<?php echo esc_attr( \Newspack_Network\Hub\Nodes::POST_TYPE_SLUG ); ?>"
+					href="<?php echo esc_url( wp_unslash( self::get_hub_url() ) ); ?>/wp-admin/edit.php?post_type=<?php echo esc_attr( \Newspack_Network\Hub\Nodes::POST_TYPE_SLUG ); ?>"
 				>
 					<?php esc_html_e( 'Go back to the Hub', 'newspack-network' ); ?>
 				</a>

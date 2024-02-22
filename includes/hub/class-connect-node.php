@@ -95,20 +95,16 @@ class Connect_Node {
 		$site = $request['site'];
 		$nonce = $request['nonce'];
 
-		if ( empty( $site ) ||
-			empty( $nonce )
-		) {
+		if ( empty( $site ) || empty( $nonce ) ) {
 			return new WP_REST_Response( array( 'error' => 'Bad request.' ), 400 );
 		}
 
 		$node = Nodes::get_node_by_url( $site );
-
 		if ( ! $node ) {
 			return new WP_REST_Response( array( 'error' => 'Bad request. Site not registered in this Hub.' ), 403 );
 		}
 
 		$verified_nonce = self::check_nonce( $node->get_id(), $nonce );
-
 		if ( ! $verified_nonce ) {
 			return new WP_REST_Response( array( 'error' => 'Invalid link.' ), 403 );
 		}
@@ -116,7 +112,6 @@ class Connect_Node {
 		$response_body = [
 			'secret_key' => $node->get_secret_key(),
 		];
-
 		return new WP_REST_Response( $response_body );
 	}
 }
