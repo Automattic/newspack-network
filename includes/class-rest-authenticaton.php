@@ -25,12 +25,16 @@ class Rest_Authenticaton {
 	 * The callback is a function that will be called if a signed request to this endpoints is successfully verified.
 	 */
 	const ENDPOINTS = [
-		'get-woo-orders'        => [
+		'get-woo-orders'           => [
 			'endpoint' => '|^/wc/v3/orders/[0-9]+$|',
 			'callback' => [ __CLASS__, 'add_filter_for_woo_read_endpoints' ],
 		],
-		'get-woo-subscriptions' => [
+		'get-woo-subscriptions'    => [
 			'endpoint' => '|^/wc/v3/subscriptions/[0-9]+$|',
+			'callback' => [ __CLASS__, 'add_filter_for_woo_read_endpoints' ],
+		],
+		'get-woo-membership-plans' => [
+			'endpoint' => '|^/wc/v2/memberships/plans|',
 			'callback' => [ __CLASS__, 'add_filter_for_woo_read_endpoints' ],
 		],
 	];
@@ -128,7 +132,7 @@ class Rest_Authenticaton {
 		}
 
 		Debugger::log( 'Signed API request received' );
-		
+
 		$secret_key = Node_Settings::get_secret_key();
 
 		foreach ( self::ENDPOINTS as $endpoint_id => $endpoint ) {
