@@ -140,4 +140,3 @@ Pulls are scheduled in CRON for every 5 minutes. If you want to trigger a pull n
 In the Node's log you will see detailed information about the pull attempt, starting with a `Pulling data` message.
 
 In the Hub's log, you will also see detailed information about the pull request, starting with a `Pull request received` message.
-
