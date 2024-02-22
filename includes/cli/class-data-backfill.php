@@ -356,14 +356,28 @@ class Data_Backfill {
 		}
 		if ( $live ) {
 			WP_CLI::line( '' );
-			WP_CLI::success(
-				sprintf(
-					'Processed %d %s events, skipped %d as duplicates.',
-					self::$results[ $action ]['processed'],
-					$action,
-					self::$results[ $action ]['duplicate']
-				)
-			);
+			if ( $action === 'all' ) {
+				$processed = 0;
+				$duplicate = 0;
+				foreach ( array_values( self::$results ) as $key => $value ) {
+					if ( isset( $value['processed'] ) ) {
+						$processed += $value['processed'];
+					}
+					if ( isset( $value['duplicate'] ) ) {
+						$duplicate += $value['duplicate'];
+					}
+				}
+				WP_CLI::success( sprintf( 'Processed %d events, skipped %d as duplicates.', $processed, $duplicate ) );
+			} else {
+				WP_CLI::success(
+					sprintf(
+						'Processed %d %s events, skipped %d as duplicates.',
+						self::$results[ $action ]['processed'],
+						$action,
+						self::$results[ $action ]['duplicate']
+					)
+				);
+			}
 		}
 		WP_CLI::line( '' );
 	}
