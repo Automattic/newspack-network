@@ -152,7 +152,9 @@ class Webhook {
 		$dry_run = isset( $assoc_args['dry-run'] );
 		$status = $assoc_args['status'] ?? 'pending';
 
-		// Only process pending requests.
+		/**
+		 * Get requests by 'status'
+		 */
 		$requests = array_filter(
 			Newspack_Webhooks::get_endpoint_requests( static::ENDPOINT_ID, $per_page ),
 			fn ( $r ) => $r['status'] === $status
@@ -163,46 +165,76 @@ class Webhook {
 			fn ( $a, $b ) => $a['id'] <=> $b['id']
 		);
 
+		// No requests, bail
 		if ( empty( $requests ) ) {
 			WP_CLI::error( "No '{$status}' requests exist, exiting!" );
 		}
 
 		$request_ids = array_column( $requests, 'id' );
-		$requests_count = count( $requests );
-		$processed_count = 0;
-		$unprocessed_request_ids = [];
+		
+		$counts = [
+			'total'   => count( $requests ),
+			'failed'  => 0,
+			'success' => 0,
+		];
+		
+		$errors = [];
 
 		if ( $dry_run ) {
 			WP_CLI::log( '==== DRY - RUN ====' );
 		} else {
-			WP_CLI::confirm( "Confirm processing of {$requests_count} requests?", $assoc_args );
+			WP_CLI::confirm( "Confirm processing of {$counts['total']} requests?", $assoc_args );
 		}
 
-		$progress = WP_CLI_Utils\make_progress_bar( 'Processing requests', $requests_count );
+		$progress = WP_CLI_Utils\make_progress_bar( 'Processing requests', $counts['total'] );
 
-		foreach ( $request_ids as $k => $request_id ) {
+		foreach ( $request_ids as $request_id ) {
 			if ( ! $dry_run ) {
 				Newspack_Webhooks::process_request( $request_id );
 				if ( 'finished' !== get_post_meta( $request_id, 'status', true ) ) {
-					array_push( $unprocessed_request_ids, $request_id );
+					$errors[$request_id] = "<unknown_error>";
+					// Get last stored error
+					$request_errors = get_post_meta( $request_id, 'errors', true );
+					if ((array) $request_errors === $request_errors) {
+						$errors[$request_id] = end($request_errors);
+					}
+					++$counts['failed'];
 					continue;
 				}
-				// Cleanup processed requests.
+				// Cleanup successfully processed requests.
 				$deleted = wp_delete_post( $request_id, true );
 				if ( false === $deleted || null === $deleted ) {
 					WP_CLI::warning( "There was an error deleting {$request_id}!" );
 				}
 			}
-			++$processed_count;
+			++$counts['success'];
 			$progress->tick();
 		}
 
 		$progress->finish();
+		WP_CLI::log("");
 
-		if ( ! empty( $unprocessed_request_ids ) ) {
-			WP_CLI::error( "The following requests could not be processed:\n" . wp_json_encode( $unprocessed_request_ids ) );
+		/**
+		 * If all requests have been processed, output success and return.
+		 */
+		if( $counts['success'] === $counts['total'] ){
+			WP_CLI::success( "Successfully processed {$counts['success']}/{$counts['total']} '{$status}' requests.\n" );
 			return;
 		}
-		WP_CLI::success( "Successfully processed {$processed_count}/{$requests_count} '{$status}' requests." );
+		/**
+		 * All request processing failed.
+		 */
+		// Last 100 errors
+		$errors = wp_json_encode(array_slice($errors, -100, 100, true), JSON_PRETTY_PRINT);
+		if ( $counts['failed'] === $counts['total'] ) {
+			WP_CLI::error( "0/{$counts['total']} '{$status}' request were processed. \nErrors: {$errors}\n" );
+			return;
+		}
+
+		WP_CLI::warning( "Not all '{$status}' requests have been processed:" );
+		WP_CLI::log( "- Success: {$counts['success']}/{$counts['total']}" );
+		WP_CLI::log( "- Failed: {$counts['success']}/{$counts['failed']}" );
+		WP_CLI::log( "- Errors: {$errors}\n" );
+
 	}
 }
