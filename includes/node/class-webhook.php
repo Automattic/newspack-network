@@ -165,7 +165,7 @@ class Webhook {
 			fn ( $a, $b ) => $a['id'] <=> $b['id']
 		);
 
-		// No requests, bail
+		// No requests, bail.
 		if ( empty( $requests ) ) {
 			WP_CLI::error( "No '{$status}' requests exist, exiting!" );
 		}
@@ -192,11 +192,11 @@ class Webhook {
 			if ( ! $dry_run ) {
 				Newspack_Webhooks::process_request( $request_id );
 				if ( 'finished' !== get_post_meta( $request_id, 'status', true ) ) {
-					$errors[$request_id] = "<unknown_error>";
-					// Get last stored error
+					$errors[ $request_id ] = '<unknown_error>';
+					// Get last stored error.
 					$request_errors = get_post_meta( $request_id, 'errors', true );
-					if ((array) $request_errors === $request_errors) {
-						$errors[$request_id] = end($request_errors);
+					if ( (array) $request_errors === $request_errors ) {
+						$errors[ $request_id ] = end( $request_errors );
 					}
 					++$counts['failed'];
 					continue;
@@ -212,20 +212,20 @@ class Webhook {
 		}
 
 		$progress->finish();
-		WP_CLI::log("");
+		WP_CLI::log( '' );
 
 		/**
 		 * If all requests have been processed, output success and return.
 		 */
-		if( $counts['success'] === $counts['total'] ){
+		if ( $counts['success'] === $counts['total'] ) {
 			WP_CLI::success( "Successfully processed {$counts['success']}/{$counts['total']} '{$status}' requests.\n" );
 			return;
 		}
 		/**
 		 * All request processing failed.
 		 */
-		// Last 100 errors
-		$errors = wp_json_encode(array_slice($errors, -100, 100, true), JSON_PRETTY_PRINT);
+		// Last 100 errors.
+		$errors = wp_json_encode( array_slice( $errors, -100, 100, true ), JSON_PRETTY_PRINT );
 		if ( $counts['failed'] === $counts['total'] ) {
 			WP_CLI::error( "0/{$counts['total']} '{$status}' request were processed. \nErrors: {$errors}\n" );
 			return;
@@ -235,6 +235,5 @@ class Webhook {
 		WP_CLI::log( "- Success: {$counts['success']}/{$counts['total']}" );
 		WP_CLI::log( "- Failed: {$counts['success']}/{$counts['failed']}" );
 		WP_CLI::log( "- Errors: {$errors}\n" );
-
 	}
 }
