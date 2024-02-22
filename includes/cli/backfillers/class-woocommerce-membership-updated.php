@@ -57,7 +57,7 @@ class Woocommerce_Membership_Updated extends Abstract_Backfiller {
 			$status = $membership->get_status();
 			$plan_network_id = get_post_meta( $membership->get_plan()->get_id(), \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true );
 			if ( ! $plan_network_id ) {
-				if ( $verbose ) {
+				if ( $this->verbose ) {
 					WP_CLI::line( sprintf( 'Skipping membership #%d with status %s, the plan has no network ID.', $membership->get_id(), $status ) );
 				}
 				Data_Backfill::increment_results_counter( 'newspack_network_woo_membership_updated', 'skipped' );
