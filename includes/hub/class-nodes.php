@@ -27,7 +27,11 @@ class Nodes {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
-		add_action( 'save_post_' . self::POST_TYPE_SLUG, [ __CLASS__, 'sync_nodes' ] );
+		add_action( 'trashed_post', [ __CLASS__, 'trashed_node' ] );
+		add_action( 'untrashed_post', [ __CLASS__, 'untrashed_node' ] );
+		add_action( 'newspack_network_node_saved', [ __CLASS__, 'sync_nodes' ] );
+		add_action( 'newspack_network_node_trashed', [ __CLASS__, 'sync_nodes' ] );
+		add_action( 'newspack_network_node_untrashed', [ __CLASS__, 'sync_nodes' ] );
 	}
 
 	/**
@@ -270,6 +274,44 @@ class Nodes {
 		 * @param int $post_id The ID of the node post.
 		 */
 		do_action( 'newspack_network_node_saved', $post_id );
+	}
+
+	/**
+	 * Trashed post callback
+	 *
+	 * @param int $post_id The ID of the post being trashed.
+	 * @return void
+	 */
+	public static function trashed_node( $post_id ) {
+		if ( self::POST_TYPE_SLUG !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		/**
+		 * Fires an action when a node is successfully trashed in the Hub admin
+		 *
+		 * @param int $post_id The ID of the node post.
+		 */
+		do_action( 'newspack_network_node_trashed', $post_id );
+	}
+
+	/**
+	 * Untrashed post callback
+	 *
+	 * @param int $post_id The ID of the post being untrashed.
+	 * @return void
+	 */
+	public static function untrashed_node( $post_id ) {
+		if ( self::POST_TYPE_SLUG !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		/**
+		 * Fires an action when a node is successfully untrashed in the Hub admin
+		 *
+		 * @param int $post_id The ID of the node post.
+		 */
+		do_action( 'newspack_network_node_untrashed', $post_id );
 	}
 
 	/**
