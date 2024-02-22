@@ -19,9 +19,9 @@ class Admin {
 		Admin\Event_Log::init();
 		Admin\Subscriptions::init();
 		Admin\Orders::init();
+		Admin\Membership_Plans::init();
 		Admin\Users::init();
 		Admin\Nodes_List::init();
 		Distributor_Settings::init();
 	}
-
 }

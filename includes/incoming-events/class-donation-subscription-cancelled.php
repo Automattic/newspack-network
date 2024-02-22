@@ -12,9 +12,9 @@ use Newspack_Network\Node\Canonical_Url;
 use Newspack_Network\Utils\Users as User_Utils;
 
 /**
- * Class to handle the Canonical Url Updated Event
+ * Class to handle the Subsceription Cancelled Event
  *
- * This event is always sent from the Hub and received by Nodes.
+ * This will update the local "network_donor" reader data with the information that they have a cancelled subscription in another site in the network
  */
 class Donation_Subscription_Cancelled extends Abstract_Incoming_Event {
 
@@ -69,5 +69,4 @@ class Donation_Subscription_Cancelled extends Abstract_Incoming_Event {
 		\Newspack\Reader_Data::update_item( $existing_user->ID, 'network_donor', wp_json_encode( $network_donor_data ) );
 		Debugger::log( 'Updated ' . $email . ' network donor status with "subscription_cancelled" for node ' . $node );
 	}
-
 }

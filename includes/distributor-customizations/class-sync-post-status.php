@@ -56,6 +56,4 @@ class Sync_Post_Status {
 		}
 		return $post_body;
 	}
-
-
 }

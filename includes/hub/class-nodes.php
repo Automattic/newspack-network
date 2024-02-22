@@ -16,7 +16,7 @@ use Newspack_Network\Admin as Network_Admin;
 class Nodes {
 
 	/**
-	 * POST_TYPE_SLUG for Newsletter Lists.
+	 * POST_TYPE_SLUG for the Nodes.
 	 */
 	const POST_TYPE_SLUG = 'newspack_hub_nodes';
 
@@ -156,7 +156,7 @@ class Nodes {
 		add_meta_box(
 			'newspack-network-metabox',
 			__( 'Node details' ),
-			[ __CLASS__, 'metabox_content' ],
+			[ __CLASS__, 'node_details_metabox_content' ],
 			self::POST_TYPE_SLUG,
 			'normal',
 			'core'
@@ -193,24 +193,30 @@ class Nodes {
 	 * @param WP_Post $post The current post.
 	 * @return void
 	 */
-	public static function metabox_content( $post ) {
-
+	public static function node_details_metabox_content( $post ) {
 		wp_nonce_field( 'newspack_hub_save_node', 'newspack_hub_save_node_nonce' );
 
-		$node_url   = get_post_meta( $post->ID, 'node-url', true );
-		$secret_key = get_post_meta( $post->ID, 'secret-key', true );
+		$node       = new Node( $post );
+		$secret_key = $node->get_secret_key();
 
 		?>
 		<div class="misc-pub-section">
-			Node URL: <input type="text" name="newspack-node-url" value="<?php echo esc_attr( $node_url ); ?>" />
+			Node URL: <input type="text" name="newspack-node-url" value="<?php echo esc_attr( $node->get_url() ); ?>" />
 		</div>
 
 		<?php if ( $secret_key ) : ?>
-
 			<div class="misc-pub-section">
-				Secret Key: <?php echo esc_attr( $secret_key ); ?>
+				Secret Key: <code><?php echo esc_html( $secret_key ); ?></code>
 			</div>
-
+			<div class="misc-pub-section">
+				<a
+					target="_blank"
+					class="button"
+					href="<?php echo esc_url( $node->get_connect_link() ); ?>"
+				>
+					<?php esc_html_e( 'Link the site', 'newspack-network' ); ?>
+				</a>
+			</div>
 		<?php endif; ?>
 		<?php
 	}
@@ -259,6 +265,11 @@ class Nodes {
 			update_post_meta( $post_id, 'secret-key', $secret_key );
 		}
 
+		/**
+		 * Fires an action after a node is successfully saved (created/updated) in the Hub admin
+		 *
+		 * @param int $post_id The ID of the node post.
+		 */
+		do_action( 'newspack_network_node_saved', $post_id );
 	}
-
 }

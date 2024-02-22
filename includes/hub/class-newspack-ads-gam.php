@@ -25,7 +25,7 @@ final class Newspack_Ads_GAM {
 	 */
 	public static function init() {
 		add_action( 'newspack_ads_setup_gam', [ __CLASS__, 'create_targeting_keys' ] );
-		add_action( 'save_post_' . Nodes::POST_TYPE_SLUG, [ __CLASS__, 'create_targeting_keys' ] );
+		add_action( 'newspack_network_node_saved', [ __CLASS__, 'create_targeting_keys' ], 1 );
 	}
 
 	/**

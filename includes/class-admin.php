@@ -21,6 +21,11 @@ class Admin {
 	const SETTINGS_SECTION = 'newspack_network_settings';
 
 	/**
+	 * The action name for the link-site functionality.
+	 */
+	const LINK_ACTION_NAME = 'newspack-network-link-site';
+
+	/**
 	 * Runs the initialization.
 	 */
 	public static function init() {
@@ -185,7 +190,5 @@ class Admin {
 	 * @return void
 	 */
 	public static function enqueue_scripts() {
-
 	}
-
 }

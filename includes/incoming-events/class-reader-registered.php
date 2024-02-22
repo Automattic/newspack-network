@@ -48,7 +48,5 @@ class Reader_Registered extends Abstract_Incoming_Event {
 		}
 
 		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
-
 	}
-
 }

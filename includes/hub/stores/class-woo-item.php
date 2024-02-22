@@ -40,7 +40,7 @@ abstract class Woo_Item {
 		}
 
 		if ( ! $item instanceof WP_Post || $this->get_post_type_slug() !== $item->post_type ) {
-			return false;
+			return;
 		}
 
 		$this->post = $item;
@@ -192,5 +192,4 @@ abstract class Woo_Item {
 		}
 		return $node_url . '/wp-admin/post.php?post=' . $remote_id . '&action=edit';
 	}
-	
 }

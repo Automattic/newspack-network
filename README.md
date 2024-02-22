@@ -1,4 +1,5 @@
 # newspack-network
+
 The Newspack Network
 
 This plugin creates a Network of Newspack sites, in which events that happen in one site are propagated to all other sites in the network.
@@ -21,11 +22,7 @@ The Hub holds an Event Log, where we have the history of all events in all sites
 2. In that site, go to Newspack Network > Site Role and set this site as the Hub
 3. Go to Newspack Network > Nodes and add the nodes that will be part of the network
 4. Note that for each Node, a Secret key is generated. This key will be used to sign requests between Hub and Nodes.
-5. In each node, configure the Hub:
-6. Go to Newspack Network > Site Role and set the site as a node in the network
-7. Go to Newspack Network > Node settings
-8. Enter the Hub URL
-9. Enter the Secret key generated in the Hub for that specific Node
+5. Click the "Link the site" button and then "Connect" (on the Node site) to link the sites.
 
 ## Techinical docs
 

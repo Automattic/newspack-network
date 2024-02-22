@@ -46,6 +46,5 @@ class Event_Listeners {
 		$incoming_event_class = 'Newspack_Network\\Incoming_Events\\' . Accepted_Actions::ACTIONS[ $action_name ];
 		$incoming_event       = new $incoming_event_class( get_bloginfo( 'url' ), $data, $timestamp );
 		$incoming_event->process_in_hub();
-
 	}
 }

@@ -28,5 +28,4 @@ class Cache_Bug_Workaround {
 	public static function workaround() {
 		wp_cache_delete( 'dt_media::{$post_id}', 'dt::post' );
 	}
-
 }
