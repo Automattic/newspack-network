@@ -109,12 +109,12 @@ abstract class Abstract_Backfiller {
 					$event->process_in_hub();
 					Data_Backfill::increment_results_counter( $event->get_action_name(), $event->is_persisted ? 'processed' : 'duplicate' );
 				} else {
-					$requests = $this->find_webhook_requests( $event->get_action_name(), $$event->get_timestamp(), $event->get_data() );
+					$requests = $this->find_webhook_requests( $event->get_action_name(), $event->get_timestamp(), $event->get_data() );
 					if ( count( $requests ) > 0 ) {
 						Data_Backfill::increment_results_counter( $event->get_action_name(), 'duplicate' );
 						return;
 					}
-					\Newspack\Data_Events\Webhooks::handle_dispatch( $event->get_action_name(), $$event->get_timestamp(), $event->get_data() );
+					\Newspack\Data_Events\Webhooks::handle_dispatch( $event->get_action_name(), $event->get_timestamp(), $event->get_data() );
 					Data_Backfill::increment_results_counter( $event->get_action_name(), 'processed' );
 				}
 			}
