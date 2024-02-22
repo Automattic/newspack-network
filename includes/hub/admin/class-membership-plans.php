@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Hub Memberships Admin pages
+ * Newspack Hub Membership_Plans Admin pages
  *
  * @package Newspack
  */
@@ -11,10 +11,10 @@ use Newspack_Network\Admin as Network_Admin;
 use Newspack_Network\Debugger;
 
 /**
- * Class to handle Woo Memberships
+ * Class to handle Woo Membership_Plans
  */
-abstract class Memberships {
-	const PAGE_SLUG = 'newspack-network-memberships';
+abstract class Membership_Plans {
+	const PAGE_SLUG = 'newspack-network-membership-plans';
 	const OPTIONS_CACHE_KEY_PLANS = 'newspack-network-membership-plans';
 
 	/**
@@ -45,17 +45,17 @@ abstract class Memberships {
 				<style>.newspack-network-membership-plans .tablenav{display: none;}</style>
 				<h2><?php echo esc_html( __( 'Membership Plans from all Nodes', 'newspack-network' ) ); ?></h2>
 				<?php
-					$table = new Memberships_Table();
+					$table = new Membership_Plans_Table();
 					$table->prepare_items();
 					$table->display();
 				?>
 				<h2><?php echo esc_html( __( 'Membership Plans on the Hub (this site)', 'newspack-network' ) ); ?></h2>
 				<?php
-					$table = new Memberships_Table( true );
+					$table = new Membership_Plans_Table( true );
 					$table->prepare_items();
 					$table->display();
 				?>
-				<?php $plans_cache = self::get_membershp_plans_from_cache(); ?>
+				<?php $plans_cache = self::get_membership_plans_from_cache(); ?>
 				<?php if ( $plans_cache && isset( $plans_cache['last_updated'] ) ) : ?>
 					<p>
 					<?php
@@ -100,7 +100,7 @@ abstract class Memberships {
 	/**
 	 * Get membership plans from cache.
 	 */
-	private static function get_membershp_plans_from_cache() {
+	private static function get_membership_plans_from_cache() {
 		return get_option( self::OPTIONS_CACHE_KEY_PLANS, false );
 	}
 
@@ -108,7 +108,7 @@ abstract class Memberships {
 	 * Get membership plans from all nodes.
 	 */
 	public static function get_membershp_plans_from_nodes() {
-		$plans_cache = self::get_membershp_plans_from_cache();
+		$plans_cache = self::get_membership_plans_from_cache();
 		if ( $plans_cache && isset( $plans_cache['plans'] ) ) {
 			return $plans_cache['plans'];
 		}

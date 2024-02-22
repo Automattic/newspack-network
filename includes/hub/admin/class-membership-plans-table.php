@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Hub Memberships Table
+ * Newspack Hub Membership_Plans Table
  *
  * @package Newspack
  */
@@ -12,9 +12,9 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 }
 
 /**
- * The Memberships Table
+ * The Membership_Plans Table
  */
-class Memberships_Table extends \WP_List_Table {
+class Membership_Plans_Table extends \WP_List_Table {
 	/**
 	 * Whether to show local or network plans.
 	 *
@@ -58,9 +58,9 @@ class Memberships_Table extends \WP_List_Table {
 	public function prepare_items() {
 		$this->_column_headers = [ $this->get_columns(), [], [], 'id' ];
 		if ( $this->is_local ) {
-			$this->items = Memberships::get_local_membership_plans();
+			$this->items = Membership_Plans::get_local_membership_plans();
 		} else {
-			$this->items = Memberships::get_membershp_plans_from_nodes();
+			$this->items = Membership_Plans::get_membershp_plans_from_nodes();
 		}
 	}
 
