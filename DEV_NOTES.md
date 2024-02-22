@@ -98,6 +98,14 @@ Depending on what you want to do with the event, and where, implement these 2 me
 
 If you want to customize how this new event looks in the `Event Log`, go to `hub/stores/event-log-items` and create a new class named after the class you informed in `ACCEPTED_ACTIONS`. Implement the `get_summary` method to display the information the way you need.
 
+## WP CLI
+
+Available CLI commands are (add `--help` flag to learn more about each command):
+
+### `wp np-network process`
+* Will process `pending` `np_webhook_request`s and delete after processing.
+* `--dry-run` enabled. Will run through process without deleting.
+* `--yes` enabled. Will bypass confirmations.
 
 ## Troubleshooting
 
@@ -132,3 +140,4 @@ Pulls are scheduled in CRON for every 5 minutes. If you want to trigger a pull n
 In the Node's log you will see detailed information about the pull attempt, starting with a `Pulling data` message.
 
 In the Hub's log, you will also see detailed information about the pull request, starting with a `Pull request received` message.
+
