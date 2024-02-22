@@ -41,8 +41,8 @@ class Webhook {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_endpoint' ] );
 		add_filter( 'newspack_webhooks_request_body', [ __CLASS__, 'filter_webhook_body' ], 10, 2 );
-		if(defined('WP_CLI') && WP_CLI){
-			WP_CLI::add_command('np-network process', [__CLASS__, 'cli_process']);
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			WP_CLI::add_command( 'np-network process', [ __CLASS__, 'cli_process' ] );
 		}
 	}
 
@@ -112,93 +112,95 @@ class Webhook {
 	}
 
 	/**
-     * Process network requests
-     *
-     * ## OPTIONS
-     *
-     * [--per-page=<number>]
-     * : How many requests to process.
-     * ---
-     * default: -1
-     * ---
-     *
-     * [--status=<string>]
-     * : Filters requests to process by status.
-     * ---
-     * default: 'pending'
-     * ---
-     *
-     * [--dry-run]
-     * : Run the command in dry run mode. No requests (with status killed) will be processed.
-     * 
-     * [--yes]
-     * : Run the command without confirmations, use with caution.
-     *
-     * ## EXAMPLES
-     *
-     *     wp np-network process
-     *     wp np-network process --per-page=200
+	 * Process network requests
+	 * 
+	 * @param array $args Args sent to command.
+	 * @param array $assoc_args Key value pair of arguments sent to command.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--per-page=<number>]
+	 * : How many requests to process.
+	 * ---
+	 * default: -1
+	 * ---
+	 *
+	 * [--status=<string>]
+	 * : Filters requests to process by status.
+	 * ---
+	 * default: 'pending'
+	 * ---
+	 *
+	 * [--dry-run]
+	 * : Run the command in dry run mode. No requests (with status killed) will be processed.
+	 * 
+	 * [--yes]
+	 * : Run the command without confirmations, use with caution.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp np-network process
+	 *     wp np-network process --per-page=200
 	 *     wp np-network process --per-page=200 --status='killed' --dry-run
-     *     wp np-network process --per-page=200 --status='killed' --dry-run --yes
-     * 
-     * @when after_wp_load
-     */
-    public function cli_process(array $args, array $assoc_args): void
-    {
-        $per_page = (int) ($assoc_args['per-page'] ?? -1);
-        $dry_run = isset($assoc_args['dry-run']);
-        $status = $assoc_args['status'] ?? 'pending';
+	 *     wp np-network process --per-page=200 --status='killed' --dry-run --yes
+	 * 
+	 * @when after_wp_load
+	 */
+	public function cli_process( array $args, array $assoc_args ): void {
+		$per_page = (int) ( $assoc_args['per-page'] ?? -1 );
+		$dry_run = isset( $assoc_args['dry-run'] );
+		$status = $assoc_args['status'] ?? 'pending';
 
-		// Only process pending requests
+		// Only process pending requests.
 		$requests = array_filter(
-			Newspack_Webhooks::get_endpoint_requests(static::ENDPOINT_ID, $per_page),
-			fn ($r) => $r['status'] === $status
+			Newspack_Webhooks::get_endpoint_requests( static::ENDPOINT_ID, $per_page ),
+			fn ( $r ) => $r['status'] === $status
 		);
-        usort(
-            $requests,
-            // OrderBy: id, Order: ASC
-            fn ($a, $b) => $a['id'] <=> $b['id']
-        );
+		usort(
+			$requests,
+			// OrderBy: id, Order: ASC.
+			fn ( $a, $b ) => $a['id'] <=> $b['id']
+		);
 
-        if (empty($requests)) {
-            WP_CLI::error("No '{$status}' requests exist, exiting!");
-        }
+		if ( empty( $requests ) ) {
+			WP_CLI::error( "No '{$status}' requests exist, exiting!" );
+		}
 
-        $request_ids = array_column($requests, 'id');
-        $requests_count = count($requests);
-        $processed_count = 0;
-        $unprocessed_request_ids = [];
+		$request_ids = array_column( $requests, 'id' );
+		$requests_count = count( $requests );
+		$processed_count = 0;
+		$unprocessed_request_ids = [];
 
-        if ($dry_run) {
-            WP_CLI::log("==== DRY - RUN ====");
-        } else {
-            WP_CLI::confirm("Confirm processing of {$requests_count} requests?", $assoc_args);
-        }
+		if ( $dry_run ) {
+			WP_CLI::log( '==== DRY - RUN ====' );
+		} else {
+			WP_CLI::confirm( "Confirm processing of {$requests_count} requests?", $assoc_args );
+		}
 
-        $progress = WP_CLI_Utils\make_progress_bar('Processing requests', $requests_count);
+		$progress = WP_CLI_Utils\make_progress_bar( 'Processing requests', $requests_count );
 
-        foreach ($request_ids as $k => $request_id) {
-            if (!$dry_run) {
-                Newspack_Webhooks::process_request($request_id);
-                if ('finished' !== get_post_meta($request_id, 'status', true)) {
-                    array_push($unprocessed_request_ids, $request_id);
-                    continue;
-                }
-                // Cleanup processed requests
-                $deleted = wp_delete_post($request_id, true);
-                if (false === $deleted || null === $deleted) {
-                    WP_CLI::warning("There was an error deleting {$request_id}!");
-                }
-            }
-            ++$processed_count;
-            $progress->tick();
-        }
+		foreach ( $request_ids as $k => $request_id ) {
+			if ( ! $dry_run ) {
+				Newspack_Webhooks::process_request( $request_id );
+				if ( 'finished' !== get_post_meta( $request_id, 'status', true ) ) {
+					array_push( $unprocessed_request_ids, $request_id );
+					continue;
+				}
+				// Cleanup processed requests.
+				$deleted = wp_delete_post( $request_id, true );
+				if ( false === $deleted || null === $deleted ) {
+					WP_CLI::warning( "There was an error deleting {$request_id}!" );
+				}
+			}
+			++$processed_count;
+			$progress->tick();
+		}
 
-        $progress->finish();
+		$progress->finish();
 
-        if (!empty($unprocessed_request_ids)) {
-            WP_CLI::warning("The following requests could not be deleted:\n" . json_encode($unprocessed_request_ids));
-        }
-        WP_CLI::success("Successfully processed {$processed_count}/{$requests_count} pending requests.");
-    }
+		if ( ! empty( $unprocessed_request_ids ) ) {
+			WP_CLI::warning( "The following requests could not be deleted:\n" . wp_json_encode( $unprocessed_request_ids ) );
+		}
+		WP_CLI::success( "Successfully processed {$processed_count}/{$requests_count} pending requests." );
+	}
 }
