@@ -18,23 +18,14 @@ class Data_Backfill {
 	 *
 	 * @var array
 	 */
-	private static $results = [
-		'reader_registered' => [
-			'processed' => 0,
-			'duplicate' => 0,
-		],
-		'donation_new'      => [
-			'processed' => 0,
-			'duplicate' => 0,
-		],
-	];
+	private static $results = [];
 
 	/**
 	 * WP_CLI progress handler.
 	 *
 	 * @var class
 	 */
-	private static $progress = false;
+	public static $progress = false;
 
 	/**
 	 * Initialize this class and register hooks
@@ -57,207 +48,20 @@ class Data_Backfill {
 	}
 
 	/**
-	 * Find existing webhook requests for a given action and data.
+	 * Increment the results counter.
 	 *
-	 * @param string $action The action name.
-	 * @param int    $timestamp The timestamp.
-	 * @param array  $data The data.
-	 */
-	private static function find_webhook_requests( $action, $timestamp, $data ) {
-		return get_posts(
-			[
-				'post_type'   => \Newspack\Data_Events\Webhooks::REQUEST_POST_TYPE,
-				'post_title'  => $action,
-				'post_status' => 'any',
-				'meta_query'  => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					'relation' => 'AND',
-					[
-						'key'     => 'timestamp',
-						'value'   => $timestamp,
-						'compare' => '=',
-					],
-					[
-						'key'     => 'action_name',
-						'value'   => $action,
-						'compare' => '=',
-					],
-					[
-						'key'     => 'data',
-						'value'   => wp_json_encode( $data ),
-						'compare' => '=',
-					],
-				],
-			]
-		);
-	}
-
-	/**
-	 * Process reader_registered events.
-	 *
-	 * @param string $start The start date.
-	 * @param string $end The end date.
-	 * @param bool   $live Whether to run in live mode.
-	 * @param bool   $verbose Whether to output verbose information.
-	 */
-	private static function process_reader_registered( $start, $end, $live, $verbose ) {
-		// Get all users registered between $start and $end.
-		$users = get_users(
-			[
-				'role__in'   => \Newspack\Reader_Activation::get_reader_roles(),
-				'date_query' => [
-					'after'     => $start,
-					'before'    => $end,
-					'inclusive' => true,
-				],
-				'fields'     => [ 'id', 'user_email', 'user_registered' ],
-				'number'     => -1,
-				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					[
-						'key'     => \Newspack_Network\Utils\Users::USER_META_REMOTE_SITE,
-						'compare' => 'NOT EXISTS',
-					],
-				],
-			]
-		);
-		if ( ! $verbose ) {
-			self::$progress = \WP_CLI\Utils\make_progress_bar( 'Processing users', count( $users ) );
-		}
-
-		foreach ( $users as $user ) {
-			$registration_method = get_user_meta( $user->ID, \Newspack\Reader_Activation::REGISTRATION_METHOD, true );
-			$user_data = [
-				'user_id'  => $user->ID,
-				'email'    => $user->user_email,
-				'metadata' => [
-					// 'current_page_url' is not saved, can't be backfilled.
-					'registration_method' => empty( $registration_method ) ? 'backfill-script' : $registration_method,
-				],
-			];
-			if ( $live ) {
-				self::process_event_entity( $user_data, strtotime( $user->user_registered ), 'reader_registered' );
-			}
-			if ( $verbose ) {
-				WP_CLI::line( '👉 ' . sprintf( 'User %s (#%d) registered on %s.', $user->user_email, $user->ID, $user->user_registered ) );
-			}
-			if ( self::$progress ) {
-				self::$progress->tick();
-			}
-		}
-	}
-
-	/**
-	 * Process donation_new events.
-	 *
-	 * @param string $start The start date.
-	 * @param string $end The end date.
-	 * @param bool   $live Whether to run in live mode.
-	 * @param bool   $verbose Whether to output verbose information.
-	 */
-	private static function process_donation_new( $start, $end, $live, $verbose ) {
-		$orders = wc_get_orders(
-			[
-				'status'       => 'completed',
-				'date_created' => $start . '...' . $end,
-				'limit'        => -1,
-			]
-		);
-		if ( ! $verbose ) {
-			self::$progress = \WP_CLI\Utils\make_progress_bar( 'Processing orders', count( $orders ) );
-		}
-		foreach ( $orders as $order ) {
-			$order_id = $order->get_id();
-			$order_data = \Newspack\Data_Events\Utils::get_order_data( $order_id );
-			if ( ! $order_data ) {
-				continue;
-			}
-			$timestamp = strtotime( $order->get_date_completed() );
-			if ( $live ) {
-				self::process_event_entity( $order_data, $timestamp, 'donation_new' );
-			}
-			if ( $verbose ) {
-				WP_CLI::line( '👉 ' . sprintf( 'Order #%d completed on %s.', $order_id, gmdate( 'Y-m-d H:i:s', $timestamp ) ) );
-			}
-			if ( self::$progress ) {
-				self::$progress->tick();
-			}
-		}
-	}
-
-	/**
-	 * Process donation_subscription_cancelled events.
-	 *
-	 * @param string $start The start date.
-	 * @param string $end The end date.
-	 * @param bool   $live Whether to run in live mode.
-	 * @param bool   $verbose Whether to output verbose information.
-	 */
-	private static function process_donation_subscription_cancelled( $start, $end, $live, $verbose ) {
-		$subscriptions = wcs_get_subscriptions(
-			[
-				'subscription_status'    => 'cancelled',
-				'subscriptions_per_page' => -1,
-				'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					'relation' => 'AND',
-					[
-						'key'     => wcs_get_date_meta_key( 'cancelled' ),
-						'compare' => '>=',
-						'value'   => $start,
-					],
-					[
-						'key'     => wcs_get_date_meta_key( 'cancelled' ),
-						'compare' => '<=',
-						'value'   => $end,
-					],
-				],
-			]
-		);
-		if ( ! $verbose ) {
-			self::$progress = \WP_CLI\Utils\make_progress_bar( 'Processing subscriptions', count( $subscriptions ) );
-		}
-		foreach ( $subscriptions as $subscription ) {
-			$subscription_data = \Newspack\Data_Events\Utils::get_recurring_donation_data( $subscription );
-			if ( ! $subscription_data ) {
-				continue;
-			}
-			$timestamp = strtotime( $subscription->get_date( 'cancelled' ) );
-			if ( $live ) {
-				self::process_event_entity( $subscription_data, $timestamp, 'donation_subscription_cancelled' );
-			}
-			if ( $verbose ) {
-				WP_CLI::line( '👉 ' . sprintf( 'Subscription #%d cancelled on %s.', $subscription->get_id(), gmdate( 'Y-m-d H:i:s', $timestamp ) ) );
-			}
-			if ( self::$progress ) {
-				self::$progress->tick();
-			}
-		}
-	}
-
-	/**
-	 * Process a WooCommerce entity.
-	 *
-	 * @param array  $data The data.
-	 * @param int    $timestamp The timestamp.
 	 * @param string $action The action.
+	 * @param string $counter The counter.
 	 */
-	private static function process_event_entity( $data, $timestamp, $action ) {
-		if ( Site_Role::is_hub() ) {
-			$event = new \Newspack_Network\Incoming_Events\Abstract_Incoming_Event(
-				get_bloginfo( 'url' ),
-				$data,
-				$timestamp,
-				$action
-			);
-			$event->process_in_hub();
-			self::$results[ $action ][ $event->is_persisted ? 'processed' : 'duplicate' ]++;
-		} else {
-			$requests = self::find_webhook_requests( $action, $timestamp, $data );
-			if ( count( $requests ) > 0 ) {
-				self::$results[ $action ]['duplicate']++;
-				return;
-			}
-			\Newspack\Data_Events\Webhooks::handle_dispatch( $action, $timestamp, $data );
-			self::$results[ $action ]['processed']++;
+	public static function increment_results_counter( $action, $counter ) {
+		if ( ! isset( self::$results[ $action ] ) ) {
+			self::$results[ $action ] = [
+				'processed' => 0,
+				'duplicate' => 0,
+				'skipped'   => 0,
+			];
 		}
+		self::$results[ $action ][ $counter ]++;
 	}
 
 	/**
@@ -292,8 +96,8 @@ class Data_Backfill {
 		$action = $args[0];
 		$start = isset( $assoc_args['start'] ) ? $assoc_args['start'] : null;
 		$end = isset( $assoc_args['end'] ) ? $assoc_args['end'] : null;
-		$live = isset( $assoc_args['live'] ) ? $assoc_args['live'] : null;
-		$verbose = isset( $assoc_args['verbose'] ) ? $assoc_args['verbose'] : null;
+		$live = isset( $assoc_args['live'] ) ? true : false;
+		$verbose = isset( $assoc_args['verbose'] ) ? true : false;
 
 		WP_CLI::line( '' );
 
@@ -331,24 +135,23 @@ class Data_Backfill {
 		}
 		WP_CLI::line( '' );
 
-		switch ( $action ) {
-			case 'reader_registered':
-				self::process_reader_registered( $start, $end, $live, $verbose );
-				break;
-			case 'donation_new':
-				self::process_donation_new( $start, $end, $live, $verbose );
-				break;
-			case 'donation_subscription_cancelled':
-				self::process_donation_subscription_cancelled( $start, $end, $live, $verbose );
-				break;
-			case 'all':
-				self::process_reader_registered( $start, $end, $live, $verbose );
-				self::process_donation_new( $start, $end, $live, $verbose );
-				self::process_donation_subscription_cancelled( $start, $end, $live, $verbose );
-				break;
-			default:
-				WP_CLI::error( 'Backfilling data for this action is not supported yet.' );
-				break;
+		if ( 'all' === $action ) {
+			$actions = array_keys( Accepted_Actions::ACTIONS );
+		} else {
+			$actions = [ $action ];
+		}
+
+		foreach ( $actions as $action_name ) {
+			$class_name = 'Newspack_Network\\Backfillers\\' . Accepted_Actions::ACTIONS[ $action_name ];
+			if ( ! class_exists( $class_name ) ) {
+				if ( 'all' !== $action ) {
+					WP_CLI::error( sprintf( 'Backfilling data for %s is not supported yet.', $action_name ) );
+				}
+				continue;
+			}
+			$backfiller = new $class_name( $start, $end, $live, $verbose );
+			$backfiller->process_events();
+
 		}
 
 		if ( self::$progress ) {
@@ -356,25 +159,14 @@ class Data_Backfill {
 		}
 		if ( $live ) {
 			WP_CLI::line( '' );
-			if ( $action === 'all' ) {
-				$processed = 0;
-				$duplicate = 0;
-				foreach ( array_values( self::$results ) as $key => $value ) {
-					if ( isset( $value['processed'] ) ) {
-						$processed += $value['processed'];
-					}
-					if ( isset( $value['duplicate'] ) ) {
-						$duplicate += $value['duplicate'];
-					}
-				}
-				WP_CLI::success( sprintf( 'Processed %d events, skipped %d as duplicates.', $processed, $duplicate ) );
-			} else {
+			foreach ( self::$results as $action_key => $result ) {
 				WP_CLI::success(
 					sprintf(
-						'Processed %d %s events, skipped %d as duplicates.',
-						self::$results[ $action ]['processed'],
-						$action,
-						self::$results[ $action ]['duplicate']
+						'Processed %d %s events, ignored %d as duplicates and skipped %d.',
+						$result['processed'],
+						$action_key,
+						$result['duplicate'],
+						$result['skipped']
 					)
 				);
 			}
