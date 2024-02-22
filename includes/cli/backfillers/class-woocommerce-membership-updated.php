@@ -8,6 +8,7 @@
 namespace Newspack_Network\Backfillers;
 
 use Newspack_Network\Data_Backfill;
+use Newspack_Network\Woocommerce_Memberships\Admin as Memberships_Admin;
 use WP_Cli;
 
 /**
@@ -44,6 +45,12 @@ class Woocommerce_Membership_Updated extends Abstract_Backfiller {
 					'after'     => $this->start,
 					'before'    => $this->end,
 					'inclusive' => true,
+				],
+				'meta_query'  => [ // phpcs:ignore
+					[
+						'key'     => Memberships_Admin::NETWORK_MANAGED_META_KEY,
+						'compare' => 'NOT EXISTS',
+					],
 				],
 			]
 		);
