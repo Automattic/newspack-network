@@ -593,7 +593,7 @@ class Settings {
 				]
 			);
 
-			foreach ( Hub_Node::get_bookmarks( $node['url'] ) as $bookmark ) {
+			foreach ( Hub_Node::generate_bookmarks( $node['url'] ) as $bookmark ) {
 				$wp_admin_bar->add_node(
 					[
 						'id'     => $item_id . '-' . sanitize_title( $bookmark['label'] ),
