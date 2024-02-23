@@ -90,14 +90,35 @@ At this point, the event will be propagated and will be stored in the `Event Log
 
 But it's very unlikely that won't do anything else with an event, so let's add other methods.
 
-3. Implement `post_process_in_hub` and `process_in_node` methods
+3. Implement methods to process the event.
 
-Depending on what you want to do with the event, and where, implement these 2 methods to perform some actions when this event is detected both in the hub and in the nodes. You can create a user, a post, add user or post meta, etc.
+There are 3 methods you can implement to do something with the event.
+
+* `process_in_node`: Will be invoked when a Node pulls a new event that happened in another site in the network (the Hub or another Node)
+* `post_process_in_hub`: Will be invoked when the Hub receives a new event coming from a Node in the Network. It's called "post" process because every event is processed in the hub so they can get added to the Event log. So this means it will be invoked after the basic processing is done, which is to add it to the Event Log.
+* `always_process_in_hub`: Will always be invoked after a new event is added to the Event Log. Similar to `post_process_in_hub` but will also be invoked when the event was triggered by the Hub itself.
+
+Depending on what you want to do with the event, and where, implement one or more of these 3 methods to perform some actions when this event is detected both in the hub and in the nodes. You can create a user, a post, add user or post meta, etc.
+
+Examples:
+* `canonical_url_updated` is triggered by the hub, and it has only the `process_in_node` method because the Hub will never receive it from a Node and won't do anything additional after it's triggered
+* `order_changed`: is an event that the Nodes don't care about, so `process_in_node` is not present. And also, changes in Woo Orders need to be persisted in the central Woo dashboard, even for orders that belong to the Hub, so it uses `always_process_in_hub`.
+* `user_updated`: is an event that can happen in any site and all other sites need to update their local users. In this case, you have the same thing happening for `process_in_node` and `post_process_in_hub`. It doesn't matter if it's coming from a Node to the Hub, from the Hub to a node, or from a Node to another Node. Every site will treat this event the same way.
 
 4. Optional. Create a `event-log-item` specific class
 
 If you want to customize how this new event looks in the `Event Log`, go to `hub/stores/event-log-items` and create a new class named after the class you informed in `ACCEPTED_ACTIONS`. Implement the `get_summary` method to display the information the way you need.
 
+## WP CLI
+
+Available CLI commands are (add `--help` flag to learn more about each command):
+
+### `wp newspack-network process-webhooks`
+* Will process `pending` `np_webhook_request`s and delete after processing.
+* `--per-page=1000` to process x amount of requests. Default is `-1`.
+* `--status='killed'` to process requests of a different status. Default is `'pending'`
+* `--dry-run` enabled. Will run through process without deleting.
+* `--yes` enabled. Will bypass confirmations.
 
 ## Troubleshooting
 

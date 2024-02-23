@@ -16,8 +16,6 @@ use WP_REST_Server;
  * Class to handle Woocommerce Generic Woo items store for orders and subscriptions
  */
 abstract class Woo_Store {
-
-
 	/**
 	 * Gets the post type slug
 	 *
@@ -108,11 +106,11 @@ abstract class Woo_Store {
 		return $post_id;
 	}
 
-
 	/**
-	 * Fetches subscription data from the API.
+	 * Fetches Woo data from the API.
 	 *
-	 * Note that the format of the output can be slightly different if fetch_data_from_local_api is called. Objects inside arrays (like line_items) can be arrays, and meta data can be WC_Meta_Data objects.
+	 * Note that the format of the output can be slightly different if fetch_data_from_local_api is called.
+	 * Objects inside arrays (like line_items) can be arrays, and meta data can be WC_Meta_Data objects.
 	 *
 	 * @param Woo_Item_Changed $woo_item The Woo_Item_Changed event.
 	 * @return object The subscription data.
@@ -123,7 +121,7 @@ abstract class Woo_Store {
 		}
 
 		$woo_item_id = $woo_item->get_id();
-		
+
 		$endpoint    = sprintf( '%s/wp-json/wc/v3/%s/%d', $woo_item->get_node()->get_url(), static::get_api_endpoint_prefix(), $woo_item_id );
 		$endpoint_id = 'get-woo-' . static::get_api_endpoint_prefix();
 
@@ -151,7 +149,7 @@ abstract class Woo_Store {
 	 * @return object The subscription data.
 	 */
 	protected static function fetch_data_from_local_api( Woo_Item_Changed $woo_item ) {
-		
+
 		$woo_item_id = $woo_item->get_id();
 
 		$endpoint = sprintf( '/wc/v3/%s/%d', static::get_api_endpoint_prefix(), $woo_item_id );
@@ -160,7 +158,7 @@ abstract class Woo_Store {
 			'GET',
 			$endpoint
 		);
-		
+
 		add_filter( 'woocommerce_rest_check_permissions', '__return_true' );
 		$response = rest_get_server()->dispatch( $request );
 		remove_filter( 'woocommerce_rest_check_permissions', '__return_true' );

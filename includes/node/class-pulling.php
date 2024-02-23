@@ -211,27 +211,12 @@ class Pulling {
 	}
 
 	/**
-	 * Pulls data from the Hub and processes it
+	 * Process pulled data.
 	 *
-	 * @return void
+	 * @param array $events The events to process.
 	 */
-	public static function pull() {
-		Debugger::log( 'Pulling data' );
-		$response = self::make_request();
-		Debugger::log( 'Pulled data response:' );
-		Debugger::log( $response );
-		if ( is_wp_error( $response ) ) {
-			self::handle_error( $response );
-			return;
-		} else {
-			update_option( self::LAST_ERROR_OPTION_NAME, '' );
-		}
-		$response = json_decode( $response, true );
-		if ( ! is_array( $response ) ) {
-			return;
-		}
-
-		foreach ( $response as $event ) {
+	public static function process_pulled_data( $events ) {
+		foreach ( $events as $event ) {
 			$action    = $event['action'] ?? false;
 			$site      = $event['site'] ?? false;
 			$data      = $event['data'] ?? false;
@@ -254,5 +239,28 @@ class Pulling {
 
 			self::set_last_processed_id( $id );
 		}
+	}
+
+	/**
+	 * Pulls data from the Hub and processes it
+	 *
+	 * @return void
+	 */
+	public static function pull() {
+		Debugger::log( 'Pulling data' );
+		$response = self::make_request();
+		Debugger::log( 'Pulled data response:' );
+		Debugger::log( $response );
+		if ( is_wp_error( $response ) ) {
+			self::handle_error( $response );
+			return;
+		} else {
+			update_option( self::LAST_ERROR_OPTION_NAME, '' );
+		}
+		$response = json_decode( $response, true );
+		if ( ! is_array( $response['data'] ) ) {
+			return;
+		}
+		self::process_pulled_data( $response['data'] );
 	}
 }

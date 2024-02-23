@@ -86,7 +86,7 @@ class Event_Log {
 	 * @param array $args See {@see self::build_where_clause()} for supported arguments.
 	 * @return int
 	 */
-	public static function get_total_items( $args ) {
+	public static function get_total_items( $args = [] ) {
 		global $wpdb;
 		$table_name = Database::get_table_name();
 		$query      = "SELECT COUNT(*) FROM $table_name WHERE 1=1 [args]";
@@ -143,6 +143,14 @@ class Event_Log {
 			$where .= $wpdb->prepare( ' AND action_name = %s', $args['action_name'] );
 		}
 
+		if ( ! empty( $args['timestamp'] ) ) {
+			$where .= $wpdb->prepare( ' AND timestamp = %s', $args['timestamp'] );
+		}
+
+		if ( ! empty( $args['data'] ) ) {
+			$where .= $wpdb->prepare( ' AND data = %s', $args['data'] );
+		}
+
 		if ( ! empty( $args['action_name_in'] ) && is_array( $args['action_name_in'] ) ) {
 			$escaped_actions = array_map(
 				function( $a ) {
@@ -170,7 +178,6 @@ class Event_Log {
 	 */
 	public static function persist( Abstract_Incoming_Event $event ) {
 		global $wpdb;
-		Debugger::log( 'Persisting Event' );
 
 		$node    = Nodes::get_node_by_url( $event->get_site() );
 		$node_id = 0;
@@ -179,20 +186,28 @@ class Event_Log {
 			$node_id = $node->get_id();
 		}
 
-		$insert = $wpdb->insert( //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			Database::get_table_name(),
-			[
-				'node_id'     => $node_id,
-				'action_name' => $event->get_action_name(),
-				'email'       => $event->get_email(),
-				'data'        => wp_json_encode( $event->get_data() ),
-				'timestamp'   => $event->get_timestamp(),
-			]
-		);
+		$event_payload = [
+			'node_id'     => $node_id,
+			'action_name' => $event->get_action_name(),
+			'email'       => $event->get_email(),
+			'data'        => wp_json_encode( $event->get_data() ),
+			'timestamp'   => $event->get_timestamp(),
+		];
+
+		// Check against duplicates.
+		$maybe_event = self::get( $event_payload );
+		if ( ! empty( $maybe_event ) ) {
+			Debugger::log( 'Not persisting event, it\'s already in the log.' );
+			return;
+		}
+
+		Debugger::log( 'Persisting Event' );
+		$insert = $wpdb->insert( Database::get_table_name(), $event_payload ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		Debugger::log( $insert );
 		if ( ! $insert ) {
 			return false;
 		}
+		$event->is_persisted = true;
 		return $wpdb->insert_id;
 	}
 }
