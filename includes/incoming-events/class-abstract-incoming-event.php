@@ -47,6 +47,20 @@ class Abstract_Incoming_Event {
 	protected $site;
 
 	/**
+	 * Action name for this event
+	 *
+	 * @var string
+	 */
+	protected $action_name;
+
+	/**
+	 * Has this event been persisted in the Event Log?
+	 *
+	 * @var string
+	 */
+	public $is_persisted = false;
+
+	/**
 	 * Constructs a new Incoming Event
 	 *
 	 * @param string       $site      The origin site URL.
@@ -124,6 +138,16 @@ class Abstract_Incoming_Event {
 	 */
 	public function get_timestamp() {
 		return $this->timestamp;
+	}
+
+	/**
+	 * Returns the formatted date for this event based on its timestamp
+	 *
+	 * @param string $format The date format.
+	 * @return string
+	 */
+	public function get_formatted_date( $format = 'Y-m-d H:i:s' ) {
+		return gmdate( $format, $this->timestamp );
 	}
 
 	/**
