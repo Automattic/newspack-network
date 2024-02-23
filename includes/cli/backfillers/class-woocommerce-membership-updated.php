@@ -84,7 +84,6 @@ class Woocommerce_Membership_Updated extends Abstract_Backfiller {
 			}
 
 			$events[] = new \Newspack_Network\Incoming_Events\Woocommerce_Membership_Updated( get_bloginfo( 'url' ), $membership_data, $timestamp );
-
 		}
 
 		return $events;

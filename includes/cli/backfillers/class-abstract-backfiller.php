@@ -62,8 +62,8 @@ abstract class Abstract_Backfiller {
 	public function __construct( $start, $end, $live, $verbose ) {
 		$this->start = $start;
 		$this->end = $end;
-		$this->live     = $live;
-		$this->verbose  = $verbose;
+		$this->live = $live;
+		$this->verbose = $verbose;
 	}
 
 	/**
@@ -99,7 +99,6 @@ abstract class Abstract_Backfiller {
 	 * Process the events.
 	 */
 	public function process_events() {
-
 		$events = $this->get_events();
 
 		foreach ( $events as $event ) {
