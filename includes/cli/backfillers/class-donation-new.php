@@ -43,7 +43,7 @@ class Donation_New extends Abstract_Backfiller {
 
 		foreach ( $orders as $order ) {
 			$order_id = $order->get_id();
-			$order_data = \Newspack\Data_Events\Utils::get_order_data( $order_id );
+			$order_data = \Newspack\Data_Events\Utils::get_order_data( $order_id, true );
 			if ( ! $order_data ) {
 				continue;
 			}
