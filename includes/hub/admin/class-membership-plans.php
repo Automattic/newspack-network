@@ -144,6 +144,9 @@ abstract class Membership_Plans {
 	 */
 	public static function get_local_membership_plans() {
 		$membership_plans = [];
+		if ( ! function_exists( 'wc_memberships_get_membership_plans' ) ) {
+			return [];
+		}
 		foreach ( wc_memberships_get_membership_plans() as $plan ) {
 			$membership_plans[] = [
 				'id'              => $plan->post->ID,
