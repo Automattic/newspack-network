@@ -46,6 +46,15 @@ class Pull_Endpoint {
 	}
 
 	/**
+	 * Get the number of events returned in each pull request.
+	 *
+	 * @return int
+	 */
+	public static function get_pull_limit() {
+		return defined( 'NEWSPACK_NETWORK_EVENTS_PULL_LIMIT' ) && is_numeric( NEWSPACK_NETWORK_EVENTS_PULL_LIMIT ) ? NEWSPACK_NETWORK_EVENTS_PULL_LIMIT : 20;
+	}
+
+	/**
 	 * Handle the pull
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -88,16 +97,20 @@ class Pull_Endpoint {
 
 		Debugger::log( 'Successfully verified request' );
 
+		$query_args = [
+			'excluded_node_id' => $node->get_id(),
+			'id_greater_than'  => $last_processed_id,
+			'action_name_in'   => $actions,
+		];
+
 		$events = Event_Log::get(
-			[
-				'excluded_node_id' => $node->get_id(),
-				'id_greater_than'  => $last_processed_id,
-				'action_name_in'   => $actions,
-			],
-			defined( 'NEWSPACK_NETWORK_EVENTS_PULL_LIMIT' ) && is_numeric( NEWSPACK_NETWORK_EVENTS_PULL_LIMIT ) ? NEWSPACK_NETWORK_EVENTS_PULL_LIMIT : 20,
+			$query_args,
+			self::get_pull_limit(),
 			1,
 			'ASC'
 		);
+
+		$total_events = Event_Log::get_total_items( $query_args );
 
 		Debugger::log( count( $events ) . ' events found' );
 
@@ -115,8 +128,8 @@ class Pull_Endpoint {
 		);
 		$highest_returned_id = empty( $events_formatted ) ? 0 : max( array_column( $events_formatted, 'id' ) );
 		$response_body = [
-			'data'             => $events_formatted,
-			'more_items_count' => Event_Log::get_events_count_between( $highest_returned_id ),
+			'data'  => $events_formatted,
+			'total' => $total_events,
 		];
 		return new WP_REST_Response( $response_body );
 	}

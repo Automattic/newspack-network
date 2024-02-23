@@ -1,6 +1,6 @@
 <?php
 /**
- * Data Backfill scripts.
+ * Sync all scripts.
  *
  * @package Newspack
  */
@@ -8,11 +8,13 @@
 namespace Newspack_Network;
 
 use WP_CLI;
+use Newspack_Network\Node\Pulling;
 
 /**
- * Data Backfill class.
+ * Sync all class.
  */
 class Synchronize_All {
+
 	/**
 	 * Number of events left to fetch.
 	 *
@@ -41,10 +43,32 @@ class Synchronize_All {
 	}
 
 	/**
-	 * Get events from the Hub.
+	 * Process events received from the Hub.
 	 */
-	private static function get_events() {
-		$response = \Newspack_Network\Node\Pulling::make_request();
+	private static function process_events() {
+		$response = self::make_request();
+		WP_CLI::line( 'Received ' . count( $response['data'] ) . ' events, processing…' );
+
+		Pulling::process_pulled_data( $response['data'] );
+
+		self::$events_left = (int) $response['total'] - count( $response['data'] );
+		if ( 0 > self::$events_left ) {
+			self::$events_left = 0;
+		}
+		WP_CLI::line( 'Events left to fetch: ' . self::$events_left );
+
+		if ( self::$events_left > 0 ) {
+			self::process_events();
+		}
+	}
+
+	/**
+	 * Makes a request to pull events from the Hub
+	 *
+	 * @return array
+	 */
+	private static function make_request() {
+		$response = Pulling::make_request();
 		if ( is_wp_error( $response ) ) {
 			WP_CLI::error( 'Error fetching events from the Hub: ' . $response->get_error_message() );
 		}
@@ -52,27 +76,42 @@ class Synchronize_All {
 		if ( ! isset( $response['data'] ) ) {
 			WP_CLI::error( 'Missing data in response.' );
 		}
-
-		WP_CLI::line( 'Received ' . count( $response['data'] ) . ' events, processing…' );
-
-		\Newspack_Network\Node\Pulling::process_pulled_data( $response['data'] );
-
-		self::$events_left = $response['more_items_count'];
-		WP_CLI::line( 'Events left to fetch: ' . self::$events_left );
-
-		if ( self::$events_left > 0 ) {
-			self::get_events();
-		}
+		return $response;
 	}
 
 	/**
-	 * Sync all data.
+	 * Syncs all data, pulling all events from the Hub.
 	 */
 	public static function sync_all() {
 		WP_CLI::line( '' );
 		if ( ! Site_Role::is_node() ) {
 			WP_CLI::error( 'This command can only be run on a Node site.' );
 		}
-		self::get_events();
+		self::print_sync_status();
+		WP_CLI::line( '' );
+		WP_CLI::line( 'Pulling all data from the Hub will write data to this site. This will proceed incrementally, so the process can be picked up later.' );
+		WP_CLI::line( '' );
+		WP_CLI::confirm( 'Are we good to go?' );
+		WP_CLI::line( '' );
+		self::process_events();
+		WP_CLI::success( 'Sync complete.' );
+	}
+
+	/**
+	 * Print the current status of the sync
+	 */
+	public static function print_sync_status() {
+		WP_CLI::line( 'Checking the sync queue…' );
+
+		$response = self::make_request();
+		$events_on_the_hub = (int) $response['total'];
+		$last_processed_id = Pulling::get_last_processed_id();
+
+		WP_CLI::line( 'Last processed event ID: ' . $last_processed_id );
+		if ( $events_on_the_hub === 0 ) {
+			WP_CLI::success( 'Sync is up to date. Nothing to pull.' );
+		} else {
+			WP_CLI::line( 'Events left to sync: ' . ( $events_on_the_hub ) );
+		}
 	}
 }

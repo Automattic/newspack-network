@@ -96,22 +96,6 @@ class Event_Log {
 	}
 
 	/**
-	 * Get count of items between the given event ID and the latest event.
-	 *
-	 * @param int $event_id The event ID to start from.
-	 * @return int
-	 */
-	public static function get_events_count_between( $event_id ) {
-		if ( $event_id === 0 ) {
-			return 0;
-		}
-		global $wpdb;
-		$table_name = Database::get_table_name();
-		$query = $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE id > %d", $event_id ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return $wpdb->get_var( $query ); //phpcs:ignore
-	}
-
-	/**
 	 * Build the WHERE clause for the query
 	 *
 	 * @param array $args {
