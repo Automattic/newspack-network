@@ -42,7 +42,7 @@ class Webhook {
 		add_action( 'init', [ __CLASS__, 'register_endpoint' ] );
 		add_filter( 'newspack_webhooks_request_body', [ __CLASS__, 'filter_webhook_body' ], 10, 2 );
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			WP_CLI::add_command( 'np-network process', [ __CLASS__, 'cli_process' ] );
+			WP_CLI::add_command( 'newspack-network process-webhooks', [ __CLASS__, 'cli_process_webhooks' ] );
 		}
 	}
 
@@ -140,14 +140,14 @@ class Webhook {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp np-network process
-	 *     wp np-network process --per-page=200
-	 *     wp np-network process --per-page=200 --status='killed' --dry-run
-	 *     wp np-network process --per-page=200 --status='killed' --dry-run --yes
+	 *     wp newspack-network process-webhooks
+	 *     wp newspack-network process-webhooks --per-page=200
+	 *     wp newspack-network process-webhooks --per-page=200 --status='killed' --dry-run
+	 *     wp newspack-network process-webhooks --per-page=200 --status='killed' --dry-run --yes
 	 * 
 	 * @when after_wp_load
 	 */
-	public function cli_process( array $args, array $assoc_args ): void {
+	public function cli_process_webhooks( array $args, array $assoc_args ): void {
 		$per_page = (int) ( $assoc_args['per-page'] ?? -1 );
 		$dry_run = isset( $assoc_args['dry-run'] );
 		$status = $assoc_args['status'] ?? 'pending';
@@ -221,11 +221,12 @@ class Webhook {
 			WP_CLI::success( "Successfully processed {$counts['success']}/{$counts['total']} '{$status}' requests.\n" );
 			return;
 		}
+
+		// Last 100 errors.
+		$errors = wp_json_encode( array_slice( $errors, -100, 100, true ), JSON_PRETTY_PRINT );
 		/**
 		 * All request processing failed.
 		 */
-		// Last 100 errors.
-		$errors = wp_json_encode( array_slice( $errors, -100, 100, true ), JSON_PRETTY_PRINT );
 		if ( $counts['failed'] === $counts['total'] ) {
 			WP_CLI::error( "0/{$counts['total']} '{$status}' request were processed. \nErrors: {$errors}\n" );
 			return;
