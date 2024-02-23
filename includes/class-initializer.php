@@ -47,6 +47,7 @@ class Initializer {
 		User_Update_Watcher::init();
 		User_Manual_Sync::init();
 		Distributor_Customizations::init();
+		Data_Backfill::init();
 
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();

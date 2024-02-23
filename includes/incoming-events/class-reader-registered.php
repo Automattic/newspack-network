@@ -10,6 +10,7 @@ namespace Newspack_Network\Incoming_Events;
 use Newspack_Network\Debugger;
 use Newspack_Network\Hub\Node;
 use Newspack_Network\Hub\Stores\Event_Log;
+use Newspack_Network\User_Update_Watcher;
 use Newspack_Network\Utils\Users as User_Utils;
 
 /**
@@ -46,6 +47,8 @@ class Reader_Registered extends Abstract_Incoming_Event {
 		if ( ! $email ) {
 			return;
 		}
+
+		User_Update_Watcher::$enabled = false;
 
 		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
 	}
