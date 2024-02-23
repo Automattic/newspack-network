@@ -51,7 +51,7 @@ class Synchronize_All {
 
 		Pulling::process_pulled_data( $response['data'] );
 
-		self::$events_left = (int) $response['total'] - \Newspack_Network\Hub\Pull_Endpoint::get_pull_limit();
+		self::$events_left = (int) $response['total'] - count( $response['data'] );
 		if ( 0 > self::$events_left ) {
 			self::$events_left = 0;
 		}
