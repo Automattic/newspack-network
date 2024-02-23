@@ -86,7 +86,7 @@ class Event_Log {
 	 * @param array $args See {@see self::build_where_clause()} for supported arguments.
 	 * @return int
 	 */
-	public static function get_total_items( $args ) {
+	public static function get_total_items( $args = [] ) {
 		global $wpdb;
 		$table_name = Database::get_table_name();
 		$query      = "SELECT COUNT(*) FROM $table_name WHERE 1=1 [args]";
