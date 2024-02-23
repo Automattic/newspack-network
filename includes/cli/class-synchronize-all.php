@@ -39,7 +39,6 @@ class Synchronize_All {
 	public static function register_commands() {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			WP_CLI::add_command( 'newspack-network sync-all', [ __CLASS__, 'sync_all' ] );
-			WP_CLI::add_command( 'newspack-network sync-check', [ __CLASS__, 'sync_check' ] );
 		}
 	}
 
@@ -47,7 +46,6 @@ class Synchronize_All {
 	 * Process events received from the Hub.
 	 */
 	private static function process_events() {
-
 		$response = self::make_request();
 		WP_CLI::line( 'Received ' . count( $response['data'] ) . ' events, processing…' );
 
@@ -62,7 +60,6 @@ class Synchronize_All {
 		if ( self::$events_left > 0 ) {
 			self::process_events();
 		}
-		WP_CLI::success( 'Sync complete.' );
 	}
 
 	/**
@@ -90,21 +87,21 @@ class Synchronize_All {
 		if ( ! Site_Role::is_node() ) {
 			WP_CLI::error( 'This command can only be run on a Node site.' );
 		}
-		WP_CLI::line( 'Syncing all data from the Hub can take a long time and will write data to the site.' );
-		WP_CLI::line( 'Consider running wp newspack-network sync-check first to check the size of the queue.' );
-		WP_CLI::confirm( 'Are you sure you want to sync all data?' );
+		self::print_sync_status();
+		WP_CLI::line( '' );
+		WP_CLI::line( 'Pulling all data from the Hub will write data to this site. This will proceed incrementally, so the process can be picked up later.' );
+		WP_CLI::line( '' );
+		WP_CLI::confirm( 'Are we good to go?' );
+		WP_CLI::line( '' );
 		self::process_events();
+		WP_CLI::success( 'Sync complete.' );
 	}
 
 	/**
-	 * Checks the current state of the sync
+	 * Print the current status of the sync
 	 */
-	public static function sync_check() {
-		WP_CLI::line( '' );
-		if ( ! Site_Role::is_node() ) {
-			WP_CLI::error( 'This command can only be run on a Node site.' );
-		}
-		WP_CLI::line( 'Checking the sync queue' );
+	public static function print_sync_status() {
+		WP_CLI::line( 'Checking the sync queue…' );
 
 		$response = self::make_request();
 		$events_on_the_hub = (int) $response['total'];
