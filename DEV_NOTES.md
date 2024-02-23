@@ -109,6 +109,17 @@ Examples:
 
 If you want to customize how this new event looks in the `Event Log`, go to `hub/stores/event-log-items` and create a new class named after the class you informed in `ACCEPTED_ACTIONS`. Implement the `get_summary` method to display the information the way you need.
 
+## WP CLI
+
+Available CLI commands are (add `--help` flag to learn more about each command):
+
+### `wp newspack-network process-webhooks`
+* Will process `pending` `np_webhook_request`s and delete after processing.
+* `--per-page=1000` to process x amount of requests. Default is `-1`.
+* `--status='killed'` to process requests of a different status. Default is `'pending'`
+* `--dry-run` enabled. Will run through process without deleting.
+* `--yes` enabled. Will bypass confirmations.
+
 ## Troubleshooting
 
 Here's how to debug and follow each event while they travel around.
