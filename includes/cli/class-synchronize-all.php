@@ -87,7 +87,10 @@ class Synchronize_All {
 		if ( ! Site_Role::is_node() ) {
 			WP_CLI::error( 'This command can only be run on a Node site.' );
 		}
-		self::print_sync_status();
+		$events_to_sync_count = self::print_sync_status();
+		if ( $events_to_sync_count === 0 ) {
+			return;
+		}
 		WP_CLI::line( '' );
 		WP_CLI::line( 'Pulling all data from the Hub will write data to this site. This will proceed incrementally, so the process can be picked up later.' );
 		WP_CLI::line( '' );
@@ -113,5 +116,6 @@ class Synchronize_All {
 		} else {
 			WP_CLI::line( 'Events left to sync: ' . ( $events_on_the_hub ) );
 		}
+		return $events_on_the_hub;
 	}
 }
