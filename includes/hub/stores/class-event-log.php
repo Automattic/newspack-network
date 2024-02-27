@@ -39,6 +39,7 @@ class Event_Log {
 
 		$query = $wpdb->prepare( "SELECT * FROM $table_name WHERE 1=1 [args] $order_string LIMIT %d OFFSET %d", $per_page, $offset ); //phpcs:ignore
 
+		$args = apply_filters( 'newspack_network_event_log_get_args', $args );
 		$query = str_replace( '[args]', self::build_where_clause( $args ), $query );
 
 		$db = $wpdb->get_results( $query ); //phpcs:ignore

@@ -53,6 +53,22 @@ class Reader_Registered extends Abstract_Backfiller {
 
 		$events = [];
 
+		// Disregard `current_page_url` metadata when checking for duplicates of reader registrations.
+		// This metadata is unavailable for backfilled events, so it's not possible to check for duplicates with it.
+		add_filter(
+			'newspack_network_event_log_get_args',
+			function( $args ) {
+				if ( $args['action_name'] === 'reader_registered' && isset( $args['data'] ) ) {
+					$data = json_decode( $args['data'], true );
+					if ( isset( $data['metadata']['current_page_url'] ) ) {
+						unset( $data['metadata']['current_page_url'] );
+					}
+					$args['data'] = wp_json_encode( $data );
+				}
+				return $args;
+			}
+		);
+
 		foreach ( $users as $user ) {
 			$registration_method = get_user_meta( $user->ID, \Newspack\Reader_Activation::REGISTRATION_METHOD, true );
 			$user_data = [
