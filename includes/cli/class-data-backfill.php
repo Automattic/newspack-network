@@ -151,12 +151,12 @@ class Data_Backfill {
 			}
 			$backfiller = new $class_name( $start, $end, $live, $verbose );
 			$backfiller->process_events();
-
 		}
 
 		if ( self::$progress ) {
 			self::$progress->finish();
 		}
+
 		if ( $live ) {
 			WP_CLI::line( '' );
 			foreach ( self::$results as $action_key => $result ) {

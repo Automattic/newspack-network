@@ -80,12 +80,14 @@ class Abstract_Incoming_Event {
 	 */
 	public function process_in_hub() {
 		Debugger::log( 'Processing event' );
-		Event_Log::persist( $this );
-		// only invoke post_process_in_hub if the event was triggered in a Node.
-		if ( 0 < $this->get_node_id() ) {
-			$this->post_process_in_hub();
+		$event_id = Event_Log::persist( $this );
+		if ( $event_id ) {
+			// only invoke post_process_in_hub if the event was triggered in a Node.
+			if ( 0 < $this->get_node_id() ) {
+				$this->post_process_in_hub();
+			}
+			$this->always_process_in_hub();
 		}
-		$this->always_process_in_hub();
 	}
 
 	/**

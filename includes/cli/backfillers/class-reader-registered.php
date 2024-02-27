@@ -66,7 +66,6 @@ class Reader_Registered extends Abstract_Backfiller {
 
 			$incoming_event = new \Newspack_Network\Incoming_Events\Reader_Registered( get_bloginfo( 'url' ), $user_data, strtotime( $user->user_registered ) );
 			$events[] = $incoming_event;
-
 		}
 
 		return $events;
