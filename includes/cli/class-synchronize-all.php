@@ -81,6 +81,12 @@ class Synchronize_All {
 
 	/**
 	 * Syncs all data, pulling all events from the Hub.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network sync-all
+	 *
+	 * @when after_wp_load
 	 */
 	public static function sync_all() {
 		WP_CLI::line( '' );
