@@ -103,16 +103,19 @@ abstract class Abstract_Backfiller {
 
 		foreach ( $events as $event ) {
 
+			if ( Site_Role::is_node() ) {
+				$requests = $this->find_webhook_requests( $event->get_action_name(), $event->get_timestamp(), $event->get_data() );
+				if ( count( $requests ) > 0 ) {
+					Data_Backfill::increment_results_counter( $event->get_action_name(), 'duplicate' );
+					return;
+				}
+			}
+
 			if ( $this->live ) {
 				if ( Site_Role::is_hub() ) {
 					$event->process_in_hub();
 					Data_Backfill::increment_results_counter( $event->get_action_name(), $event->is_persisted ? 'processed' : 'duplicate' );
 				} else {
-					$requests = $this->find_webhook_requests( $event->get_action_name(), $event->get_timestamp(), $event->get_data() );
-					if ( count( $requests ) > 0 ) {
-						Data_Backfill::increment_results_counter( $event->get_action_name(), 'duplicate' );
-						return;
-					}
 					\Newspack\Data_Events\Webhooks::handle_dispatch( $event->get_action_name(), $event->get_timestamp(), $event->get_data() );
 					Data_Backfill::increment_results_counter( $event->get_action_name(), 'processed' );
 				}
