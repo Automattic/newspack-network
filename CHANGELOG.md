@@ -1,3 +1,10 @@
+# [1.3.0-alpha.2](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.1...v1.3.0-alpha.2) (2024-02-27)
+
+
+### Bug Fixes
+
+* missing woocommerce-memberships handling ([76dbdf7](https://github.com/Automattic/newspack-network/commit/76dbdf72ae44a27f25c2c35c75720eae637fd518))
+
 # [1.3.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.2.0...v1.3.0-alpha.1) (2024-02-23)
 
 
