@@ -113,7 +113,7 @@ class Webhook {
 
 	/**
 	 * Process network requests
-	 * 
+	 *
 	 * @param array $args Indexed array of args.
 	 * @param array $assoc_args Associative array of args.
 	 * @return void
@@ -134,7 +134,7 @@ class Webhook {
 	 *
 	 * [--dry-run]
 	 * : Run the command in dry run mode. No requests (with status killed) will be processed.
-	 * 
+	 *
 	 * [--yes]
 	 * : Run the command without confirmations, use with caution.
 	 *
@@ -144,7 +144,7 @@ class Webhook {
 	 *     wp newspack-network process-webhooks --per-page=200
 	 *     wp newspack-network process-webhooks --per-page=200 --status='killed' --dry-run
 	 *     wp newspack-network process-webhooks --per-page=200 --status='killed' --dry-run --yes
-	 * 
+	 *
 	 * @when after_wp_load
 	 */
 	public function cli_process_webhooks( array $args, array $assoc_args ): void {
@@ -171,13 +171,13 @@ class Webhook {
 		}
 
 		$request_ids = array_column( $requests, 'id' );
-		
+
 		$counts = [
 			'total'   => count( $requests ),
 			'failed'  => 0,
 			'success' => 0,
 		];
-		
+
 		$errors = [];
 
 		if ( $dry_run ) {
@@ -234,7 +234,7 @@ class Webhook {
 
 		WP_CLI::warning( "Not all '{$status}' requests have been processed:" );
 		WP_CLI::log( "- Success: {$counts['success']}/{$counts['total']}" );
-		WP_CLI::log( "- Failed: {$counts['success']}/{$counts['failed']}" );
+		WP_CLI::log( "- Failed: {$counts['failed']}/{$counts['total']}" );
 		WP_CLI::log( "- Errors: {$errors}\n" );
 	}
 }
