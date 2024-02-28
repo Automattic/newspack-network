@@ -27,10 +27,14 @@ class Initializer {
 			Hub\Database\Subscriptions::init();
 			Hub\Database\Orders::init();
 			Hub\Newspack_Ads_GAM::init();
+			Hub\Connect_Node::init();
 		}
 
-		if ( Site_Role::is_node() ) {
+		// Allow to access node settings before the site has a role, so it can be set via URL.
+		if ( Site_Role::is_node() || ! Site_Role::get() ) {
 			Node\Settings::init();
+		}
+		if ( Site_Role::is_node() ) {
 			if ( Node\Settings::get_hub_url() ) {
 				Node\Webhook::init();
 				Node\Pulling::init();
@@ -41,7 +45,14 @@ class Initializer {
 		Data_Listeners::init();
 		Reader_Roles_Filter::init();
 		User_Update_Watcher::init();
+		User_Manual_Sync::init();
 		Distributor_Customizations::init();
+
+		Synchronize_All::init();
+		Data_Backfill::init();
+
+		Woocommerce_Memberships\Admin::init();
+		Woocommerce_Memberships\Events::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}

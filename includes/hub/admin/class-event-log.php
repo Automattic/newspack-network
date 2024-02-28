@@ -23,7 +23,7 @@ class Event_Log {
 		add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
 	}
-	
+
 	/**
 	 * Adds the admin page
 	 *
@@ -43,7 +43,7 @@ class Event_Log {
 		if ( get_current_screen()->id !== $page_slug ) {
 			return;
 		}
-		
+
 		wp_enqueue_style(
 			'newspack-network-event-log',
 			plugins_url( 'css/event-log.css', __FILE__ ),
@@ -58,19 +58,18 @@ class Event_Log {
 	 * @return void
 	 */
 	public static function render_page() {
-
 		$table = new Event_Log_List_Table();
 
 		echo '<div class="wrap"><h2>', esc_html( __( 'Event Log', 'newspack-network' ) ), '</h2>';
 		echo '<form method="get">';
 		echo '<input type="hidden" name="page" value="' . esc_attr( self::PAGE_SLUG ) . '" />';
-		
+
 		$table->prepare_items();
 
 		$table->search_box( 'search', 'search_id' );
-		
+
 		$table->display();
-		
+
 		echo '</div></form>';
 	}
 }

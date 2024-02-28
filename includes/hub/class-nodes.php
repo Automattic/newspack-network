@@ -14,9 +14,8 @@ use Newspack_Network\Admin as Network_Admin;
  * Class to handle Nodes post type
  */
 class Nodes {
-
 	/**
-	 * POST_TYPE_SLUG for Newsletter Lists.
+	 * POST_TYPE_SLUG for the Nodes.
 	 */
 	const POST_TYPE_SLUG = 'newspack_hub_nodes';
 
@@ -28,6 +27,11 @@ class Nodes {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'save_post', [ __CLASS__, 'save_post' ] );
+		add_action( 'trashed_post', [ __CLASS__, 'trashed_node' ] );
+		add_action( 'untrashed_post', [ __CLASS__, 'untrashed_node' ] );
+		add_action( 'newspack_network_node_saved', [ __CLASS__, 'sync_nodes' ] );
+		add_action( 'newspack_network_node_trashed', [ __CLASS__, 'sync_nodes' ] );
+		add_action( 'newspack_network_node_untrashed', [ __CLASS__, 'sync_nodes' ] );
 	}
 
 	/**
@@ -98,7 +102,6 @@ class Nodes {
 	 * @return void
 	 */
 	public static function register_post_type() {
-
 		$labels = array(
 			'name'                  => _x( 'Nodes', 'Post Type General Name', 'newspack-network' ),
 			'singular_name'         => _x( 'Node', 'Post Type Singular Name', 'newspack-network' ),
@@ -156,7 +159,7 @@ class Nodes {
 		add_meta_box(
 			'newspack-network-metabox',
 			__( 'Node details' ),
-			[ __CLASS__, 'metabox_content' ],
+			[ __CLASS__, 'node_details_metabox_content' ],
 			self::POST_TYPE_SLUG,
 			'normal',
 			'core'
@@ -193,24 +196,30 @@ class Nodes {
 	 * @param WP_Post $post The current post.
 	 * @return void
 	 */
-	public static function metabox_content( $post ) {
-
+	public static function node_details_metabox_content( $post ) {
 		wp_nonce_field( 'newspack_hub_save_node', 'newspack_hub_save_node_nonce' );
 
-		$node_url   = get_post_meta( $post->ID, 'node-url', true );
-		$secret_key = get_post_meta( $post->ID, 'secret-key', true );
+		$node       = new Node( $post );
+		$secret_key = $node->get_secret_key();
 
 		?>
 		<div class="misc-pub-section">
-			Node URL: <input type="text" name="newspack-node-url" value="<?php echo esc_attr( $node_url ); ?>" />
+			Node URL: <input type="text" name="newspack-node-url" value="<?php echo esc_attr( $node->get_url() ); ?>" />
 		</div>
 
 		<?php if ( $secret_key ) : ?>
-
 			<div class="misc-pub-section">
-				Secret Key: <?php echo esc_attr( $secret_key ); ?>
+				Secret Key: <code><?php echo esc_html( $secret_key ); ?></code>
 			</div>
-
+			<div class="misc-pub-section">
+				<a
+					target="_blank"
+					class="button"
+					href="<?php echo esc_url( $node->get_connect_link() ); ?>"
+				>
+					<?php esc_html_e( 'Link the site', 'newspack-network' ); ?>
+				</a>
+			</div>
 		<?php endif; ?>
 		<?php
 	}
@@ -265,5 +274,68 @@ class Nodes {
 		 * @param int $post_id The ID of the node post.
 		 */
 		do_action( 'newspack_network_node_saved', $post_id );
+	}
+
+	/**
+	 * Trashed post callback
+	 *
+	 * @param int $post_id The ID of the post being trashed.
+	 * @return void
+	 */
+	public static function trashed_node( $post_id ) {
+		if ( self::POST_TYPE_SLUG !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		/**
+		 * Fires an action when a node is successfully trashed in the Hub admin
+		 *
+		 * @param int $post_id The ID of the node post.
+		 */
+		do_action( 'newspack_network_node_trashed', $post_id );
+	}
+
+	/**
+	 * Untrashed post callback
+	 *
+	 * @param int $post_id The ID of the post being untrashed.
+	 * @return void
+	 */
+	public static function untrashed_node( $post_id ) {
+		if ( self::POST_TYPE_SLUG !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		/**
+		 * Fires an action when a node is successfully untrashed in the Hub admin
+		 *
+		 * @param int $post_id The ID of the node post.
+		 */
+		do_action( 'newspack_network_node_untrashed', $post_id );
+	}
+
+	/**
+	 * Sync nodes data to all nodes in network.
+	 *
+	 * @param int $post_id The ID of the post being saved.
+	 * @return void
+	 */
+	public static function sync_nodes( $post_id ) {
+		$nodes = self::get_all_nodes();
+
+		if ( empty( $nodes ) ) {
+			return;
+		}
+
+		$nodes_data = [];
+		foreach ( $nodes as $node ) {
+			$nodes_data[] = [
+				'id'    => $node->get_id(),
+				'title' => $node->get_name(),
+				'url'   => $node->get_url(),
+			];
+		}
+
+		do_action( 'newspack_network_nodes_synced', $nodes_data );
 	}
 }

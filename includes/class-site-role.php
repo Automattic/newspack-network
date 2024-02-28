@@ -19,6 +19,9 @@ class Site_Role {
 	 */
 	const OPTION_NAME = 'newspack_network_site_role';
 
+	const HUB_ROLE  = 'hub';
+	const NODE_ROLE = 'node';
+
 	/**
 	 * Gets the site role
 	 *
@@ -34,7 +37,7 @@ class Site_Role {
 	 * @return boolean
 	 */
 	public static function is_hub() {
-		return 'hub' === self::get();
+		return self::HUB_ROLE === self::get();
 	}
 
 	/**
@@ -43,7 +46,16 @@ class Site_Role {
 	 * @return boolean
 	 */
 	public static function is_node() {
-		return 'node' === self::get();
+		return self::NODE_ROLE === self::get();
+	}
+
+	/**
+	 * Sets site role as "node".
+	 *
+	 * @return boolean True if the option was saved.
+	 */
+	public static function set_as_node() {
+		return update_option( self::OPTION_NAME, self::NODE_ROLE );
 	}
 
 	/**

@@ -15,6 +15,10 @@ use WP_Post;
  * Class to represent one Node of the netowrk
  */
 class Node {
+	/**
+	 * HUB_NODES_SYNCED_OPTION for network nodes.
+	 */
+	const HUB_NODES_SYNCED_OPTION = 'newspack_hub_nodes_synced';
 
 	/**
 	 * The WP_Post object for this Node
@@ -100,13 +104,29 @@ class Node {
 	}
 
 	/**
-	 * Gets a collection of bookmarks for this Node
+	 * Retrieves the link to connect this Node to the Hub
 	 *
+	 * @return string
+	 */
+	public function get_connect_link() {
+		return add_query_arg(
+			[
+				'page'          => \Newspack_Network\Node\Settings::PAGE_SLUG,
+				'connect_nonce' => Connect_Node::generate_nonce( $this->get_id() ),
+				'action'        => \Newspack_Network\Admin::LINK_ACTION_NAME,
+			],
+			$this->get_url() . '/wp-admin/admin.php'
+		);
+	}
+
+	/**
+	 * Generates a collection of bookmarks for this Node
+	 *
+	 * @param  string $url The URL of the Node.
 	 * @return array
 	 */
-	public function get_bookmarks() {
-
-		$base_url = trailingslashit( $this->get_url() );
+	public static function generate_bookmarks( $url ) {
+		$base_url = trailingslashit( $url );
 
 		return [
 			[
@@ -119,7 +139,7 @@ class Node {
 			],
 			[
 				'label' => 'WooCommerce',
-				'url'   => $base_url . 'wp-admin?page=wc-admin',
+				'url'   => $base_url . 'wp-admin/admin.php?page=wc-admin',
 			],
 			[
 				'label' => __( 'Posts', 'newspack-network' ),
@@ -138,5 +158,16 @@ class Node {
 				'url'   => $base_url . 'wp-admin/options-general.php',
 			],
 		];
+	}
+
+	/**
+	 * Gets a collection of bookmarks for this Node.
+	 *
+	 * @return array
+	 */
+	public function get_bookmarks() {
+		$base_url = $this->get_url();
+
+		return self::generate_bookmarks( $base_url );
 	}
 }
