@@ -1,3 +1,10 @@
+# [1.3.0-alpha.4](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.3...v1.3.0-alpha.4) (2024-02-28)
+
+
+### Bug Fixes
+
+* cli commands ([#73](https://github.com/Automattic/newspack-network/issues/73)) ([ff563ac](https://github.com/Automattic/newspack-network/commit/ff563acee53b899592269a1121e2552b678cf9c9))
+
 # [1.3.0-alpha.3](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.2...v1.3.0-alpha.3) (2024-02-28)
 
 
