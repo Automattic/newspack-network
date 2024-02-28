@@ -139,7 +139,7 @@ class Node {
 			],
 			[
 				'label' => 'WooCommerce',
-				'url'   => $base_url . 'wp-admin?page=wc-admin',
+				'url'   => $base_url . 'wp-admin/admin.php?page=wc-admin',
 			],
 			[
 				'label' => __( 'Posts', 'newspack-network' ),

@@ -39,6 +39,7 @@ class Event_Log {
 
 		$query = $wpdb->prepare( "SELECT * FROM $table_name WHERE 1=1 [args] $order_string LIMIT %d OFFSET %d", $per_page, $offset ); //phpcs:ignore
 
+		$args = apply_filters( 'newspack_network_event_log_get_args', $args );
 		$query = str_replace( '[args]', self::build_where_clause( $args ), $query );
 
 		$db = $wpdb->get_results( $query ); //phpcs:ignore
@@ -144,7 +145,13 @@ class Event_Log {
 		}
 
 		if ( ! empty( $args['timestamp'] ) ) {
-			$where .= $wpdb->prepare( ' AND timestamp = %s', $args['timestamp'] );
+			// The logged event timestamp and the actual timestamp of the event can differ by a few seconds,
+			// so we need to search for a range of timestamps. For example, when a user registered at time T,
+			// the event will have a timestamp of e.g. T+10ms. Then, when a backfill script (or other code) is looking
+			// for the event, it will miss it since it's looking for the exact timestamp T.
+			$timestamp = $args['timestamp'];
+			$range     = 10; // milliseconds.
+			$where     .= $wpdb->prepare( ' AND timestamp >= %s AND timestamp <= %s', $timestamp - $range, $timestamp + $range );
 		}
 
 		if ( ! empty( $args['data'] ) ) {
