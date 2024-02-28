@@ -58,6 +58,21 @@ class Admin {
 		add_filter( 'get_edit_post_link', array( __CLASS__, 'get_edit_post_link' ), 10, 2 );
 		add_filter( 'post_row_actions', array( __CLASS__, 'post_row_actions' ), 99, 2 ); // After the Memberships plugin.
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap' ), 20, 4 );
+		add_filter( 'wc_memberships_rest_api_membership_plan_data', [ __CLASS__, 'add_data_to_membership_plan_response' ], 2, 3 );
+	}
+
+	/**
+	 * Filter membership plans to add user count.
+	 *
+	 * @param array                           $data associative array of membership plan data.
+	 * @param \WC_Memberships_Membership_Plan $plan the membership plan.
+	 * @param null|\WP_REST_Request           $request The request object.
+	 */
+	public static function add_data_to_membership_plan_response( $data, $plan, $request ) {
+		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
+			$data['active_members_count'] = $plan->get_memberships_count( 'active' );
+		}
+		return $data;
 	}
 
 	/**

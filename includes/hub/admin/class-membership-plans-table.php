@@ -48,6 +48,7 @@ class Membership_Plans_Table extends \WP_List_Table {
 			$columns['node_url'] = __( 'Node URL', 'newspack-network' );
 		}
 		$columns['network_pass_id'] = __( 'Network ID', 'newspack-network' );
+		$columns['active_members_count'] = __( 'Active Members', 'newspack-network' );
 		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
 	}
