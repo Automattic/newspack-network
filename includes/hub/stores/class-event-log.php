@@ -150,7 +150,7 @@ class Event_Log {
 			// the event will have a timestamp of e.g. T+10ms. Then, when a backfill script (or other code) is looking
 			// for the event, it will miss it since it's looking for the exact timestamp T.
 			$timestamp = $args['timestamp'];
-			$range     = 3; // seconds.
+			$range     = 10; // milliseconds.
 			$where     .= $wpdb->prepare( ' AND timestamp >= %s AND timestamp <= %s', $timestamp - $range, $timestamp + $range );
 		}
 
