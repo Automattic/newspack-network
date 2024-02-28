@@ -11,7 +11,7 @@ namespace Newspack_Network\constants;
  * Webhook error responses map.
  */
 const WEBHOOK_RESPONSE_ERRORS = [
-    // Encryption verification failure.
-    'INVALID_SIGNATURE'   => 'Invalid Signature.',
-    'INVALID_DATA'        => 'Bad request. Invalid Data.',
+	// Encryption verification failure.
+	'INVALID_SIGNATURE' => 'Invalid Signature.',
+	'INVALID_DATA'      => 'Bad request. Invalid Data.',
 ];
