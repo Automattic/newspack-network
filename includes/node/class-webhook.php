@@ -14,6 +14,10 @@ use Newspack_Network\Accepted_Actions;
 use Newspack_Network\Crypto;
 use Newspack\Data_Events\Webhooks as Newspack_Webhooks;
 
+use const Newspack_Network\constants\{
+	WEBHOOK_RESPONSE_ERRORS
+};
+
 /**
  * Class that register the webhook endpoint that will send events to the Hub
  */
@@ -41,6 +45,7 @@ class Webhook {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_endpoint' ] );
 		add_filter( 'newspack_webhooks_request_body', [ __CLASS__, 'filter_webhook_body' ], 10, 2 );
+		add_action( 'newspack_webhooks_process_request_errors', [ __CLASS__, 'processs_request_errors' ], 10, 2 );
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			WP_CLI::add_command( 'newspack-network process-webhooks', [ __CLASS__, 'cli_process_webhooks' ] );
 		}
@@ -83,7 +88,7 @@ class Webhook {
 		$nonce = Crypto::generate_nonce();
 		$data  = self::sign( $data, $nonce );
 		if ( is_wp_error( $data ) ) {
-			return $data;
+			$data = $body['data'];
 		}
 		$body['nonce'] = $nonce;
 		$body['data']  = $data;
@@ -109,6 +114,40 @@ class Webhook {
 		}
 
 		return Crypto::encrypt_message( $data, $secret_key, $nonce );
+	}
+
+	/**
+	 * Attempt to fix request error before being processed again
+	 * 
+	 * @see Newspack\Data_Events\Webhooks::process_request()
+	 *
+	 * @param int   $request_id   Webhook request id.
+	 * @param array $errors       Request processing errors.
+	 * @return void
+	 */
+	public static function processs_request_errors( $request_id, $errors ) {
+		$last_error = end( $errors );
+
+		// Ensure we're handling only specific errors.
+		if ( ! isset( WEBHOOK_RESPONSE_ERRORS[ $last_error ] ) ) {
+			return;
+		}
+		if ( 'INVALID_SIGNATURE' === $last_error ) {
+			$body = json_decode( get_post_meta( $request_id, 'body', true ), true );
+			[ 'data' => $data ] = $body;
+			
+			$nonce = Crypto::generate_nonce();
+			$data = static::sign( wp_json_encode( $data ), $nonce );
+
+			// This likely means the configuration that caused $last_error still exists.
+			if ( is_wp_error( $data ) ) {
+				return;
+			}
+
+			$body['data'] = $data;
+			$body['nonce'] = $nonce;
+			update_post_meta( $request_id, 'body', addslashes( wp_json_encode( $body ) ) );
+		}
 	}
 
 	/**
