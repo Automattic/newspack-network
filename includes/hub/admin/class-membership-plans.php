@@ -124,10 +124,11 @@ abstract class Membership_Plans {
 					}
 				}
 				$membership_plans[] = [
-					'id'              => $plan->id,
-					'node_url'        => $node->get_url(),
-					'name'            => $plan->name,
-					'network_pass_id' => $network_pass_id,
+					'id'                   => $plan->id,
+					'node_url'             => $node->get_url(),
+					'name'                 => $plan->name,
+					'network_pass_id'      => $network_pass_id,
+					'active_members_count' => $plan->active_members_count,
 				];
 			}
 		}
@@ -149,9 +150,10 @@ abstract class Membership_Plans {
 		}
 		foreach ( wc_memberships_get_membership_plans() as $plan ) {
 			$membership_plans[] = [
-				'id'              => $plan->post->ID,
-				'name'            => $plan->post->post_title,
-				'network_pass_id' => get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true ),
+				'id'                   => $plan->post->ID,
+				'name'                 => $plan->post->post_title,
+				'network_pass_id'      => get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true ),
+				'active_members_count' => $plan->get_memberships_count( 'active' ),
 			];
 		}
 		return $membership_plans;
