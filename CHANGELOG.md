@@ -1,3 +1,10 @@
+# [1.3.0-alpha.3](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.2...v1.3.0-alpha.3) (2024-02-28)
+
+
+### Bug Fixes
+
+* backfill duplicate handling; woo links in wp-admin-bar ([#71](https://github.com/Automattic/newspack-network/issues/71), [#72](https://github.com/Automattic/newspack-network/issues/72)) ([bbce13b](https://github.com/Automattic/newspack-network/commit/bbce13b9963437d9ef802ac0f6f343fbe59da630))
+
 # [1.3.0-alpha.2](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.1...v1.3.0-alpha.2) (2024-02-27)
 
 
