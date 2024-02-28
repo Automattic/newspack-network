@@ -53,6 +53,18 @@ class Reader_Registered extends Abstract_Backfiller {
 
 		$events = [];
 
+		// Disregard any attached data when checking for duplicates of reader registrations.
+		// Only the email address and the date are relevant in this case.
+		add_filter(
+			'newspack_network_event_log_get_args',
+			function( $args ) {
+				if ( $args['action_name'] === 'reader_registered' && isset( $args['data'] ) ) {
+					unset( $args['data'] );
+				}
+				return $args;
+			}
+		);
+
 		foreach ( $users as $user ) {
 			$registration_method = get_user_meta( $user->ID, \Newspack\Reader_Activation::REGISTRATION_METHOD, true );
 			$user_data = [
@@ -66,7 +78,6 @@ class Reader_Registered extends Abstract_Backfiller {
 
 			$incoming_event = new \Newspack_Network\Incoming_Events\Reader_Registered( get_bloginfo( 'url' ), $user_data, strtotime( $user->user_registered ) );
 			$events[] = $incoming_event;
-
 		}
 
 		return $events;

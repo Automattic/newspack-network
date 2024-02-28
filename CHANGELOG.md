@@ -1,3 +1,65 @@
+# [1.3.0](https://github.com/Automattic/newspack-network/compare/v1.2.0...v1.3.0) (2024-02-28)
+
+
+### Bug Fixes
+
+* backfill duplicate handling; woo links in wp-admin-bar ([#71](https://github.com/Automattic/newspack-network/issues/71), [#72](https://github.com/Automattic/newspack-network/issues/72)) ([bbce13b](https://github.com/Automattic/newspack-network/commit/bbce13b9963437d9ef802ac0f6f343fbe59da630))
+* cli commands ([#73](https://github.com/Automattic/newspack-network/issues/73)) ([ff563ac](https://github.com/Automattic/newspack-network/commit/ff563acee53b899592269a1121e2552b678cf9c9))
+* memberships sync ([#63](https://github.com/Automattic/newspack-network/issues/63)) ([0a54f1d](https://github.com/Automattic/newspack-network/commit/0a54f1dbeb2da8281324ed3fc6323dc5a9100337))
+* missing woocommerce-memberships handling ([76dbdf7](https://github.com/Automattic/newspack-network/commit/76dbdf72ae44a27f25c2c35c75720eae637fd518))
+
+
+### Features
+
+* add hub bookmarks to nodes ([#56](https://github.com/Automattic/newspack-network/issues/56)) ([54700a0](https://github.com/Automattic/newspack-network/commit/54700a0ae4d272254902278bd208abb8df5a0805))
+* add option to manually sync users  ([#53](https://github.com/Automattic/newspack-network/issues/53)) ([3ec1b19](https://github.com/Automattic/newspack-network/commit/3ec1b1906a504ea83c8f99a673b994cb983b0f83))
+* display membership plans from the network ([#59](https://github.com/Automattic/newspack-network/issues/59)) ([6fa01fd](https://github.com/Automattic/newspack-network/commit/6fa01fd0ee903ff3e9a3cd496128811cc1600de3))
+* enhance network subscriptions and orders search ([#55](https://github.com/Automattic/newspack-network/issues/55)) ([bcb0615](https://github.com/Automattic/newspack-network/commit/bcb06155cb7d148f3dc735dbd88f566f8cf6f65c))
+* Node connection using a link ([#58](https://github.com/Automattic/newspack-network/issues/58)) ([721f8b2](https://github.com/Automattic/newspack-network/commit/721f8b2ed62db8f941bf11789cd3ece577606931))
+* **wp-cli:** add command to backfill events ([#51](https://github.com/Automattic/newspack-network/issues/51)) ([13d2498](https://github.com/Automattic/newspack-network/commit/13d24988ba15757f1a228ec87855122b13b45a59))
+* **wp-cli:** add process pending webhook requests command ([#67](https://github.com/Automattic/newspack-network/issues/67)) ([7dbd8dc](https://github.com/Automattic/newspack-network/commit/7dbd8dc6813942ad8f457120cf4ad01b84882c3a))
+* **wp-cli:** sync all events from the Hub ([#65](https://github.com/Automattic/newspack-network/issues/65)) ([dc595ca](https://github.com/Automattic/newspack-network/commit/dc595ca69ae5bae0da45cb9f96e581a1eb6b2579))
+
+# [1.3.0-alpha.4](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.3...v1.3.0-alpha.4) (2024-02-28)
+
+
+### Bug Fixes
+
+* cli commands ([#73](https://github.com/Automattic/newspack-network/issues/73)) ([ff563ac](https://github.com/Automattic/newspack-network/commit/ff563acee53b899592269a1121e2552b678cf9c9))
+
+# [1.3.0-alpha.3](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.2...v1.3.0-alpha.3) (2024-02-28)
+
+
+### Bug Fixes
+
+* backfill duplicate handling; woo links in wp-admin-bar ([#71](https://github.com/Automattic/newspack-network/issues/71), [#72](https://github.com/Automattic/newspack-network/issues/72)) ([bbce13b](https://github.com/Automattic/newspack-network/commit/bbce13b9963437d9ef802ac0f6f343fbe59da630))
+
+# [1.3.0-alpha.2](https://github.com/Automattic/newspack-network/compare/v1.3.0-alpha.1...v1.3.0-alpha.2) (2024-02-27)
+
+
+### Bug Fixes
+
+* missing woocommerce-memberships handling ([76dbdf7](https://github.com/Automattic/newspack-network/commit/76dbdf72ae44a27f25c2c35c75720eae637fd518))
+
+# [1.3.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.2.0...v1.3.0-alpha.1) (2024-02-23)
+
+
+### Bug Fixes
+
+* memberships sync ([#63](https://github.com/Automattic/newspack-network/issues/63)) ([0a54f1d](https://github.com/Automattic/newspack-network/commit/0a54f1dbeb2da8281324ed3fc6323dc5a9100337))
+
+
+### Features
+
+* add hub bookmarks to nodes ([#56](https://github.com/Automattic/newspack-network/issues/56)) ([54700a0](https://github.com/Automattic/newspack-network/commit/54700a0ae4d272254902278bd208abb8df5a0805))
+* add option to manually sync users  ([#53](https://github.com/Automattic/newspack-network/issues/53)) ([3ec1b19](https://github.com/Automattic/newspack-network/commit/3ec1b1906a504ea83c8f99a673b994cb983b0f83))
+* display membership plans from the network ([#59](https://github.com/Automattic/newspack-network/issues/59)) ([6fa01fd](https://github.com/Automattic/newspack-network/commit/6fa01fd0ee903ff3e9a3cd496128811cc1600de3))
+* enhance network subscriptions and orders search ([#55](https://github.com/Automattic/newspack-network/issues/55)) ([bcb0615](https://github.com/Automattic/newspack-network/commit/bcb06155cb7d148f3dc735dbd88f566f8cf6f65c))
+* Node connection using a link ([#58](https://github.com/Automattic/newspack-network/issues/58)) ([721f8b2](https://github.com/Automattic/newspack-network/commit/721f8b2ed62db8f941bf11789cd3ece577606931))
+* **wp-cli:** add command to backfill events ([#51](https://github.com/Automattic/newspack-network/issues/51)) ([13d2498](https://github.com/Automattic/newspack-network/commit/13d24988ba15757f1a228ec87855122b13b45a59))
+* **wp-cli:** add process pending webhook requests command ([#67](https://github.com/Automattic/newspack-network/issues/67)) ([7dbd8dc](https://github.com/Automattic/newspack-network/commit/7dbd8dc6813942ad8f457120cf4ad01b84882c3a))
+* **wp-cli:** sync all events from the Hub ([#65](https://github.com/Automattic/newspack-network/issues/65)) ([dc595ca](https://github.com/Automattic/newspack-network/commit/dc595ca69ae5bae0da45cb9f96e581a1eb6b2579))
+
 # [1.2.0](https://github.com/Automattic/newspack-network/compare/v1.1.0...v1.2.0) (2024-02-20)
 
 
