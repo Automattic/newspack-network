@@ -36,16 +36,18 @@ class Nodes_List {
 	public static function posts_columns( $columns ) {
 		unset( $columns['date'] );
 		unset( $columns['stats'] );
-		$sync_users_info = sprintf(
-			' <span class="dashicons dashicons-info-outline" title="%s"></span>',
-			sprintf(
-				/* translators: list of user roles which will entail synchronization */
-				esc_attr__( 'Users with the following roles: %1$s (%2$d on the Hub)', 'newspack-network' ),
-				implode( ', ', \Newspack_Network\Utils\Users::get_synced_user_roles() ),
-				\Newspack_Network\Utils\Users::get_synchronized_users_count()
-			)
-		);
-		$columns['sync_users'] = __( 'Synchronized Users', 'newspack-network' ) . $sync_users_info;
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+			$sync_users_info = sprintf(
+				' <span class="dashicons dashicons-info-outline" title="%s"></span>',
+				sprintf(
+					/* translators: list of user roles which will entail synchronization */
+					esc_attr__( 'Users with the following roles: %1$s (%2$d on the Hub)', 'newspack-network' ),
+					implode( ', ', \Newspack_Network\Utils\Users::get_synced_user_roles() ),
+					\Newspack_Network\Utils\Users::get_synchronized_users_count()
+				)
+			);
+			$columns['sync_users'] = __( 'Synchronized Users', 'newspack-network' ) . $sync_users_info;
+		}
 		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
 	}
