@@ -62,6 +62,22 @@ class Admin {
 	}
 
 	/**
+	 * Get active members' emails.
+	 *
+	 * @param \WC_Memberships_Membership_Plan $plan the membership plan.
+	 */
+	public static function get_active_members_emails( $plan ) {
+		$active_memberships = $plan->get_memberships( [ 'post_status' => 'wcm-active' ] );
+		return array_map(
+			function ( $membership ) {
+				$user = get_user_by( 'id', $membership->get_user_id() );
+				return $user->user_email;
+			},
+			$active_memberships
+		);
+	}
+
+	/**
 	 * Filter membership plans to add user count.
 	 *
 	 * @param array                           $data associative array of membership plan data.
@@ -71,6 +87,9 @@ class Admin {
 	public static function add_data_to_membership_plan_response( $data, $plan, $request ) {
 		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
 			$data['active_members_count'] = $plan->get_memberships_count( 'active' );
+			if ( $request->get_param( 'include_active_members_emails' ) ) {
+				$data['active_members_emails'] = self::get_active_members_emails( $plan );
+			}
 		}
 		return $data;
 	}

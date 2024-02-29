@@ -16,23 +16,6 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
  */
 class Membership_Plans_Table extends \WP_List_Table {
 	/**
-	 * Whether to show local or network plans.
-	 *
-	 * @var bool
-	 */
-	private $is_local = false;
-
-	/**
-	 * Constructs the controller.
-	 *
-	 * @param bool $is_local Whether to show local or network plans.
-	 */
-	public function __construct( $is_local = false ) {
-		$this->is_local = $is_local;
-		parent::__construct();
-	}
-
-	/**
 	 * Get the table columns
 	 *
 	 * @return array
@@ -42,13 +25,12 @@ class Membership_Plans_Table extends \WP_List_Table {
 			'id'   => __( 'ID', 'newspack-network' ),
 			'name' => __( 'Name', 'newspack-network' ),
 		];
-		if ( $this->is_local ) {
-			$columns['node_url'] = __( '-', 'newspack-network' );
-		} else {
-			$columns['node_url'] = __( 'Node URL', 'newspack-network' );
-		}
+		$columns['node_url'] = __( 'Site URL', 'newspack-network' );
 		$columns['network_pass_id'] = __( 'Network ID', 'newspack-network' );
 		$columns['active_members_count'] = __( 'Active Members', 'newspack-network' );
+		if ( Membership_Plans::use_experimental_auditing_features() ) {
+			$columns['network_pass_discrepancies'] = __( 'Discrepancies', 'newspack-network' );
+		}
 		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
 	}
@@ -58,11 +40,7 @@ class Membership_Plans_Table extends \WP_List_Table {
 	 */
 	public function prepare_items() {
 		$this->_column_headers = [ $this->get_columns(), [], [], 'id' ];
-		if ( $this->is_local ) {
-			$this->items = Membership_Plans::get_local_membership_plans();
-		} else {
-			$this->items = Membership_Plans::get_membershp_plans_from_nodes();
-		}
+		$this->items = Membership_Plans::get_membershp_plans_from_network();
 	}
 
 	/**
@@ -75,6 +53,19 @@ class Membership_Plans_Table extends \WP_List_Table {
 	public function column_default( $item, $column_name ) {
 		if ( $column_name === 'network_pass_id' && $item[ $column_name ] ) {
 			return sprintf( '<code>%s</code>', $item[ $column_name ] );
+		}
+		if ( $column_name === 'network_pass_discrepancies' && isset( $item['network_pass_discrepancies'] ) && $item['network_pass_id'] ) {
+			$discrepancies = $item['network_pass_discrepancies'];
+			return sprintf(
+				/* translators: %d is the number of members */
+				_n(
+					'%d member doesn\'t match the shared member pool',
+					'%d members don\'t match the shared member pool',
+					count( $discrepancies ),
+					'newspack-plugin'
+				),
+				count( $discrepancies )
+			);
 		}
 		if ( $column_name === 'links' ) {
 			$edit_url = get_edit_post_link( $item['id'] );

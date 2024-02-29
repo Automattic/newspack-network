@@ -43,15 +43,9 @@ abstract class Membership_Plans {
 		?>
 			<div class="wrap newspack-network-membership-plans">
 				<style>.newspack-network-membership-plans .tablenav{display: none;}</style>
-				<h2><?php echo esc_html( __( 'Membership Plans from all Nodes', 'newspack-network' ) ); ?></h2>
+				<h2><?php echo esc_html( __( 'Membership Plans', 'newspack-network' ) ); ?></h2>
 				<?php
 					$table = new Membership_Plans_Table();
-					$table->prepare_items();
-					$table->display();
-				?>
-				<h2><?php echo esc_html( __( 'Membership Plans on the Hub (this site)', 'newspack-network' ) ); ?></h2>
-				<?php
-					$table = new Membership_Plans_Table( true );
 					$table->prepare_items();
 					$table->display();
 				?>
@@ -84,6 +78,9 @@ abstract class Membership_Plans {
 	 */
 	public static function fetch_collection_from_api( $node, $collection_endpoint, $collection_endpoint_id ) {
 		$endpoint = sprintf( '%s/wp-json/%s', $node->get_url(), $collection_endpoint );
+		if ( self::use_experimental_auditing_features() ) {
+			$endpoint = add_query_arg( 'include_active_members_emails', 1, $endpoint );
+		}
 		$response = wp_remote_get( // phpcs:ignore
 			$endpoint,
 			[
@@ -107,12 +104,24 @@ abstract class Membership_Plans {
 	/**
 	 * Get membership plans from all nodes.
 	 */
-	public static function get_membershp_plans_from_nodes() {
+	public static function get_membershp_plans_from_network() {
 		$plans_cache = self::get_membership_plans_from_cache();
 		if ( $plans_cache && isset( $plans_cache['plans'] ) ) {
 			return $plans_cache['plans'];
 		}
+		$by_network_pass_id = [];
 		$membership_plans = [];
+
+		if ( self::use_experimental_auditing_features() ) {
+			$local_membership_plans = self::get_local_membership_plans();
+			foreach ( $local_membership_plans as $local_plan ) {
+				if ( $local_plan['network_pass_id'] ) {
+					$by_network_pass_id[ $local_plan['network_pass_id'] ][ $local_plan['node_url'] ] = $local_plan['active_members_emails'];
+				}
+			}
+			$membership_plans = array_merge( $local_membership_plans, $membership_plans );
+		}
+
 		$nodes = \Newspack_Network\Hub\Nodes::get_all_nodes();
 		foreach ( $nodes as $node ) {
 			$node_plans = self::fetch_collection_from_api( $node, 'wc/v2/memberships/plans', 'membership-plans' );
@@ -123,6 +132,12 @@ abstract class Membership_Plans {
 						$network_pass_id = $meta->value;
 					}
 				}
+				if ( $network_pass_id && self::use_experimental_auditing_features() ) {
+					if ( ! isset( $by_network_pass_id[ $network_pass_id ] ) ) {
+						$by_network_pass_id[ $network_pass_id ] = [];
+					}
+					$by_network_pass_id[ $network_pass_id ][ $node->get_url() ] = $plan->active_members_emails;
+				}
 				$membership_plans[] = [
 					'id'                   => $plan->id,
 					'node_url'             => $node->get_url(),
@@ -132,12 +147,42 @@ abstract class Membership_Plans {
 				];
 			}
 		}
+
+		if ( self::use_experimental_auditing_features() ) {
+			$discrepancies = [];
+			foreach ( $by_network_pass_id as $plan_network_pass_id => $by_site ) {
+				$shared_emails = array_intersect( ...array_values( $by_site ) );
+				foreach ( $by_site as $site_url => $emails ) {
+					$discrepancies[ $plan_network_pass_id ][ $site_url ] = array_diff( $emails, $shared_emails );
+				}
+			}
+			$membership_plans = array_map(
+				function( $plan ) use ( $discrepancies ) {
+					if ( isset(
+						$plan['network_pass_id'],
+						$discrepancies[ $plan['network_pass_id'] ],
+						$discrepancies[ $plan['network_pass_id'] ][ $plan['node_url'] ]
+					) ) {
+						$plan['network_pass_discrepancies'] = $discrepancies[ $plan['network_pass_id'] ][ $plan['node_url'] ];
+					}
+					return $plan;
+				},
+				$membership_plans
+			);
+		}
 		$plans_to_save = [
 			'plans'        => $membership_plans,
 			'last_updated' => time(),
 		];
 		update_option( self::OPTIONS_CACHE_KEY_PLANS, $plans_to_save );
 		return $membership_plans;
+	}
+
+	/**
+	 * Has experimental auditing features?
+	 */
+	public static function use_experimental_auditing_features() {
+		return defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING' ) && NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING;
 	}
 
 	/**
@@ -149,12 +194,17 @@ abstract class Membership_Plans {
 			return [];
 		}
 		foreach ( wc_memberships_get_membership_plans() as $plan ) {
-			$membership_plans[] = [
+			$plan_data = [
 				'id'                   => $plan->post->ID,
+				'node_url'             => get_site_url(),
 				'name'                 => $plan->post->post_title,
 				'network_pass_id'      => get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true ),
 				'active_members_count' => $plan->get_memberships_count( 'active' ),
 			];
+			if ( self::use_experimental_auditing_features() ) {
+				$plan_data['active_members_emails'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_active_members_emails( $plan );
+			}
+			$membership_plans[] = $plan_data;
 		}
 		return $membership_plans;
 	}
