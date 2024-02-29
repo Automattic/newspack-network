@@ -78,7 +78,7 @@ abstract class Membership_Plans {
 	 */
 	public static function fetch_collection_from_api( $node, $collection_endpoint, $collection_endpoint_id ) {
 		$endpoint = sprintf( '%s/wp-json/%s', $node->get_url(), $collection_endpoint );
-		if ( self::use_experimental_auditing_features() ) {
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 			$endpoint = add_query_arg( 'include_active_members_emails', 1, $endpoint );
 		}
 		$response = wp_remote_get( // phpcs:ignore
@@ -112,11 +112,11 @@ abstract class Membership_Plans {
 		$by_network_pass_id = [];
 		$membership_plans = [];
 
-		if ( self::use_experimental_auditing_features() ) {
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 			$local_membership_plans = self::get_local_membership_plans();
 			foreach ( $local_membership_plans as $local_plan ) {
 				if ( $local_plan['network_pass_id'] ) {
-					$by_network_pass_id[ $local_plan['network_pass_id'] ][ $local_plan['node_url'] ] = $local_plan['active_members_emails'];
+					$by_network_pass_id[ $local_plan['network_pass_id'] ][ $local_plan['site_url'] ] = $local_plan['active_members_emails'];
 				}
 			}
 			$membership_plans = array_merge( $local_membership_plans, $membership_plans );
@@ -132,7 +132,7 @@ abstract class Membership_Plans {
 						$network_pass_id = $meta->value;
 					}
 				}
-				if ( $network_pass_id && self::use_experimental_auditing_features() ) {
+				if ( $network_pass_id && \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 					if ( ! isset( $by_network_pass_id[ $network_pass_id ] ) ) {
 						$by_network_pass_id[ $network_pass_id ] = [];
 					}
@@ -140,7 +140,7 @@ abstract class Membership_Plans {
 				}
 				$membership_plans[] = [
 					'id'                   => $plan->id,
-					'node_url'             => $node->get_url(),
+					'site_url'             => $node->get_url(),
 					'name'                 => $plan->name,
 					'network_pass_id'      => $network_pass_id,
 					'active_members_count' => $plan->active_members_count,
@@ -148,7 +148,7 @@ abstract class Membership_Plans {
 			}
 		}
 
-		if ( self::use_experimental_auditing_features() ) {
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 			$discrepancies = [];
 			foreach ( $by_network_pass_id as $plan_network_pass_id => $by_site ) {
 				$shared_emails = array_intersect( ...array_values( $by_site ) );
@@ -161,9 +161,9 @@ abstract class Membership_Plans {
 					if ( isset(
 						$plan['network_pass_id'],
 						$discrepancies[ $plan['network_pass_id'] ],
-						$discrepancies[ $plan['network_pass_id'] ][ $plan['node_url'] ]
+						$discrepancies[ $plan['network_pass_id'] ][ $plan['site_url'] ]
 					) ) {
-						$plan['network_pass_discrepancies'] = $discrepancies[ $plan['network_pass_id'] ][ $plan['node_url'] ];
+						$plan['network_pass_discrepancies'] = $discrepancies[ $plan['network_pass_id'] ][ $plan['site_url'] ];
 					}
 					return $plan;
 				},
@@ -179,13 +179,6 @@ abstract class Membership_Plans {
 	}
 
 	/**
-	 * Has experimental auditing features?
-	 */
-	public static function use_experimental_auditing_features() {
-		return defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING' ) && NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING;
-	}
-
-	/**
 	 * Get local membership plans.
 	 */
 	public static function get_local_membership_plans() {
@@ -196,12 +189,12 @@ abstract class Membership_Plans {
 		foreach ( wc_memberships_get_membership_plans() as $plan ) {
 			$plan_data = [
 				'id'                   => $plan->post->ID,
-				'node_url'             => get_site_url(),
+				'site_url'             => get_site_url(),
 				'name'                 => $plan->post->post_title,
 				'network_pass_id'      => get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true ),
 				'active_members_count' => $plan->get_memberships_count( 'active' ),
 			];
-			if ( self::use_experimental_auditing_features() ) {
+			if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 				$plan_data['active_members_emails'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_active_members_emails( $plan );
 			}
 			$membership_plans[] = $plan_data;

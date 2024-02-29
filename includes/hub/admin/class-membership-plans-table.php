@@ -25,10 +25,10 @@ class Membership_Plans_Table extends \WP_List_Table {
 			'id'   => __( 'ID', 'newspack-network' ),
 			'name' => __( 'Name', 'newspack-network' ),
 		];
-		$columns['node_url'] = __( 'Site URL', 'newspack-network' );
+		$columns['site_url'] = __( 'Site URL', 'newspack-network' );
 		$columns['network_pass_id'] = __( 'Network ID', 'newspack-network' );
-		$columns['active_members_count'] = __( 'Active Members', 'newspack-network' );
-		if ( Membership_Plans::use_experimental_auditing_features() ) {
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+			$columns['active_members_count'] = __( 'Active Members', 'newspack-network' );
 			$columns['network_pass_discrepancies'] = __( 'Discrepancies', 'newspack-network' );
 		}
 		$columns['links'] = __( 'Links', 'newspack-network' );
@@ -68,11 +68,12 @@ class Membership_Plans_Table extends \WP_List_Table {
 			);
 		}
 		if ( $column_name === 'links' ) {
-			$edit_url = get_edit_post_link( $item['id'] );
-			if ( isset( $item['node_url'] ) ) {
-				$edit_url = sprintf( '%s/wp-admin/post.php?post=%d&action=edit', $item['node_url'], $item['id'] );
-			}
+			$edit_url = sprintf( '%s/wp-admin/post.php?post=%d&action=edit', $item['site_url'], $item['id'] );
 			return sprintf( '<a href="%s">%s</a>', esc_url( $edit_url ), esc_html__( 'Edit', 'newspack-network' ) );
+		}
+		if ( $column_name === 'active_members_count' && $item[ $column_name ] ) {
+			$list_url = sprintf( '%s/wp-admin/edit.php?s&post_status=wcm-active&post_type=wc_user_membership&post_parent=%d', $item['site_url'], $item['id'] );
+			return sprintf( '<a href="%s">%s</a>', esc_url( $list_url ), $item[ $column_name ] );
 		}
 		return isset( $item[ $column_name ] ) ? $item[ $column_name ] : '';
 	}

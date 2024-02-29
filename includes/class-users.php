@@ -31,7 +31,9 @@ class Users {
 		if ( Site_Role::is_hub() ) {
 			$columns['newspack_network_activity'] = __( 'Newspack Network Activity', 'newspack-network' );
 		}
-		$columns['newspack_network_user'] = __( 'Network Original User', 'newspack-network' );
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+			$columns['newspack_network_user'] = __( 'Network Original User', 'newspack-network' );
+		}
 		return $columns;
 	}
 
