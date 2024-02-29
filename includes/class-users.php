@@ -31,6 +31,7 @@ class Users {
 		if ( Site_Role::is_hub() ) {
 			$columns['newspack_network_activity'] = __( 'Newspack Network Activity', 'newspack-network' );
 		}
+		$columns['newspack_network_user'] = __( 'Network Original User', 'newspack-network' );
 		return $columns;
 	}
 
@@ -43,6 +44,18 @@ class Users {
 	 * @return string
 	 */
 	public static function manage_users_custom_column( $value, $column_name, $user_id ) {
+		if ( 'newspack_network_user' === $column_name ) {
+			$remote_site = get_user_meta( $user_id, \Newspack_Network\Utils\Users::USER_META_REMOTE_SITE, true );
+			$remote_id = (int) get_user_meta( $user_id, \Newspack_Network\Utils\Users::USER_META_REMOTE_ID, true );
+			if ( $remote_site ) {
+				return sprintf(
+					'<a href="%swp-admin/user-edit.php?user_id=%d">%s</a>',
+					trailingslashit( esc_url( $remote_site ) ),
+					$remote_id,
+					sprintf( '%s (#%d)', $remote_site, $remote_id )
+				);
+			}
+		}
 		if ( 'newspack_network_activity' === $column_name && Site_Role::is_hub() ) {
 			$user = get_user_by( 'id', $user_id );
 			if ( ! $user ) {
