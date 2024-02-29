@@ -37,6 +37,7 @@ class Initializer {
 		if ( Site_Role::is_node() ) {
 			if ( Node\Settings::get_hub_url() ) {
 				Node\Webhook::init();
+				Node\Info_Endpoints::init();
 				Node\Pulling::init();
 				Rest_Authenticaton::init_node_filters();
 			}

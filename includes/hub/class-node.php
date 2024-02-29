@@ -170,4 +170,25 @@ class Node {
 
 		return self::generate_bookmarks( $base_url );
 	}
+
+	/**
+	 * Get site info.
+	 */
+	private function get_site_info() {
+		$response = wp_remote_get( // phpcs:ignore
+			$this->get_url() . '/wp-json/newspack-network/v1/info',
+			[
+				'headers' => $this->get_authorization_headers( 'info' ),
+			]
+		);
+		return json_decode( wp_remote_retrieve_body( $response ) );
+	}
+
+	/**
+	 * Get synchronized users count.
+	 */
+	public function get_sync_users_count() {
+		$site_info = $this->get_site_info();
+		return $site_info->sync_users_count ?? 0;
+	}
 }
