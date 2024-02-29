@@ -46,7 +46,7 @@ class Nodes_List {
 					\Newspack_Network\Utils\Users::get_synchronized_users_count()
 				)
 			);
-			$columns['sync_users'] = __( 'Synchronized Users', 'newspack-network' ) . $sync_users_info;
+			$columns['sync_users'] = __( 'Synchronizable Users', 'newspack-network' ) . $sync_users_info;
 		}
 		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
