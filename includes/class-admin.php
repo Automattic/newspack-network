@@ -32,7 +32,6 @@ class Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
-		add_filter( 'users_list_table_query_args', [ __CLASS__, 'users_list_table_query_args' ] );
 	}
 
 	/**
@@ -191,20 +190,5 @@ class Admin {
 	 * @return void
 	 */
 	public static function enqueue_scripts() {
-	}
-
-	/**
-	 * Handle the filtering of users by multiple roles.
-	 * Unfortunatelly, `get_views` and `get_views_links` are not filterable, so "All" will
-	 * be displayed as the active filter.
-	 *
-	 * @param array $args The current query args.
-	 */
-	public static function users_list_table_query_args( $args ) {
-		if ( isset( $_REQUEST['role__in'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$args['role__in'] = explode( ',', sanitize_text_field( $_REQUEST['role__in'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			unset( $args['role'] );
-		}
-		return $args;
 	}
 }

@@ -17,6 +17,7 @@ class Initializer {
 	 */
 	public static function init() {
 		Admin::init();
+		Users::init();
 
 		if ( Site_Role::is_hub() ) {
 			Hub\Admin::init();
