@@ -406,7 +406,10 @@ class Settings {
 					<?php if ( false === $data ) : ?>
 						<td>
 							🚫 <strong><?php _e( 'Decryption Error!', 'newspack-network' ); ?></strong><br>
-							<?php _e( 'The below is unencrypted and cannot be processed.', 'newspack-network' ); ?><br><br>
+							<?php if ( 'finished' !== $request['status'] ) : ?>
+									<?php _e( 'Data is unencrypted and cannot be processed.', 'newspack-network' ); ?>
+								<?php endif; ?>
+								<br><br>
 							<code><?php echo esc_html( wp_json_encode( $r['data'] ) ); ?></code>
 						</td>
 					<?php else : ?>
