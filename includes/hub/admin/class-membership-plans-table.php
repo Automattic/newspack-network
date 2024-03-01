@@ -56,15 +56,19 @@ class Membership_Plans_Table extends \WP_List_Table {
 		}
 		if ( $column_name === 'network_pass_discrepancies' && isset( $item['network_pass_discrepancies'] ) && $item['network_pass_id'] ) {
 			$discrepancies = $item['network_pass_discrepancies'];
+			$count = count( $discrepancies );
+			if ( $count === 0 ) {
+				return esc_html__( 'None', 'newspack-network' );
+			}
 			return sprintf(
 				/* translators: %d is the number of members */
 				_n(
 					'%d member doesn\'t match the shared member pool',
 					'%d members don\'t match the shared member pool',
-					count( $discrepancies ),
+					$count,
 					'newspack-plugin'
 				),
-				count( $discrepancies )
+				$count
 			);
 		}
 		if ( $column_name === 'links' ) {
