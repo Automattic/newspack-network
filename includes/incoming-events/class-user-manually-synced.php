@@ -51,7 +51,24 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 
 		User_Update_Watcher::$enabled = false;
 
-		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
+		$user = User_Utils::get_or_create_user_by_email(
+			$email,
+			$this->get_site(),
+			$this->data->user_id ?? '',
+			[
+				'user_login' => $this->data->user_login ?? $email,
+			]
+		);
+
+		// If the user is not found by email, but can't be created due to user_login clash,
+		// try again without setting the user_login (email will be used as user_login by default).
+		if ( is_wp_error( $user ) && $user->get_error_code() === 'existing_user_login' ) {
+			$user = User_Utils::get_or_create_user_by_email(
+				$email,
+				$this->get_site(),
+				$this->data->user_id ?? '',
+			);
+		}
 
 		if ( is_wp_error( $user ) ) {
 			Debugger::log( 'Error creating user: ' . $user->get_error_message() );
