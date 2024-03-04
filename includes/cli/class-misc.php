@@ -37,6 +37,7 @@ class Misc {
 			WP_CLI::add_command( 'newspack-network fix-email-display-names', [ __CLASS__, 'fix_email_display_names' ] );
 			WP_CLI::add_command( 'newspack-network deduplicate-users', [ __CLASS__, 'deduplicate_users' ] );
 			WP_CLI::add_command( 'newspack-network fix-subscriptions', [ __CLASS__, 'fix_subscriptions' ] );
+			WP_CLI::add_command( 'newspack-network reprocess-events', [ __CLASS__, 'reprocess_events' ] );
 		}
 	}
 
@@ -846,6 +847,54 @@ class Misc {
 			WP_CLI::line( '' );
 		}
 
+		WP_CLI::line( '' );
+	}
+
+	/**
+	 * Reprocess specified events from the event log.
+	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--live]
+	 * : Run the command in live mode, updating the subscriptions.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network reprocess-events 123 42
+	 */
+	public static function reprocess_events( array $args, array $assoc_args ) {
+		WP_CLI::line( '' );
+		if ( ! Site_Role::is_hub() ) {
+			WP_CLI::error( 'This command can only be run on the Hub site.' );
+		}
+		$event_ids = $args;
+		if ( empty( $event_ids ) ) {
+			WP_CLI::error( 'Please provide event IDs to reprocess.' );
+		}
+
+		$live = isset( $assoc_args['live'] ) ? true : false;
+
+		global $wpdb;
+		$table_name = \Newspack_Network\Hub\Database\Event_Log::get_table_name();
+		$query = "SELECT * FROM $table_name WHERE id IN (" . implode( ',', $event_ids ) . ')';
+		$results = $wpdb->get_results( $query ); //phpcs:ignore
+		if ( empty( $results ) ) {
+			WP_CLI::error( 'No events found with the provided IDs.' );
+		}
+		foreach ( $results as $event ) {
+			$incoming_event_class = 'Newspack_Network\\Incoming_Events\\' . Accepted_Actions::ACTIONS[ $event->action_name ];
+			$incoming_event = new $incoming_event_class( false, json_decode( $event->data ), $event->timestamp );
+			if ( $live ) {
+				WP_CLI::line( sprintf( 'Reprocessing event #%d of action: %s.', $event->id, $event->action_name ) );
+				$incoming_event->post_process_in_hub();
+			} else {
+				WP_CLI::line( sprintf( 'Would reprocess event #%d of action: %s.', $event->id, $event->action_name ) );
+			}
+		}
 		WP_CLI::line( '' );
 	}
 }
