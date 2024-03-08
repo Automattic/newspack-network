@@ -82,13 +82,22 @@ class Synchronize_All {
 	/**
 	 * Syncs all data, pulling all events from the Hub.
 	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp newspack-network sync-all
 	 *
+	 * ## OPTIONS
+	 *
+	 * [--yes]
+	 * : Run the command without confirmations, use with caution.
+	 *
 	 * @when after_wp_load
 	 */
-	public static function sync_all() {
+	public static function sync_all( array $args, array $assoc_args ) {
 		WP_CLI::line( '' );
 		if ( ! Site_Role::is_node() ) {
 			WP_CLI::error( 'This command can only be run on a Node site.' );
@@ -100,7 +109,7 @@ class Synchronize_All {
 		WP_CLI::line( '' );
 		WP_CLI::line( 'Pulling all data from the Hub will write data to this site. This will proceed incrementally, so the process can be picked up later.' );
 		WP_CLI::line( '' );
-		WP_CLI::confirm( 'Are we good to go?' );
+		WP_CLI::confirm( 'Are we good to go?', $assoc_args );
 		WP_CLI::line( '' );
 		self::process_events();
 		WP_CLI::success( 'Sync complete.' );
