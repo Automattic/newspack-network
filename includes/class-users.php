@@ -17,7 +17,7 @@ class Users {
 	 */
 	public static function init() {
 		add_filter( 'manage_users_columns', [ __CLASS__, 'manage_users_columns' ] );
-		add_filter( 'manage_users_custom_column', [ __CLASS__, 'manage_users_custom_column' ], 10, 3 );
+		add_filter( 'manage_users_custom_column', [ __CLASS__, 'manage_users_custom_column' ], 99, 3 ); // priority must be higher than Jetpack's jetpack_show_connection_status (10).
 		add_filter( 'users_list_table_query_args', [ __CLASS__, 'users_list_table_query_args' ] );
 	}
 
