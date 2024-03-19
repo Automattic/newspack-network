@@ -101,7 +101,8 @@ class Admin {
 	public static function add_data_to_membership_plan_response( $data, $plan, $request ) {
 		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
 			$data['active_members_count'] = $plan->get_memberships_count( 'active' );
-			if ( $request->get_param( 'include_active_members_emails' ) ) {
+			$network_pass_id = get_post_meta( $plan->id, self::NETWORK_ID_META_KEY, true );
+			if ( $network_pass_id && $request->get_param( 'include_active_members_emails' ) ) {
 				$data['active_members_emails'] = self::get_active_members_emails( $plan );
 			}
 		}
