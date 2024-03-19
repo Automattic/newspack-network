@@ -85,6 +85,7 @@ abstract class Membership_Plans {
 			$endpoint,
 			[
 				'headers' => $node->get_authorization_headers( 'get-woo-' . $collection_endpoint_id ),
+				'timeout' => 60, // phpcs:ignore
 			]
 		);
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
