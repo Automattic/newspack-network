@@ -104,7 +104,7 @@ abstract class Membership_Plans {
 	/**
 	 * Get membership plans from all nodes.
 	 */
-	public static function get_membershp_plans_from_network() {
+	public static function get_membership_plans_from_network() {
 		$plans_cache = self::get_membership_plans_from_cache();
 		if ( $plans_cache && isset( $plans_cache['plans'] ) ) {
 			return $plans_cache['plans'];

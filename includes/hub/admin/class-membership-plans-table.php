@@ -40,7 +40,7 @@ class Membership_Plans_Table extends \WP_List_Table {
 	 */
 	public function prepare_items() {
 		$this->_column_headers = [ $this->get_columns(), [], [], 'id' ];
-		$this->items = Membership_Plans::get_membershp_plans_from_network();
+		$this->items = Membership_Plans::get_membership_plans_from_network();
 	}
 
 	/**
