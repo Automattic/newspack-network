@@ -50,8 +50,6 @@ class Esp_Metadata_Sync {
 			$metadata['network_registration_site'] = \esc_url( \get_site_url() );
 		}
 
-		error_log( print_r( $metadata, true ) );
-
 		return $metadata;
 	}
 }
