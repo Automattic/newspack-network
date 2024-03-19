@@ -81,7 +81,11 @@ class Admin {
 		return array_map(
 			function ( $membership ) {
 				$user = get_user_by( 'id', $membership->get_user_id() );
-				return $user->user_email;
+				if ( $user ) {
+					return strtolower( $user->user_email );
+				} else {
+					return '';
+				}
 			},
 			$active_memberships
 		);
