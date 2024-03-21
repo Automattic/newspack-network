@@ -45,38 +45,69 @@ class Misc {
 	 * [--live]
 	 * : Run the command in live mode, updating the users.
 	 *
+	 * [--file]
+	 * : Read users from a CSV file, instead of by querying the DB.
+	 *
 	 * @when after_wp_load
 	 */
 	public static function fix_roles( array $args, array $assoc_args ) {
 		WP_CLI::line( '' );
 
 		$live = isset( $assoc_args['live'] ) ? true : false;
+		$csv_file = isset( $assoc_args['file'] ) ? $assoc_args['file'] : false;
+
 		if ( $live ) {
 			WP_CLI::line( 'Live mode – users will be updated.' );
 		} else {
 			WP_CLI::line( 'Dry run – users will not be updated. Use --live flag to run in live mode.' );
 		}
 
-		$users_without_role = get_users(
-			[
-				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					'relation' => 'OR',
-					[
-						'key'     => 'wp_capabilities',
-						'compare' => 'NOT EXISTS',
+		if ( $csv_file ) {
+			WP_CLI::line( 'Read users from CSV: ' . $csv_file );
+			$users_to_update = [];
+			if ( file_exists( $csv_file ) ) {
+				WP_CLI::line( 'File found.' );
+				$csv = array_map( 'str_getcsv', file( $csv_file ) );
+				array_walk(
+					$csv,
+					function( &$a ) use ( $csv ) {
+						$a = array_combine( $csv[0], $a );
+					}
+				);
+				array_shift( $csv ); // remove column header
+				$users_to_update = $csv;
+			}
+		} else {
+			$users_to_update = get_users(
+				[
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						'relation' => 'OR',
+						[
+							'key'     => 'wp_capabilities',
+							'compare' => 'NOT EXISTS',
+						],
+						[
+							'key'     => 'wp_capabilities',
+							'value'   => 'a:0:{}',
+							'compare' => '=',
+						],
 					],
-					[
-						'key'     => 'wp_capabilities',
-						'value' => 'a:0:{}',
-						'compare' => '=',
-					],
-				],
-			]
-		);
-		WP_CLI::line( 'Found ' . count( $users_without_role ) . ' users without role.' );
+				]
+			);
+		}
+		WP_CLI::line( 'Got ' . count( $users_to_update ) . ' users to update.' );
 		WP_CLI::line( '' );
 
-		foreach ( $users_without_role as $user ) {
+		foreach ( $users_to_update as $user ) {
+			// If read from CSV, find the user by email.
+			if ( is_array( $user ) ) {
+				$user_email = $user['user_email'];
+				$user = get_user_by( 'email', $user_email );
+				if ( $user === false ) {
+					WP_CLI::warning( 'User not found by email: ' . $user_email );
+					continue;
+				}
+			}
 			$user_id = $user->ID;
 			if ( $live ) {
 				$user->set_role( 'subscriber' );
