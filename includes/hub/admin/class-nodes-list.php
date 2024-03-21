@@ -28,6 +28,13 @@ class Nodes_List {
 	}
 
 	/**
+	 * Cache for site info responses.
+	 *
+	 * @var array
+	 */
+	private static $node_site_info_cache = [];
+
+	/**
 	 * Modify columns on post type table
 	 *
 	 * @param array $columns Registered columns.
@@ -47,6 +54,17 @@ class Nodes_List {
 				)
 			);
 			$columns['sync_users'] = __( 'Synchronizable Users', 'newspack-network' ) . $sync_users_info;
+
+			$not_sync_users_info = sprintf(
+				' <span class="dashicons dashicons-info-outline" title="%s"></span>',
+				sprintf(
+					/* translators: list of user roles which will entail synchronization */
+					esc_attr__( 'Users with roles different than the following roles: %1$s (%2$d on the Hub)', 'newspack-network' ),
+					implode( ', ', \Newspack_Network\Utils\Users::get_synced_user_roles() ),
+					\Newspack_Network\Utils\Users::get_not_synchronized_users_count()
+				)
+			);
+			$columns['not_sync_users'] = __( 'Non-synchronizable Users', 'newspack-network' ) . $not_sync_users_info;
 		}
 		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
@@ -80,6 +98,10 @@ class Nodes_List {
 				</p>
 			<?php
 		}
+		if ( ! isset( self::$node_site_info_cache[ $post_id ] ) ) {
+			self::$node_site_info_cache[ $post_id ] = $node->get_site_info();
+		}
+		$node_site_info = self::$node_site_info_cache[ $post_id ];
 		if ( 'sync_users' === $column ) {
 			$users_link = add_query_arg(
 				[
@@ -88,7 +110,18 @@ class Nodes_List {
 				trailingslashit( $node->get_url() ) . 'wp-admin/users.php'
 			);
 			?>
-				<a href="<?php echo esc_url( $users_link ); ?>"><?php echo esc_html( $node->get_sync_users_count() ); ?></a>
+				<a href="<?php echo esc_url( $users_link ); ?>"><?php echo esc_html( $node_site_info->sync_users_count ?? 0 ); ?></a>
+			<?php
+		}
+		if ( 'not_sync_users' === $column ) {
+			$users_link = add_query_arg(
+				[
+					'role__not_in' => implode( ',', \Newspack_Network\Utils\Users::get_synced_user_roles() ),
+				],
+				trailingslashit( $node->get_url() ) . 'wp-admin/users.php'
+			);
+			?>
+				<a href="<?php echo esc_url( $users_link ); ?>"><?php echo esc_html( $node_site_info->not_sync_users_count ?? 0 ); ?></a>
 			<?php
 		}
 	}

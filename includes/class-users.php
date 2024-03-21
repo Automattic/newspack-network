@@ -104,6 +104,10 @@ class Users {
 			$args['role__in'] = explode( ',', sanitize_text_field( $_REQUEST['role__in'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			unset( $args['role'] );
 		}
+		if ( isset( $_REQUEST['role__not_in'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$args['role__not_in'] = explode( ',', sanitize_text_field( $_REQUEST['role__not_in'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			unset( $args['role'] );
+		}
 		return $args;
 	}
 }

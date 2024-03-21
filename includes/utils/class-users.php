@@ -138,4 +138,18 @@ class Users {
 		);
 		return count( $users );
 	}
+
+	/**
+	 * Get not synchronized users count.
+	 */
+	public static function get_not_synchronized_users_count() {
+		$users = get_users(
+			[
+				'role__not_in' => self::get_synced_user_roles(),
+				'fields'       => [ 'id' ],
+				'number'       => -1,
+			]
+		);
+		return count( $users );
+	}
 }
