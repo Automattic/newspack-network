@@ -52,6 +52,7 @@ class Initializer {
 
 		Synchronize_All::init();
 		Data_Backfill::init();
+		Misc::init();
 
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();
