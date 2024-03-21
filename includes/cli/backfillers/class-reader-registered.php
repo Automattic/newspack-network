@@ -35,7 +35,7 @@ class Reader_Registered extends Abstract_Backfiller {
 		if ( $roles_to_sync === [] ) {
 			WP_CLI::error( 'Incompatible Newspack plugin version or no roles to sync.' );
 		}
-		// Get all users registered between this-> and $end.
+		// Get all users registered between specified dates.
 		$users = get_users(
 			[
 				'role__in'   => $roles_to_sync,
