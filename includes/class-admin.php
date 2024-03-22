@@ -196,11 +196,6 @@ class Admin {
 	 * Has experimental auditing features?
 	 */
 	public static function use_experimental_auditing_features() {
-		$user_slug = defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_USER' ) ? NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_USER : false;
-		if ( ! $user_slug ) {
-			return false;
-		}
-		$user = get_user_by( 'login', $user_slug );
-		return $user && get_current_user_id() === $user->ID;
+		return defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES' ) ? NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES : false;
 	}
 }
