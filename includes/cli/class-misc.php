@@ -30,6 +30,7 @@ class Misc {
 	public static function register_commands() {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			WP_CLI::add_command( 'newspack-network fix-roles', [ __CLASS__, 'fix_roles' ] );
+			WP_CLI::add_command( 'newspack-network get-user-memberships', [ __CLASS__, 'get_user_memberships' ] );
 		}
 	}
 
@@ -74,7 +75,7 @@ class Misc {
 						$a = array_combine( $csv[0], $a );
 					}
 				);
-				array_shift( $csv ); // remove column header
+				array_shift( $csv ); // Remove column header.
 				$users_to_update = $csv;
 			}
 		} else {
@@ -115,6 +116,39 @@ class Misc {
 			} else {
 				WP_CLI::line( "👉 In live mode, would assign Subscriber role to user $user->user_email (#$user_id)." );
 			}
+		}
+
+		WP_CLI::line( '' );
+	}
+
+	/**
+	 * Get user memberships.
+	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network get-user-memberships member-name@example.com
+	 */
+	public static function get_user_memberships( array $args, array $assoc_args ) {
+		WP_CLI::line( '' );
+
+		$email_address = isset( $args[0] ) ? $args[0] : false;
+		if ( ! $email_address ) {
+			WP_CLI::error( 'Please provide an email address.' );
+		}
+
+		$memberships = \wc_memberships_get_user_memberships( get_user_by( 'email', $email_address ) );
+		foreach ( $memberships as $membership ) {
+			$plan_name = $membership->get_plan()->get_name();
+			$plan_network_id = get_post_meta( $membership->get_plan()->get_id(), \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true );
+			if ( $plan_network_id ) {
+				$plan_name .= ' (Network ID: ' . $plan_network_id . ')';
+			}
+
+			WP_CLI::line( '➡ Membership ID: ' . $membership->get_id() . ', status: ' . $membership->get_status() . ', plan: ' . $plan_name );
 		}
 
 		WP_CLI::line( '' );

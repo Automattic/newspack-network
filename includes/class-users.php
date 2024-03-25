@@ -89,7 +89,7 @@ class Users {
 						'page'  => EVENT_LOG_PAGE_SLUG,
 						'email' => $user->user_email,
 					],
-					untrailingslashit( Node\Settings::get_hub_url() ) . '/wp-admin/admin.php',
+					untrailingslashit( Node\Settings::get_hub_url() ) . '/wp-admin/admin.php'
 				);
 				return sprintf(
 					'<a href="%s">%s</a>',
