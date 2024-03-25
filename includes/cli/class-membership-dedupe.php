@@ -43,7 +43,7 @@ class Membership_Dedupe {
 						],
 						[
 							'type'     => 'flag',
-							'name'     => 'dry-run',
+							'name'     => 'live',
 							'optional' => true,
 						],
 						[
@@ -60,12 +60,17 @@ class Membership_Dedupe {
 	/**
 	 * Handler for the CLI command.
 	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network clean-up-duplicate-memberships --plan-id=1234
+	 *
 	 * @param array $args Positional args.
 	 * @param array $assoc_args Associative args and flags.
 	 */
 	public static function clean_duplicate_memberships( $args, $assoc_args ) {
-		$dry_run = isset( $assoc_args['dry-run'] );
-		$csv     = isset( $assoc_args['csv'] );
+		WP_CLI::line( '' );
+		$live = isset( $assoc_args['live'] );
+		$csv = isset( $assoc_args['csv'] );
 
 		$plan_id = $assoc_args['plan-id'];
 		if ( ! is_numeric( $plan_id ) ) {
@@ -73,18 +78,23 @@ class Membership_Dedupe {
 		}
 		$plan_id = (int) $plan_id;
 
+		if ( ! $live ) {
+			WP_CLI::line( 'Running in dry-run mode. Use --live flag to run in live mode.' );
+			WP_CLI::line( '' );
+		}
+
 		$user_ids = self::get_users_with_duplicate_membership( $plan_id );
 		WP_CLI::line( sprintf( '%d users found with duplicate memberships', count( $user_ids ) ) );
 
 		$duplicates = [];
 		foreach ( $user_ids as $user_id ) {
-			$memberships = get_posts( 
+			$memberships = get_posts(
 				[
 					'author'      => $user_id,
 					'post_type'   => 'wc_user_membership',
 					'post_status' => 'any',
 					'post_parent' => $plan_id,
-				] 
+				]
 			);
 
 			foreach ( $memberships as $membership ) {
@@ -107,12 +117,13 @@ class Membership_Dedupe {
 			WP_CLI::line();
 		}
 
-		if ( ! $dry_run ) {
+		if ( $live ) {
 			WP_CLI::line( 'Deleting duplicates' );
-			self::deduplecate_memberships( $duplicates );
+			self::deduplicate_memberships( $duplicates );
 		}
 
 		WP_CLI::success( 'Done' );
+		WP_CLI::line( '' );
 	}
 
 	/**
@@ -141,7 +152,7 @@ class Membership_Dedupe {
 	 *
 	 * @param array $duplicates Analyzed data from ::clean_duplicate_memberships.
 	 */
-	private static function deduplecate_memberships( $duplicates ) {
+	private static function deduplicate_memberships( $duplicates ) {
 		$userdata = [];
 
 		foreach ( $duplicates as $duplicate ) {
