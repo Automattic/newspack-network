@@ -102,7 +102,7 @@ class Membership_Dedupe {
 				[
 					'post_type'  => 'wc_membership_plan',
 					'fields'     => 'ids',
-					'meta_query' => [
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 						[
 							'key'     => \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY,
 							'compare' => 'EXISTS',

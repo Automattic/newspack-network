@@ -66,6 +66,7 @@ class Admin {
 		add_filter( 'post_row_actions', array( __CLASS__, 'post_row_actions' ), 99, 2 ); // After the Memberships plugin.
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap' ), 20, 4 );
 		add_filter( 'wc_memberships_rest_api_membership_plan_data', [ __CLASS__, 'add_data_to_membership_plan_response' ], 2, 3 );
+		add_filter( 'woocommerce_rest_prepare_wc_user_membership', [ __CLASS__, 'add_data_to_wc_user_membership_response' ], 2, 3 );
 		add_filter( 'request', [ __CLASS__, 'request_query' ] );
 		add_action( 'pre_user_query', [ __CLASS__, 'pre_user_query' ] );
 		add_action( 'admin_notices', [ __CLASS__, 'admin_notices' ] );
@@ -107,6 +108,22 @@ class Admin {
 			}
 		}
 		return $data;
+	}
+
+	/**
+	 * Filter user membership data from REST API.
+	 *
+	 * @param \WP_REST_Response $response the response object.
+	 * @param null|\WP_Post     $user the user membership post object.
+	 * @param \WP_REST_Request  $request the request object.
+	 */
+	public static function add_data_to_wc_user_membership_response( $response, $user, $request ) {
+		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
+			// Add network plan ID to the response.
+			$plan = wc_memberships_get_membership_plan( $response->data['plan_id'] );
+			$response->data['plan_network_id'] = get_post_meta( $plan->id, self::NETWORK_ID_META_KEY, true );
+		}
+		return $response;
 	}
 
 	/**

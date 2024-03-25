@@ -75,12 +75,10 @@ abstract class Membership_Plans {
 	 * @param \Newspack_Network\Node\Node $node The node.
 	 * @param string                      $collection_endpoint The collection endpoint.
 	 * @param string                      $collection_endpoint_id The collection endpoint ID.
+	 * @param array                       $query_args The query args.
 	 */
-	public static function fetch_collection_from_api( $node, $collection_endpoint, $collection_endpoint_id ) {
-		$endpoint = sprintf( '%s/wp-json/%s', $node->get_url(), $collection_endpoint );
-		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
-			$endpoint = add_query_arg( 'include_active_members_emails', 1, $endpoint );
-		}
+	public static function fetch_collection_from_api( $node, $collection_endpoint, $collection_endpoint_id, $query_args = [] ) {
+		$endpoint = add_query_arg( $query_args, sprintf( '%s/wp-json/%s', $node->get_url(), $collection_endpoint ) );
 		$response = wp_remote_get( // phpcs:ignore
 			$endpoint,
 			[
@@ -108,7 +106,7 @@ abstract class Membership_Plans {
 	public static function get_membership_plans_from_network() {
 		$plans_cache = self::get_membership_plans_from_cache();
 		if ( $plans_cache && isset( $plans_cache['plans'] ) ) {
-			return $plans_cache['plans'];
+			return $plans_cache;
 		}
 		$by_network_pass_id = [];
 		$membership_plans = [];
@@ -125,7 +123,11 @@ abstract class Membership_Plans {
 
 		$nodes = \Newspack_Network\Hub\Nodes::get_all_nodes();
 		foreach ( $nodes as $node ) {
-			$node_plans = self::fetch_collection_from_api( $node, 'wc/v2/memberships/plans', 'membership-plans' );
+			$query_args = [];
+			if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+				$query_args['include_active_members_emails'] = 1;
+			}
+			$node_plans = self::fetch_collection_from_api( $node, 'wc/v2/memberships/plans', 'membership-plans', $query_args );
 			foreach ( $node_plans as $plan ) {
 				$network_pass_id = null;
 				foreach ( $plan->meta_data as $meta ) {
@@ -157,6 +159,16 @@ abstract class Membership_Plans {
 					$discrepancies[ $plan_network_pass_id ][ $site_url ] = array_diff( $emails, $shared_emails );
 				}
 			}
+
+			// Get all emails which are discrepant across all sites.
+			$discrepancies_emails = [];
+			foreach ( $discrepancies as $plan_network_id => $plan_discrepancies ) {
+				foreach ( $plan_discrepancies as $site_url => $plan_site_discrepancies ) {
+					$discrepancies_emails = array_merge( $discrepancies_emails, $plan_site_discrepancies );
+				}
+			}
+			$discrepancies_emails = array_unique( $discrepancies_emails );
+
 			$membership_plans = array_map(
 				function( $plan ) use ( $discrepancies ) {
 					if ( isset(
@@ -171,12 +183,13 @@ abstract class Membership_Plans {
 				$membership_plans
 			);
 		}
-		$plans_to_save = [
-			'plans'        => $membership_plans,
-			'last_updated' => time(),
+		$memberships_data = [
+			'plans'                => $membership_plans,
+			'discrepancies_emails' => $discrepancies_emails,
+			'last_updated'         => time(),
 		];
-		update_option( self::OPTIONS_CACHE_KEY_PLANS, $plans_to_save );
-		return $membership_plans;
+		update_option( self::OPTIONS_CACHE_KEY_PLANS, $memberships_data );
+		return $memberships_data;
 	}
 
 	/**
