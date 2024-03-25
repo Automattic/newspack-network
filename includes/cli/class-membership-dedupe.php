@@ -117,10 +117,7 @@ class Membership_Dedupe {
 			WP_CLI::line();
 		}
 
-		if ( $live ) {
-			WP_CLI::line( 'Deleting duplicates' );
-			self::deduplicate_memberships( $duplicates );
-		}
+		self::deduplicate_memberships( $duplicates, $live );
 
 		WP_CLI::success( 'Done' );
 		WP_CLI::line( '' );
@@ -151,8 +148,12 @@ class Membership_Dedupe {
 	 * De-duplicate memberships so that users only have one membership of a plan.
 	 *
 	 * @param array $duplicates Analyzed data from ::clean_duplicate_memberships.
+	 * @param bool  $live Whether to actually delete the duplicates.
 	 */
-	private static function deduplicate_memberships( $duplicates ) {
+	private static function deduplicate_memberships( $duplicates, $live ) {
+		if ( $live ) {
+			WP_CLI::line( 'Deleting duplicates' );
+		}
 		$userdata = [];
 
 		foreach ( $duplicates as $duplicate ) {
@@ -166,13 +167,17 @@ class Membership_Dedupe {
 		foreach ( $userdata as $email => $duplicates ) {
 			WP_CLI::line( sprintf( 'Processing %s', $email ) );
 			if ( count( $duplicates ) < 2 ) {
-				WP_CLI::line( '  - User does not have too many memberships' );
+				WP_CLI::line( '  - User has multiple memberships, but no duplicates' );
 			}
 
 			$memberships_to_delete = array_slice( $duplicates, 1 );
 			foreach ( $memberships_to_delete as $duplicate ) {
-				wp_delete_post( $duplicate['membership'], true );
-				WP_CLI::line( sprintf( '  - Deleted extra membership %d', $duplicate['membership'] ) );
+				if ( $live ) {
+					wp_delete_post( $duplicate['membership'], true );
+					WP_CLI::line( sprintf( '  - Deleted extra membership %d', $duplicate['membership'] ) );
+				} else {
+					WP_CLI::line( sprintf( '  - Would have deleted extra membership %d', $duplicate['membership'] ) );
+				}
 			}
 		}
 	}
