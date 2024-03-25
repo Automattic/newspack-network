@@ -1,7 +1,7 @@
 <?php
 /**
  * Newspack Network related constants
- * 
+ *
  * @package Newspack
  */
 
@@ -15,3 +15,5 @@ const WEBHOOK_RESPONSE_ERRORS = [
 	'INVALID_SIGNATURE' => 'Invalid Signature.',
 	'INVALID_DATA'      => 'Bad request. Invalid Data.',
 ];
+
+const EVENT_LOG_PAGE_SLUG = 'newspack-network-event-log';

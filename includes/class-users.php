@@ -7,6 +7,8 @@
 
 namespace Newspack_Network;
 
+use const Newspack_Network\constants\EVENT_LOG_PAGE_SLUG;
+
 /**
  * Class to handle the Users admin page
  */
@@ -28,9 +30,7 @@ class Users {
 	 * @return array
 	 */
 	public static function manage_users_columns( $columns ) {
-		if ( Site_Role::is_hub() ) {
-			$columns['newspack_network_activity'] = __( 'Newspack Network Activity', 'newspack-network' );
-		}
+		$columns['newspack_network_activity'] = __( 'Newspack Network Activity', 'newspack-network' );
 		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 			$columns['newspack_network_user'] = __( 'Network Original User', 'newspack-network' );
 		}
@@ -58,36 +58,45 @@ class Users {
 				);
 			}
 		}
-		if ( 'newspack_network_activity' === $column_name && Site_Role::is_hub() ) {
+		if ( 'newspack_network_activity' === $column_name ) {
 			$user = get_user_by( 'id', $user_id );
 			if ( ! $user ) {
 				return $value;
 			}
+			if ( Site_Role::is_hub() ) {
+				$last_activity = \Newspack_Network\Hub\Stores\Event_Log::get( [ 'email' => $user->user_email ], 1 );
+				if ( empty( $last_activity ) ) {
+					return '-';
+				}
 
-			$last_activity = \Newspack_Network\Hub\Stores\Event_Log::get( [ 'email' => $user->user_email ], 1 );
-
-			if ( empty( $last_activity ) ) {
-				return '-';
+				$event_log_url = add_query_arg(
+					[
+						'page'  => EVENT_LOG_PAGE_SLUG,
+						'email' => $user->user_email,
+					],
+					admin_url( 'admin.php' )
+				);
+				return sprintf(
+					'%s: <code>%s</code><br><a href="%s">%s</a>',
+					__( 'Last Activity', 'newspack-network' ),
+					$last_activity[0]->get_summary(),
+					$event_log_url,
+					__( 'View all', 'newspack-network' )
+				);
+			} else {
+				$event_log_url = add_query_arg(
+					[
+						'page'  => EVENT_LOG_PAGE_SLUG,
+						'email' => $user->user_email,
+					],
+					untrailingslashit( Node\Settings::get_hub_url() ) . '/wp-admin/admin.php',
+				);
+				return sprintf(
+					'<a href="%s">%s</a>',
+					$event_log_url,
+					__( 'View activity', 'newspack-network' )
+				);
 			}
-
-			$last_activity = $last_activity[0];
-
-			$summary       = $last_activity->get_summary();
-			$event_log_url = add_query_arg(
-				[
-					'page'  => \Newspack_Network\Hub\Admin\Event_Log::PAGE_SLUG,
-					'email' => $user->user_email,
-				],
-				admin_url( 'admin.php' )
-			);
-			return sprintf(
-				'%s: <code>%s</code><br><a href="%s">%s</a>',
-				__( 'Last Activity', 'newspack-network' ),
-				$summary,
-				$event_log_url,
-				__( 'View all', 'newspack-network' )
-			);
-
 		}
 		return $value;
 	}
