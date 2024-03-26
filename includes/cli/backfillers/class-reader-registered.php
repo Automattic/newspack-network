@@ -76,9 +76,12 @@ class Reader_Registered extends Abstract_Backfiller {
 		foreach ( $users as $user ) {
 			$registration_method = get_user_meta( $user->ID, \Newspack\Reader_Activation::REGISTRATION_METHOD, true );
 			$user_data = [
-				'user_id'  => $user->ID,
-				'email'    => $user->user_email,
-				'metadata' => [
+				'user_id'         => $user->ID,
+				'email'           => $user->user_email,
+				'user_registered' => $user->user_registered,
+				'first_name'      => get_user_meta( $user->ID, 'first_name', true ),
+				'last_name'       => get_user_meta( $user->ID, 'last_name', true ),
+				'meta_input'      => [
 					// 'current_page_url' is not saved, can't be backfilled.
 					'registration_method' => empty( $registration_method ) ? 'backfill-script' : $registration_method,
 				],

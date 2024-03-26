@@ -26,7 +26,6 @@ class Users {
 	 * @return WP_User|WP_Error
 	 */
 	public static function get_or_create_user_by_email( $email, $remote_site_url, $remote_id, $insert_array = [] ) {
-
 		$existing_user = get_user_by( 'email', $email );
 
 		if ( $existing_user ) {
@@ -42,6 +41,10 @@ class Users {
 		];
 
 		$user_array = array_merge( $user_array, $insert_array );
+
+		if ( isset( $user_array['meta_input'] ) ) {
+			$user_array['meta_input'] = (array) $user_array['meta_input'];
+		}
 
 		$user_id = wp_insert_user( $user_array );
 
