@@ -216,7 +216,7 @@ class Misc {
 					'wc/v2/memberships/members',
 					'memberships',
 					[
-						'customer' => $user_email,
+						'customer' => urlencode( $user_email ),
 					]
 				);
 

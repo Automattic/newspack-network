@@ -66,7 +66,15 @@ class Membership_Plans_Table extends \WP_List_Table {
 
 			$memberships_list_url_with_emails_url = add_query_arg(
 				\Newspack_Network\Woocommerce_Memberships\Admin::MEMBERSHIPS_TABLE_EMAILS_QUERY_PARAM,
-				implode( ',', $discrepancies ),
+				implode(
+					',',
+					array_map(
+						function( $email_address ) {
+							return urlencode( $email_address );
+						},
+						$discrepancies
+					)
+				),
 				$memberships_list_url
 			);
 			$message = sprintf(
