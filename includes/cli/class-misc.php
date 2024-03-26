@@ -32,6 +32,7 @@ class Misc {
 			WP_CLI::add_command( 'newspack-network fix-roles', [ __CLASS__, 'fix_roles' ] );
 			WP_CLI::add_command( 'newspack-network get-user-memberships', [ __CLASS__, 'get_user_memberships' ] );
 			WP_CLI::add_command( 'newspack-network fix-membership-discrepancies', [ __CLASS__, 'fix_membership_discrepancies' ] );
+			WP_CLI::add_command( 'newspack-network deduplicate-users', [ __CLASS__, 'deduplicate_users' ] );
 		}
 	}
 
@@ -275,5 +276,101 @@ class Misc {
 		}
 
 		WP_CLI::line( '' );
+	}
+
+	/**
+	 * Deduplicate users.
+	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--live]
+	 * : Run the command in live mode, updating the users.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network deduplicate-users
+	 */
+	public static function deduplicate_users( array $args, array $assoc_args ) {
+		WP_CLI::line( '' );
+
+		$live = isset( $assoc_args['live'] ) ? true : false;
+		if ( $live ) {
+			WP_CLI::line( 'Live mode – users will be deleted.' );
+		} else {
+			WP_CLI::line( 'Dry run – users will not be deleted. Use --live flag to run in live mode.' );
+		}
+
+		global $wpdb;
+		$duplicate_users_result = $wpdb->get_results(
+			'SELECT user_email, COUNT(user_email) as count FROM wp_users GROUP BY user_email HAVING count > 1'
+		);
+		WP_CLI::line( sprintf( 'Found %d duplicated user(s)', count( $duplicate_users_result ) ) );
+		WP_CLI::line( '' );
+		foreach ( $duplicate_users_result as $key => $result ) {
+			WP_CLI::line( 'Email address: ' . $result->user_email );
+			$user_ids_results = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT id FROM wp_users WHERE user_email = %s',
+					$result->user_email
+				)
+			);
+			$users = [];
+			foreach ( $user_ids_results as $key => $result ) {
+				$users[] = get_user_by( 'id', $result->id );
+			}
+			$by_user = [];
+			foreach ( $users as $user ) {
+				$memberships = \wc_memberships_get_user_memberships( $user );
+				$by_user[ $user->ID ] = [
+					'memberships' => $memberships,
+					'user'        => $user,
+				];
+				if ( count( $memberships ) === 0 ) {
+					WP_CLI::line( sprintf( 'User %d has no memberships', $user->ID ) );
+				} else {
+					$statuses = array_map(
+						function( $membership ) {
+							return $membership->status;
+						},
+						$memberships
+					);
+					$plan_ids = array_map(
+						function( $membership ) {
+							return $membership->plan_id;
+						},
+						$memberships
+					);
+					WP_CLI::line( sprintf( 'User %d has %d membership(s) (plans: %s) (statuses: %s)', $user->ID, count( $memberships ), implode( ', ', $plan_ids ), implode( ', ', $statuses ) ) );
+				}
+			}
+
+			// Get the user with the least memberships.
+			$min_memberships = PHP_INT_MAX;
+			$min_user_id = null;
+			foreach ( $by_user as $user_id => $user_data ) {
+				$memberships = $user_data['memberships'];
+				if ( count( $memberships ) < $min_memberships ) {
+					$min_memberships = count( $memberships );
+					$min_user_id = $user_id;
+				}
+			}
+			if ( $live ) {
+				WP_CLI::line( 'Removing user #' . $min_user_id );
+				$result = wp_delete_user( $min_user_id );
+				if ( $result ) {
+					WP_CLI::success( 'Deleted user ' . $min_user_id );
+				} else {
+					WP_CLI::warning( 'Failed to delete user ' . $min_user_id );
+				}
+			} else {
+				WP_CLI::line( 'Would remove user #' . $min_user_id );
+			}
+
+			WP_CLI::line( '' );
+		}
 	}
 }
