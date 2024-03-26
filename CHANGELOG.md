@@ -1,3 +1,21 @@
+# [1.4.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.3.0...v1.4.0-alpha.1) (2024-03-26)
+
+
+### Bug Fixes
+
+* cli commands ([#73](https://github.com/Automattic/newspack-network/issues/73)) ([dc2bef9](https://github.com/Automattic/newspack-network/commit/dc2bef9b3dc2de8357f8deb6c7efb6139eec404f))
+* correct typo in manual sync description ([#74](https://github.com/Automattic/newspack-network/issues/74)) ([a0bf23f](https://github.com/Automattic/newspack-network/commit/a0bf23fe8837cf7eefcbb867aa75819dc2e1b531))
+* webhook encryption error handling ([#77](https://github.com/Automattic/newspack-network/issues/77)) ([ceee31f](https://github.com/Automattic/newspack-network/commit/ceee31f78fe4452b79485369a38409e5ca32413a))
+* woo links in wp-admin-bar ([#71](https://github.com/Automattic/newspack-network/issues/71)) ([d2a76e5](https://github.com/Automattic/newspack-network/commit/d2a76e51084176cef9b6549c0c7940b17411904f))
+
+
+### Features
+
+* add Network-specific custom metadata to ESP syncs ([#83](https://github.com/Automattic/newspack-network/issues/83)) ([153a733](https://github.com/Automattic/newspack-network/commit/153a733080a78b0035e3b3bd98b7093b9d20f8fb))
+* **cli:** --yes option for sync-all command ([268f7fe](https://github.com/Automattic/newspack-network/commit/268f7fed7892ae922ac6106ee824f37058c2ecad))
+* **cli:** membership de-duplication CLI command ([#84](https://github.com/Automattic/newspack-network/issues/84)) ([c7ece71](https://github.com/Automattic/newspack-network/commit/c7ece717c297f55e4ae9db0791346e27953dc651))
+* **manual-user-sync:** sync user login ([#81](https://github.com/Automattic/newspack-network/issues/81)) ([3f9755e](https://github.com/Automattic/newspack-network/commit/3f9755ed5b75a280c0a0e23b6d91f319ad0b8fa4))
+
 # [1.3.0](https://github.com/Automattic/newspack-network/compare/v1.2.0...v1.3.0) (2024-02-28)
 
 
