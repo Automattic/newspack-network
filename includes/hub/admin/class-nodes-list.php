@@ -36,6 +36,18 @@ class Nodes_List {
 	public static function posts_columns( $columns ) {
 		unset( $columns['date'] );
 		unset( $columns['stats'] );
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+			$sync_users_info = sprintf(
+				' <span class="dashicons dashicons-info-outline" title="%s"></span>',
+				sprintf(
+					/* translators: list of user roles which will entail synchronization */
+					esc_attr__( 'Users with the following roles: %1$s (%2$d on the Hub)', 'newspack-network' ),
+					implode( ', ', \Newspack_Network\Utils\Users::get_synced_user_roles() ),
+					\Newspack_Network\Utils\Users::get_synchronized_users_count()
+				)
+			);
+			$columns['sync_users'] = __( 'Synchronizable Users', 'newspack-network' ) . $sync_users_info;
+		}
 		$columns['links'] = __( 'Links', 'newspack-network' );
 		return $columns;
 	}
@@ -48,8 +60,8 @@ class Nodes_List {
 	 * @return void
 	 */
 	public static function posts_columns_values( $column, $post_id ) {
+		$node = new Node( $post_id );
 		if ( 'links' === $column ) {
-			$node         = new Node( $post_id );
 			$links        = array_map(
 				function ( $bookmark ) {
 					return sprintf( '<a href="%s" target="_blank">%s</a>', esc_url( $bookmark['url'] ), esc_html( $bookmark['label'] ) );
@@ -66,6 +78,17 @@ class Nodes_List {
 				<p>
 					<?php echo wp_kses( implode( ' | ', $links ), $allowed_tags ); ?>
 				</p>
+			<?php
+		}
+		if ( 'sync_users' === $column ) {
+			$users_link = add_query_arg(
+				[
+					'role__in' => implode( ',', \Newspack_Network\Utils\Users::get_synced_user_roles() ),
+				],
+				trailingslashit( $node->get_url() ) . 'wp-admin/users.php'
+			);
+			?>
+				<a href="<?php echo esc_url( $users_link ); ?>"><?php echo esc_html( $node->get_sync_users_count() ); ?></a>
 			<?php
 		}
 	}

@@ -114,4 +114,28 @@ class Users {
 		Debugger::log( 'No avatar found in user data' );
 		return false;
 	}
+
+	/**
+	 * Get synchronization-entailing user roles.
+	 */
+	public static function get_synced_user_roles() {
+		if ( ! method_exists( '\Newspack\Reader_Activation', 'get_reader_roles' ) ) {
+			return [];
+		}
+		return \Newspack\Reader_Activation::get_reader_roles();
+	}
+
+	/**
+	 * Get synchronized users count.
+	 */
+	public static function get_synchronized_users_count() {
+		$users = get_users(
+			[
+				'role__in' => self::get_synced_user_roles(),
+				'fields'   => [ 'id' ],
+				'number'   => -1,
+			]
+		);
+		return count( $users );
+	}
 }

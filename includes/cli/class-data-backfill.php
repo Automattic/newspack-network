@@ -118,9 +118,6 @@ class Data_Backfill {
 		}
 		WP_CLI::line( '' );
 
-		if ( ! method_exists( '\Newspack\Reader_Activation', 'get_reader_roles' ) ) {
-			WP_CLI::error( 'Incompatible Newspack plugin version.' );
-		}
 		if ( $live ) {
 			WP_CLI::line( '⚡️ Heads up! Running live, data will be updated.' );
 		} else {

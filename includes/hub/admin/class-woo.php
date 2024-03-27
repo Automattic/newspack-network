@@ -39,7 +39,7 @@ abstract class Woo {
 		$class_name         = get_called_class();
 		$db_class_name      = str_replace( 'Admin', 'Database', $class_name );
 		self::$post_types[] = $db_class_name::POST_TYPE_SLUG;
-		
+
 		// Removes the Bulk actions dropdown.
 		add_filter( 'bulk_actions-edit-' . $db_class_name::POST_TYPE_SLUG, '__return_empty_array' );
 
@@ -158,7 +158,7 @@ abstract class Woo {
 		if ( 'edit.php' !== $pagenow || ! in_array( $post_type, self::$post_types, true ) || ! is_admin() || ! $query->is_main_query() ) {
 			return null;
 		}
-		
+
 		if ( ! isset( $_GET['node_id'] ) || ! is_numeric( $_GET['node_id'] ) ) { // zero is a valid value.
 			return null;
 		}
@@ -178,7 +178,6 @@ abstract class Woo {
 	 */
 	public static function parse_query( $query ) {
 		global $pagenow;
-
 		if ( ! is_admin() || 'edit.php' !== $pagenow || empty( $query->query_vars['s'] ) || ! in_array( $query->query_vars['post_type'], self::$post_types, true ) ) {
 			return;
 		}
