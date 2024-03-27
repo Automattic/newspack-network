@@ -55,7 +55,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 
 		global $wpdb;
 
-		$local_plan_id = $wpdb->get_var( // phpcs:ignore
+		$local_plan_ids_query_results = $wpdb->get_results( // phpcs:ignore
 			$wpdb->prepare(
 				"SELECT post_id from $wpdb->postmeta WHERE meta_key = %s AND meta_value = %s AND post_id IN ( SELECT ID FROM $wpdb->posts WHERE post_type = %s ) ",
 				Memberships_Admin::NETWORK_ID_META_KEY,
@@ -64,51 +64,54 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			)
 		);
 
-		if ( ! $local_plan_id ) {
-			Debugger::log( 'Local plan not found' );
+		if ( ! $local_plan_ids_query_results ) {
+			Debugger::log( 'No local plans found' );
 			return;
 		}
 
-		Memberships_Events::$pause_events = true;
-		User_Update_Watcher::$enabled     = false;
+		foreach ( $local_plan_ids_query_results as $local_plan_id_query_result ) {
+			$local_plan_id = $local_plan_id_query_result->post_id;
+			Memberships_Events::$pause_events = true;
+			User_Update_Watcher::$enabled     = false;
 
-		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
+			$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
 
-		$user_membership = wc_memberships_get_user_membership( $user->ID, $local_plan_id );
+			$user_membership = wc_memberships_get_user_membership( $user->ID, $local_plan_id );
 
-		if ( null === $user_membership ) {
-			$user_membership = wc_memberships_create_user_membership(
-				[
-					'plan_id' => $local_plan_id,
-					'user_id' => $user->ID,
-				]
+			if ( null === $user_membership ) {
+				$user_membership = wc_memberships_create_user_membership(
+					[
+						'plan_id' => $local_plan_id,
+						'user_id' => $user->ID,
+					]
+				);
+
+				update_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
+				update_post_meta( $user_membership->get_id(), Memberships_Admin::REMOTE_ID_META_KEY, $this->get_membership_id() );
+				update_post_meta( $user_membership->get_id(), Memberships_Admin::SITE_URL_META_KEY, $this->get_site() );
+			}
+
+			if ( is_wp_error( $user_membership ) ) {
+				Debugger::log( 'Error creating membership plan: ' . $user_membership->get_error_message() );
+				return;
+			}
+
+			if ( ! $user_membership instanceof WC_Memberships_User_Membership ) {
+				Debugger::log( 'Error creating membership plan' );
+				return;
+			}
+
+			$user_membership->update_status( $this->get_new_status() );
+			$user_membership->add_note(
+				sprintf(
+					// translators: %s is the site URL.
+					__( 'Membership status updated via Newspack Network. Status propagated from %s', 'newspack-network' ),
+					$this->get_site()
+				)
 			);
 
-			update_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
-			update_post_meta( $user_membership->get_id(), Memberships_Admin::REMOTE_ID_META_KEY, $this->get_membership_id() );
-			update_post_meta( $user_membership->get_id(), Memberships_Admin::SITE_URL_META_KEY, $this->get_site() );
+			Debugger::log( 'User membership updated' );
 		}
-
-		if ( is_wp_error( $user_membership ) ) {
-			Debugger::log( 'Error creating membership plan: ' . $user_membership->get_error_message() );
-			return;
-		}
-
-		if ( ! $user_membership instanceof WC_Memberships_User_Membership ) {
-			Debugger::log( 'Error creating membership plan' );
-			return;
-		}
-
-		$user_membership->update_status( $this->get_new_status() );
-		$user_membership->add_note(
-			sprintf(
-				// translators: %s is the site URL.
-				__( 'Membership status updated via Newspack Network. Status propagated from %s', 'newspack-network' ),
-				$this->get_site()
-			)
-		);
-
-		Debugger::log( 'User membership updated' );
 	}
 
 	/**
