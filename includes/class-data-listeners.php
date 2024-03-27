@@ -36,6 +36,7 @@ class Data_Listeners {
 		Data_Events::register_listener( 'woocommerce_subscription_status_changed', 'newspack_node_subscription_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'woocommerce_order_status_changed', 'newspack_node_order_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'newspack_network_user_updated', 'network_user_updated', [ __CLASS__, 'user_updated' ] );
+		Data_Events::register_listener( 'delete_user', 'network_user_deleted', [ __CLASS__, 'user_deleted' ] );
 		Data_Events::register_listener( 'newspack_network_nodes_synced', 'network_nodes_synced', [ __CLASS__, 'nodes_synced' ] );
 	}
 
@@ -85,6 +86,21 @@ class Data_Listeners {
 	 */
 	public static function user_updated( $user_data ) {
 		return $user_data;
+	}
+
+	/**
+	 * Filters the user data for the event being triggered
+	 *
+	 * @param int      $id       ID of the user to delete.
+	 * @param int|null $reassign ID of the user to reassign posts and links to.
+	 *                           Default null, for no reassignment.
+	 * @param WP_User  $user     WP_User object of the user to delete.
+	 * @return array
+	 */
+	public static function user_deleted( $id, $reassign, $user ) {
+		return [
+			'email' => $user->user_email,
+		];
 	}
 
 	/**
