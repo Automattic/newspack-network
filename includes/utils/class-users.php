@@ -33,9 +33,9 @@ class Users {
 		}
 
 		$user_array = [
-			'user_login'    => $email,
+			'user_login'    => substr( $email, 0, 60 ),
 			'user_email'    => $email,
-			'user_nicename' => $email,
+			'user_nicename' => substr( $email, 0, 50 ),
 			'user_pass'     => wp_generate_password(),
 			'role'          => NEWSPACK_NETWORK_READER_ROLE,
 		];
