@@ -72,7 +72,7 @@ class Users {
 				$event_log_url = add_query_arg(
 					[
 						'page'  => EVENT_LOG_PAGE_SLUG,
-						'email' => $user->user_email,
+						'email' => urlencode( $user->user_email ),
 					],
 					admin_url( 'admin.php' )
 				);
@@ -87,7 +87,7 @@ class Users {
 				$event_log_url = add_query_arg(
 					[
 						'page'  => EVENT_LOG_PAGE_SLUG,
-						'email' => $user->user_email,
+						'email' => urlencode( $user->user_email ),
 					],
 					untrailingslashit( Node\Settings::get_hub_url() ) . '/wp-admin/admin.php'
 				);
