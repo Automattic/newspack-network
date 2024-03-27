@@ -44,6 +44,7 @@ class Reader_Registered extends Abstract_Backfiller {
 					'before'    => $this->end,
 					'inclusive' => true,
 				],
+				'orderby'    => 'user_registered',
 				'fields'     => [ 'id', 'user_email', 'user_registered' ],
 				'number'     => -1,
 				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
