@@ -33,7 +33,7 @@ class Misc {
 			WP_CLI::add_command( 'newspack-network get-user-memberships', [ __CLASS__, 'get_user_memberships' ] );
 			WP_CLI::add_command( 'newspack-network fix-membership-discrepancies', [ __CLASS__, 'fix_membership_discrepancies' ] );
 			WP_CLI::add_command( 'newspack-network deduplicate-users', [ __CLASS__, 'deduplicate_users' ] );
-			WP_CLI::add_command( 'newspack-network deduplicate-subscriptions', [ __CLASS__, 'deduplicate_subscriptions' ] );
+			WP_CLI::add_command( 'newspack-network fix-subscriptions', [ __CLASS__, 'fix_subscriptions' ] );
 		}
 	}
 
@@ -388,50 +388,104 @@ class Misc {
 	 * [--live]
 	 * : Run the command in live mode, updating the subscriptions.
 	 *
+	 * [--fix-memberships]
+	 * : Fix mismatch between active subscriptions and active memberships.
+	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp newspack-network deduplicate-subscriptions
+	 *     wp newspack-network fix-subscriptions
 	 */
-	public static function deduplicate_subscriptions( array $args, array $assoc_args ) {
+	public static function fix_subscriptions( array $args, array $assoc_args ) {
 		WP_CLI::line( '' );
 
 		$live = isset( $assoc_args['live'] ) ? true : false;
+		$fix_memberships = isset( $assoc_args['fix-memberships'] ) ? true : false;
+
 		if ( $live ) {
-			WP_CLI::line( 'Live mode – subscriptions will be deleted.' );
+			WP_CLI::line( 'Live mode – data will be updated.' );
 		} else {
-			WP_CLI::line( 'Dry run – subscriptions will not be deleted. Use --live flag to run in live mode.' );
+			WP_CLI::line( 'Dry run – data will not be updated. Use --live flag to run in live mode.' );
 		}
 		WP_CLI::line( '' );
 
-		$extra_subscriptions_count = 0;
-
 		global $wpdb;
-		$subscriptions_per_user_results = $wpdb->get_results(
-			"SELECT customer_id, COUNT(customer_id) as count FROM wp_wc_orders WHERE type = 'shop_subscription' AND status = 'wc-active' GROUP BY customer_id HAVING count > 1"
-		);
-		WP_CLI::line( sprintf( 'Found %d user(s) with multiple active subscriptions', count( $subscriptions_per_user_results ) ) );
+		if ( $fix_memberships ) {
+			// Query for all subscriptions, regardless of status.
+			$subscriptions_per_user_results = $wpdb->get_results(
+				"SELECT customer_id, COUNT(customer_id) as count FROM wp_wc_orders WHERE type = 'shop_subscription' GROUP BY customer_id HAVING count > 1"
+			);
+			WP_CLI::line( sprintf( 'Found %d user(s) with multiple subscriptions', count( $subscriptions_per_user_results ) ) );
+		} else {
+			// Query for active subscriptions only.
+			$subscriptions_per_user_results = $wpdb->get_results(
+				"SELECT customer_id, COUNT(customer_id) as count FROM wp_wc_orders WHERE type = 'shop_subscription' AND status = 'wc-active' GROUP BY customer_id HAVING count > 1"
+			);
+			WP_CLI::line( sprintf( 'Found %d user(s) with multiple active subscriptions', count( $subscriptions_per_user_results ) ) );
+		}
+		WP_CLI::line( '' );
 
 		foreach ( $subscriptions_per_user_results as $result ) {
 			$user = get_user_by( 'id', $result->customer_id );
 			if ( $user ) {
 				// Compare to user's memberships.
 				$active_memberships = \wc_memberships_get_user_memberships( $user->ID, [ 'status' => [ 'active' ] ] );
-				WP_CLI::line( sprintf( 'User %s (#%d) has %d active subscriptions and %d active memberships.', $user->user_email, $result->customer_id, $result->count, count( $active_memberships ) ) );
+				if ( $fix_memberships ) {
+					WP_CLI::line( sprintf( 'User %s (#%d) has %d subscriptions and %d active memberships.', $user->user_email, $result->customer_id, $result->count, count( $active_memberships ) ) );
+				} else {
+					WP_CLI::line( sprintf( 'User %s (#%d) has %d active subscriptions and %d active memberships.', $user->user_email, $result->customer_id, $result->count, count( $active_memberships ) ) );
+				}
 				$memberships_subscriptions_delta = $result->count - count( $active_memberships );
 				if ( $memberships_subscriptions_delta > 0 ) {
-					WP_CLI::warning( sprintf( 'Active subscriptions (%d) do not match active memberships (%d) for user #%d.', $result->count, count( $active_memberships ), $result->customer_id ) );
-					$extra_subscriptions_count += $memberships_subscriptions_delta;
+					if ( $fix_memberships ) {
+						$active_subscription_ids = [];
+						$subscription_amounts = [];
+						$user_subscriptions = \wcs_get_users_subscriptions( $user->ID );
+						foreach ( $user_subscriptions as $subscription ) {
+							WP_CLI::line( sprintf( 'Subscription #%d (amount: $%d, started %s) has status "%s"', $subscription->get_id(), $subscription->get_total(), $subscription->get_date( 'start' ), $subscription->get_status() ) );
+							$subscription_amounts[] = $subscription->get_total();
+							if ( $subscription->get_status() === 'active' ) {
+								$active_subscription_ids[] = $subscription->get_id();
+							}
+						}
+						// If all subscription amounts are the same, this might be a mistake.
+						if ( count( $user_subscriptions ) !== count( array_unique( $subscription_amounts ) ) ) {
+							WP_CLI::warning( 'Found subscriptions with the same amount, this might be a mistake!' );
+						}
+
+						if ( empty( $active_subscription_ids ) && ! empty( $active_memberships ) ) {
+							WP_CLI::warning( 'No active subscriptions, but has active membership(s)!' );
+						}
+
+						if ( empty( $active_memberships ) ) {
+							WP_CLI::line( sprintf( 'User %s (#%d) has %d subscriptions and no active memberships.', $user->user_email, $result->customer_id, $result->count ) );
+							WP_CLI::line( '' );
+							continue;
+						}
+
+						foreach ( $active_memberships as $membership ) {
+							$membership_subscription = $membership->get_subscription();
+							WP_CLI::line( sprintf( 'Membership #%d is tied to subscription #%d', $membership->get_id(), $membership_subscription ? $membership_subscription->get_id() : 0 ) );
+							if ( $membership_subscription && ! in_array( $membership_subscription->get_id(), $active_subscription_ids ) ) {
+								if ( empty( $active_subscription_ids ) ) {
+									WP_CLI::warning( 'No active subscriptions, cannot fix the membership!' );
+									continue;
+								}
+								if ( $live ) {
+									$membership->set_subscription_id( $active_subscription_ids[0] );
+									$membership->set_end_date(); // CLear end date so membership is tied to subscription.
+									$membership->update_status( 'wcm-active' );
+									WP_CLI::success( sprintf( 'The subscription (%d) tied to the active membership is not an active subscription. It has been linked to an active subscription (%d).', $membership_subscription->get_id(), $active_subscription_ids[0] ) );
+								} else {
+									WP_CLI::warning( sprintf( 'The subscription (%d) tied to the active membership is not an active subscription.', $membership_subscription->get_id() ) );
+								}
+							}
+						}
+					}
 				}
 			} else {
 				WP_CLI::line( sprintf( '%d active subscriptions are assigned to user #%d (no user found)', $result->count, $result->customer_id ) );
 			}
-		}
-
-		// TODO: The deduplication.
-
-		if ( $extra_subscriptions_count > 0 ) {
 			WP_CLI::line( '' );
-			WP_CLI::warning( sprintf( 'There are %d extra active subscriptions.', $extra_subscriptions_count ) );
 		}
 
 		WP_CLI::line( '' );
