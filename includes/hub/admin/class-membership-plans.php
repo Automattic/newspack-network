@@ -55,7 +55,7 @@ abstract class Membership_Plans {
 					<?php
 					printf(
 						/* translators: last fetch date. */
-						esc_html__( 'Plans from Nodes were last fetched on %s.', 'newspack-network' ),
+						esc_html__( 'Plans were last fetched on %s.', 'newspack-network' ),
 						esc_html( gmdate( 'Y-m-d H:i', (int) $plans_cache['last_updated'] ) )
 					);
 					?>
@@ -204,11 +204,13 @@ abstract class Membership_Plans {
 		foreach ( wc_memberships_get_membership_plans() as $plan ) {
 			$network_pass_id = get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true );
 			$plan_data = [
-				'id'              => $plan->post->ID,
-				'site_url'        => get_site_url(),
-				'name'            => $plan->post->post_title,
-				'network_pass_id' => $network_pass_id,
+				'id'                       => $plan->post->ID,
+				'site_url'                 => get_site_url(),
+				'name'                     => $plan->post->post_title,
+				'network_pass_id'          => $network_pass_id,
+				'active_memberships_count' => $plan->get_memberships_count( 'active' ),
 			];
+			error_log( print_r( $plan_data, true ) );
 			if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 				$plan_data['active_members_emails'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_active_members_emails( $plan );
 				if ( $network_pass_id ) {
