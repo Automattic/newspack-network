@@ -28,14 +28,13 @@ class Membership_Plans_Table extends \WP_List_Table {
 		$columns['network_pass_id'] = __( 'Network ID', 'newspack-network' );
 		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 			$columns['active_memberships_count'] = __( 'Active Memberships', 'newspack-network' );
+			$columns['network_pass_discrepancies'] = __( 'Membership Discrepancies', 'newspack-network' );
 
 			$subs_info = sprintf(
 				' <span class="dashicons dashicons-info-outline" title="%s"></span>',
 				__( 'Active Subscriptions tied to this membership plan', 'newspack-network' )
 			);
 			$columns['active_subscriptions_count'] = __( 'Active Subscriptions', 'newspack-network' ) . $subs_info;
-
-			$columns['network_pass_discrepancies'] = __( 'Discrepancies', 'newspack-network' );
 		}
 		return $columns;
 	}
