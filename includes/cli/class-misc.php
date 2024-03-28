@@ -33,6 +33,7 @@ class Misc {
 			WP_CLI::add_command( 'newspack-network get-user-memberships', [ __CLASS__, 'get_user_memberships' ] );
 			WP_CLI::add_command( 'newspack-network fix-membership-discrepancies', [ __CLASS__, 'fix_membership_discrepancies' ] );
 			WP_CLI::add_command( 'newspack-network deduplicate-users', [ __CLASS__, 'deduplicate_users' ] );
+			WP_CLI::add_command( 'newspack-network deduplicate-subscriptions', [ __CLASS__, 'deduplicate_subscriptions' ] );
 		}
 	}
 
@@ -198,6 +199,7 @@ class Misc {
 				WP_CLI::warning( 'Missing origin site for user with email: ' . $email_address );
 				continue;
 			}
+			$origin_site = preg_replace( '/newspackstaging.com/', 'newspackqa.blog', $origin_site );
 			if ( isset( $by_origin_site[ $origin_site ] ) ) {
 				$by_origin_site[ $origin_site ][] = $email_address;
 			} else {
@@ -372,5 +374,66 @@ class Misc {
 
 			WP_CLI::line( '' );
 		}
+	}
+
+	/**
+	 * Deduplicate subscriptions.
+	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--live]
+	 * : Run the command in live mode, updating the subscriptions.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network deduplicate-subscriptions
+	 */
+	public static function deduplicate_subscriptions( array $args, array $assoc_args ) {
+		WP_CLI::line( '' );
+
+		$live = isset( $assoc_args['live'] ) ? true : false;
+		if ( $live ) {
+			WP_CLI::line( 'Live mode – subscriptions will be deleted.' );
+		} else {
+			WP_CLI::line( 'Dry run – subscriptions will not be deleted. Use --live flag to run in live mode.' );
+		}
+		WP_CLI::line( '' );
+
+		$extra_subscriptions_count = 0;
+
+		global $wpdb;
+		$subscriptions_per_user_results = $wpdb->get_results(
+			"SELECT customer_id, COUNT(customer_id) as count FROM wp_wc_orders WHERE type = 'shop_subscription' AND status = 'wc-active' GROUP BY customer_id HAVING count > 1"
+		);
+		WP_CLI::line( sprintf( 'Found %d user(s) with multiple active subscriptions', count( $subscriptions_per_user_results ) ) );
+
+		foreach ( $subscriptions_per_user_results as $result ) {
+			$user = get_user_by( 'id', $result->customer_id );
+			if ( $user ) {
+				// Compare to user's memberships.
+				$active_memberships = \wc_memberships_get_user_memberships( $user->ID, [ 'status' => [ 'active' ] ] );
+				WP_CLI::line( sprintf( 'User %s (#%d) has %d active subscriptions and %d active memberships.', $user->user_email, $result->customer_id, $result->count, count( $active_memberships ) ) );
+				$memberships_subscriptions_delta = $result->count - count( $active_memberships );
+				if ( $memberships_subscriptions_delta > 0 ) {
+					WP_CLI::warning( sprintf( 'Active subscriptions (%d) do not match active memberships (%d) for user #%d.', $result->count, count( $active_memberships ), $result->customer_id ) );
+					$extra_subscriptions_count += $memberships_subscriptions_delta;
+				}
+			} else {
+				WP_CLI::line( sprintf( '%d active subscriptions are assigned to user #%d (no user found)', $result->count, $result->customer_id ) );
+			}
+		}
+
+		// TODO: The deduplication.
+
+		if ( $extra_subscriptions_count > 0 ) {
+			WP_CLI::line( '' );
+			WP_CLI::warning( sprintf( 'There are %d extra active subscriptions.', $extra_subscriptions_count ) );
+		}
+
+		WP_CLI::line( '' );
 	}
 }
