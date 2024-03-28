@@ -142,11 +142,12 @@ abstract class Membership_Plans {
 					$by_network_pass_id[ $network_pass_id ][ $node->get_url() ] = $plan->active_members_emails;
 				}
 				$membership_plans[] = [
-					'id'                   => $plan->id,
-					'site_url'             => $node->get_url(),
-					'name'                 => $plan->name,
-					'network_pass_id'      => $network_pass_id,
-					'active_members_count' => $plan->active_members_count,
+					'id'                         => $plan->id,
+					'site_url'                   => $node->get_url(),
+					'name'                       => $plan->name,
+					'network_pass_id'            => $network_pass_id,
+					'active_members_count'       => $plan->active_members_count,
+					'active_subscriptions_count' => $plan->active_subscriptions_count,
 				];
 			}
 		}
@@ -201,15 +202,20 @@ abstract class Membership_Plans {
 			return [];
 		}
 		foreach ( wc_memberships_get_membership_plans() as $plan ) {
+			$network_pass_id = get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true );
 			$plan_data = [
-				'id'                   => $plan->post->ID,
-				'site_url'             => get_site_url(),
-				'name'                 => $plan->post->post_title,
-				'network_pass_id'      => get_post_meta( $plan->post->ID, \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true ),
-				'active_members_count' => $plan->get_memberships_count( 'active' ),
+				'id'              => $plan->post->ID,
+				'site_url'        => get_site_url(),
+				'name'            => $plan->post->post_title,
+				'network_pass_id' => $network_pass_id,
 			];
 			if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 				$plan_data['active_members_emails'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_active_members_emails( $plan );
+				if ( $network_pass_id ) {
+					$plan_data['active_subscriptions_count'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_plan_related_active_subscriptions( $plan );
+				} else {
+					$plan_data['active_subscriptions_count'] = __( 'Only displayed for plans with a Network ID.', 'newspack-network' );
+				}
 			}
 			$membership_plans[] = $plan_data;
 		}

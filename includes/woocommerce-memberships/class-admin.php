@@ -104,10 +104,22 @@ class Admin {
 			$data['active_members_count'] = $plan->get_memberships_count( 'active' );
 			$network_pass_id = get_post_meta( $plan->id, self::NETWORK_ID_META_KEY, true );
 			if ( $network_pass_id && $request->get_param( 'include_active_members_emails' ) ) {
+				$data['active_subscriptions_count'] = self::get_plan_related_active_subscriptions( $plan );
 				$data['active_members_emails'] = array_values( array_unique( self::get_active_members_emails( $plan ) ) );
+			} else {
+				$data['active_subscriptions_count'] = __( 'Only displayed for plans with a Network ID.', 'newspack-network' );
 			}
 		}
 		return $data;
+	}
+
+	/**
+	 * Get the active subscriptions related to a membership plan.
+	 */
+	public static function get_plan_related_active_subscriptions( $plan ) {
+		$product_ids = $plan->get_product_ids();
+		$subscriptions = wcs_get_subscriptions_for_product( $product_ids, 'ids', [ 'subscription_status' => 'active' ] );
+		return count( $subscriptions );
 	}
 
 	/**
