@@ -146,7 +146,7 @@ abstract class Membership_Plans {
 					'site_url'                   => $node->get_url(),
 					'name'                       => $plan->name,
 					'network_pass_id'            => $network_pass_id,
-					'active_members_count'       => $plan->active_members_count,
+					'active_memberships_count'   => $plan->active_memberships_count,
 					'active_subscriptions_count' => $plan->active_subscriptions_count,
 				];
 			}
