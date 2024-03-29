@@ -1,5 +1,12 @@
 # [1.5.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.4.0...v1.5.0-alpha.1) (2024-03-27)
 
+### Features
+
+* **event-log:** only show users filter with environment constant ([#86](https://github.com/Automattic/newspack-network/issues/86)) ([cd4a91a](https://github.com/Automattic/newspack-network/commit/cd4a91ab65a81d7abc54359ff6e1537aae253b84))
+
+
+## [1.4.1](https://github.com/Automattic/newspack-network/compare/v1.4.0...v1.4.1) (2024-03-29)
+
 
 ### Bug Fixes
 
