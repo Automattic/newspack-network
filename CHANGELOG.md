@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/Automattic/newspack-network/compare/v1.3.0...v1.4.0) (2024-03-27)
+
+
+### Features
+
+* add Network-specific custom metadata to ESP syncs ([#83](https://github.com/Automattic/newspack-network/issues/83)) ([#85](https://github.com/Automattic/newspack-network/issues/85)) ([5850129](https://github.com/Automattic/newspack-network/commit/5850129b90109103fbe1f268f8f6f7256f394520))
+
 # [1.3.0](https://github.com/Automattic/newspack-network/compare/v1.2.0...v1.3.0) (2024-02-28)
 
 
