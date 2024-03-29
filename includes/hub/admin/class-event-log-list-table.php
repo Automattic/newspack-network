@@ -22,8 +22,8 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
  * The Event Log List Table
  */
 class Event_Log_List_Table extends \WP_List_Table {
-	
-	
+
+
 	/**
 	 * Get the table columns
 	 *
@@ -56,14 +56,14 @@ class Event_Log_List_Table extends \WP_List_Table {
 			$args['action_name'] = sanitize_text_field( $_GET['action_name'] );
 		}
 
-		if ( isset( $_GET['node_id'] ) ) { 
+		if ( isset( $_GET['node_id'] ) ) {
 			$args['node_id'] = sanitize_text_field( $_GET['node_id'] );
 		}
 
-		if ( isset( $_GET['email'] ) ) { 
+		if ( isset( $_GET['email'] ) ) {
 			$args['email'] = sanitize_text_field( $_GET['email'] );
 		}
-		
+
 		$columns               = $this->get_columns();
 		$primary               = 'id';
 		$this->_column_headers = array( $columns, [], [], $primary );
@@ -106,12 +106,14 @@ class Event_Log_List_Table extends \WP_List_Table {
 			<?php endforeach; ?>
 		</select>
 
+		<?php if ( defined( 'NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER' ) && NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER ) : ?>
 		<select name="email" id="email">
 			<option value=""><?php _e( 'All users', 'newspack-network' ); ?></option>
 			<?php foreach ( $all_emails as $email ) : ?>
 				<option value="<?php echo esc_attr( $email ); ?>" <?php selected( $current_email, $email ); ?>><?php echo esc_html( $email ); ?></option>
 			<?php endforeach; ?>
 		</select>
+		<?php endif; ?>
 
 		<?php Nodes::nodes_dropdown( $current_node ); ?>
 
