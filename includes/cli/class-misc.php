@@ -118,7 +118,7 @@ class Misc {
 			$role = 'subscriber';
 			// If the user has the newspack_remote_site meta, it's a network user.
 			$remote_site = get_user_meta( $user_id, \Newspack_Network\Utils\Users::USER_META_REMOTE_SITE, true );
-			if ($remote_site) {
+			if ( $remote_site ) {
 				$role = NEWSPACK_NETWORK_READER_ROLE;
 			}
 			if ( $live ) {

@@ -47,6 +47,7 @@ class Info_Endpoints {
 		return rest_ensure_response(
 			[
 				'sync_users_count'     => \Newspack_Network\Utils\Users::get_synchronized_users_count(),
+				'sync_users_emails'    => \Newspack_Network\Utils\Users::get_synchronized_users_emails(),
 				'not_sync_users_count' => \Newspack_Network\Utils\Users::get_not_synchronized_users_count(),
 			]
 		);

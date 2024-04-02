@@ -132,14 +132,30 @@ class Users {
 	 * Get synchronized users count.
 	 */
 	public static function get_synchronized_users_count() {
-		$users = get_users(
+		return count( self::get_synchronized_users( [ 'id' ] ) );
+	}
+
+	/**
+	 * Get synchronized users emails.
+	 */
+	public static function get_synchronized_users_emails() {
+		$sync_users_emails = array_column( self::get_synchronized_users( [ 'user_email' ] ), 'user_email' );
+		return array_map( 'strtolower', $sync_users_emails );
+	}
+
+	/**
+	 * Get synchronized users.
+	 *
+	 * @param array $fields Fields to return.
+	 */
+	public static function get_synchronized_users( $fields = [] ) {
+		return get_users(
 			[
 				'role__in' => self::get_synced_user_roles(),
-				'fields'   => [ 'id' ],
+				'fields'   => $fields,
 				'number'   => -1,
 			]
 		);
-		return count( $users );
 	}
 
 	/**
