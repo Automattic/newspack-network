@@ -38,7 +38,7 @@ class Misc {
 	}
 
 	/**
-	 * Assign 'Subscriber' role to users without any role set..
+	 * Assign 'Subscriber' role to users without any role set.
 	 *
 	 * @param array $args Indexed array of args.
 	 * @param array $assoc_args Associative array of args.
@@ -52,7 +52,10 @@ class Misc {
 	 * [--file]
 	 * : Read users from a CSV file, instead of by querying the DB.
 	 *
-	 * @when after_wp_load
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network fix-roles
 	 */
 	public static function fix_roles( array $args, array $assoc_args ) {
 		WP_CLI::line( '' );
