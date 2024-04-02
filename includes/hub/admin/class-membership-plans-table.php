@@ -30,11 +30,19 @@ class Membership_Plans_Table extends \WP_List_Table {
 			$columns['active_memberships_count'] = __( 'Active Memberships', 'newspack-network' );
 			$columns['network_pass_discrepancies'] = __( 'Membership Discrepancies', 'newspack-network' );
 
+			$active_subscriptions_sum = array_reduce(
+				$this->items,
+				function( $carry, $item ) {
+					return $carry + ( is_numeric( $item['active_subscriptions_count'] ) ? $item['active_subscriptions_count'] : 0 );
+				},
+				0
+			);
 			$subs_info = sprintf(
 				' <span class="dashicons dashicons-info-outline" title="%s"></span>',
 				__( 'Active Subscriptions tied to this membership plan', 'newspack-network' )
 			);
-			$columns['active_subscriptions_count'] = __( 'Active Subscriptions', 'newspack-network' ) . $subs_info;
+			// translators: %d is the sum of active subscriptions.
+			$columns['active_subscriptions_count'] = sprintf( __( 'Active Subscriptions (%d)', 'newspack-network' ), $active_subscriptions_sum ) . $subs_info;
 		}
 		return $columns;
 	}
@@ -43,12 +51,11 @@ class Membership_Plans_Table extends \WP_List_Table {
 	 * Prepare items to be displayed
 	 */
 	public function prepare_items() {
-		$this->_column_headers = [ $this->get_columns(), [], $this->get_sortable_columns(), 'id' ];
 		$membership_plans_from_network_data = Membership_Plans::get_membership_plans_from_network();
 
 		// Handle table sorting.
-		$order = $_REQUEST['order'] ?? false; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$orderby = $_REQUEST['orderby'] ?? false; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$order = $_REQUEST['order'] ?? false; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$orderby = $_REQUEST['orderby'] ?? false; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if ( $order && $orderby ) {
 			usort(
 				$membership_plans_from_network_data['plans'],
@@ -62,6 +69,7 @@ class Membership_Plans_Table extends \WP_List_Table {
 		}
 
 		$this->items = $membership_plans_from_network_data['plans'];
+		$this->_column_headers = [ $this->get_columns(), [], $this->get_sortable_columns(), 'id' ];
 	}
 
 	/**

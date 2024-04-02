@@ -75,7 +75,7 @@ class Admin {
 	/**
 	 * Get active members' emails.
 	 *
-	 * @param \WC_Memberships_Membership_Plan $plan the membership plan.
+	 * @param \WC_Memberships_Membership_Plan $plan The membership plan.
 	 */
 	public static function get_active_members_emails( $plan ) {
 		$active_memberships = $plan->get_memberships( [ 'post_status' => 'wcm-active' ] );
@@ -115,6 +115,8 @@ class Admin {
 
 	/**
 	 * Get the active subscriptions related to a membership plan.
+	 *
+	 * @param \WC_Memberships_Membership_Plan $plan The membership plan.
 	 */
 	public static function get_plan_related_active_subscriptions( $plan ) {
 		$product_ids = $plan->get_product_ids();
