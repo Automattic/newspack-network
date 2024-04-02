@@ -54,9 +54,9 @@ class Membership_Plans_Table extends \WP_List_Table {
 				$membership_plans_from_network_data['plans'],
 				function( $a, $b ) use ( $orderby, $order ) {
 					if ( $order === 'asc' ) {
-						return $a[ $orderby ] > $b[ $orderby ];
+						return $a[ $orderby ] <=> $b[ $orderby ];
 					}
-					return $a[ $orderby ] < $b[ $orderby ];
+					return $b[ $orderby ] <=> $a[ $orderby ];
 				}
 			);
 		}
