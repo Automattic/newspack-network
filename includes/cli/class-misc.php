@@ -52,7 +52,6 @@ class Misc {
 	 * [--file]
 	 * : Read users from a CSV file, instead of by querying the DB.
 	 *
-	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp newspack-network fix-roles
@@ -116,11 +115,17 @@ class Misc {
 				}
 			}
 			$user_id = $user->ID;
+			$role = 'subscriber';
+			// If the user has the newspack_remote_site meta, it's a network user.
+			$remote_site = get_user_meta( $user_id, \Newspack_Network\Utils\Users::USER_META_REMOTE_SITE, true );
+			if ($remote_site) {
+				$role = NEWSPACK_NETWORK_READER_ROLE;
+			}
 			if ( $live ) {
-				$user->set_role( 'subscriber' );
-				WP_CLI::line( "👉 Assigned Subscriber role to user $user->user_email (#$user_id)." );
+				$user->set_role( $role );
+				WP_CLI::line( "👉 Assigned '$role' role to user $user->user_email (#$user_id)." );
 			} else {
-				WP_CLI::line( "👉 In live mode, would assign Subscriber role to user $user->user_email (#$user_id)." );
+				WP_CLI::line( "👉 In live mode, would assign '$role' role to user $user->user_email (#$user_id)." );
 			}
 		}
 
