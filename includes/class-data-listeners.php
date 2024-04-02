@@ -98,6 +98,11 @@ class Data_Listeners {
 	 * @return array
 	 */
 	public static function user_deleted( $id, $reassign, $user ) {
+		$should_delete = apply_filters( 'newspack_network_process_user_deleted', true, $user->user_email );
+		if ( ! $should_delete ) {
+			Debugger::log( 'User deletion with email: ' . $user->user_email . ' was skipped due to filter use.' );
+			return;
+		}
 		return [
 			'email' => $user->user_email,
 		];

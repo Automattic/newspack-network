@@ -368,7 +368,11 @@ class Misc {
 			}
 			if ( $live ) {
 				WP_CLI::line( 'Removing user #' . $min_user_id );
+				// If removing duplicates, the user-deleted event should not be handled. Otherwise,
+				// the "original" user would be removed from the network.
+				add_filter( 'newspack_network_process_user_deleted', '__return_false' );
 				$result = wp_delete_user( $min_user_id );
+				remove_filter( 'newspack_network_process_user_deleted', '__return_false' );
 				if ( $result ) {
 					WP_CLI::success( 'Deleted user ' . $min_user_id );
 				} else {
