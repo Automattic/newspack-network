@@ -20,6 +20,7 @@ class Esp_Metadata_Sync {
 	public static function init() {
 		\add_filter( 'newspack_ras_metadata_keys', [ __CLASS__, 'add_custom_metadata_fields' ] );
 		\add_filter( 'newspack_register_reader_metadata', [ __CLASS__, 'handle_custom_metadata_fields' ], 10, 2 );
+		\add_filter( 'newspack_data_events_reader_registered_metadata', [ __CLASS__, 'handle_custom_metadata_fields' ], 10, 2 );
 	}
 
 	/**
