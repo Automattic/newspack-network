@@ -26,7 +26,6 @@ class Users {
 	 * @return WP_User|WP_Error
 	 */
 	public static function get_or_create_user_by_email( $email, $remote_site_url, $remote_id, $insert_array = [] ) {
-
 		$existing_user = get_user_by( 'email', $email );
 
 		if ( $existing_user ) {
@@ -34,14 +33,18 @@ class Users {
 		}
 
 		$user_array = [
-			'user_login'    => $email,
+			'user_login'    => substr( $email, 0, 60 ),
 			'user_email'    => $email,
-			'user_nicename' => $email,
+			'user_nicename' => substr( $email, 0, 50 ),
 			'user_pass'     => wp_generate_password(),
 			'role'          => NEWSPACK_NETWORK_READER_ROLE,
 		];
 
 		$user_array = array_merge( $user_array, $insert_array );
+
+		if ( isset( $user_array['meta_input'] ) ) {
+			$user_array['meta_input'] = (array) $user_array['meta_input'];
+		}
 
 		$user_id = wp_insert_user( $user_array );
 
@@ -113,5 +116,59 @@ class Users {
 
 		Debugger::log( 'No avatar found in user data' );
 		return false;
+	}
+
+	/**
+	 * Get synchronization-entailing user roles.
+	 */
+	public static function get_synced_user_roles() {
+		if ( ! method_exists( '\Newspack\Reader_Activation', 'get_reader_roles' ) ) {
+			return [];
+		}
+		return \Newspack\Reader_Activation::get_reader_roles();
+	}
+
+	/**
+	 * Get synchronized users count.
+	 */
+	public static function get_synchronized_users_count() {
+		return count( self::get_synchronized_users( [ 'id' ] ) );
+	}
+
+	/**
+	 * Get synchronized users emails.
+	 */
+	public static function get_synchronized_users_emails() {
+		$sync_users_emails = array_column( self::get_synchronized_users( [ 'user_email' ] ), 'user_email' );
+		return array_map( 'strtolower', $sync_users_emails );
+	}
+
+	/**
+	 * Get synchronized users.
+	 *
+	 * @param array $fields Fields to return.
+	 */
+	public static function get_synchronized_users( $fields = [] ) {
+		return get_users(
+			[
+				'role__in' => self::get_synced_user_roles(),
+				'fields'   => $fields,
+				'number'   => -1,
+			]
+		);
+	}
+
+	/**
+	 * Get not synchronized users count.
+	 */
+	public static function get_not_synchronized_users_count() {
+		$users = get_users(
+			[
+				'role__not_in' => self::get_synced_user_roles(),
+				'fields'       => [ 'id' ],
+				'number'       => -1,
+			]
+		);
+		return count( $users );
 	}
 }

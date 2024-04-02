@@ -7,6 +7,8 @@
 
 namespace Newspack_Network\Backfillers;
 
+use WP_CLI;
+
 /**
  * Backfiller class.
  */
@@ -29,15 +31,20 @@ class Reader_Registered extends Abstract_Backfiller {
 	 * @return \Newspack_Network\Incoming_Events\Abstract_Incoming_Event[] $events An array of events.
 	 */
 	public function get_events() {
-		// Get all users registered between this-> and $end.
+		$roles_to_sync = \Newspack_Network\Utils\Users::get_synced_user_roles();
+		if ( $roles_to_sync === [] ) {
+			WP_CLI::error( 'Incompatible Newspack plugin version or no roles to sync.' );
+		}
+		// Get all users registered between specified dates.
 		$users = get_users(
 			[
-				'role__in'   => \Newspack\Reader_Activation::get_reader_roles(),
+				'role__in'   => $roles_to_sync,
 				'date_query' => [
 					'after'     => $this->start,
 					'before'    => $this->end,
 					'inclusive' => true,
 				],
+				'orderby'    => 'user_registered',
 				'fields'     => [ 'id', 'user_email', 'user_registered' ],
 				'number'     => -1,
 				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
@@ -48,6 +55,8 @@ class Reader_Registered extends Abstract_Backfiller {
 				],
 			]
 		);
+
+		WP_CLI::line( sprintf( 'Found %s users eligible for sync.', count( $users ) ) );
 
 		$this->maybe_initialize_progress_bar( 'Processing users', count( $users ) );
 
@@ -68,9 +77,12 @@ class Reader_Registered extends Abstract_Backfiller {
 		foreach ( $users as $user ) {
 			$registration_method = get_user_meta( $user->ID, \Newspack\Reader_Activation::REGISTRATION_METHOD, true );
 			$user_data = [
-				'user_id'  => $user->ID,
-				'email'    => $user->user_email,
-				'metadata' => [
+				'user_id'         => $user->ID,
+				'email'           => $user->user_email,
+				'user_registered' => $user->user_registered,
+				'first_name'      => get_user_meta( $user->ID, 'first_name', true ),
+				'last_name'       => get_user_meta( $user->ID, 'last_name', true ),
+				'meta_input'      => [
 					// 'current_page_url' is not saved, can't be backfilled.
 					'registration_method' => empty( $registration_method ) ? 'backfill-script' : $registration_method,
 				],

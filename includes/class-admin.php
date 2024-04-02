@@ -191,4 +191,11 @@ class Admin {
 	 */
 	public static function enqueue_scripts() {
 	}
+
+	/**
+	 * Has experimental auditing features?
+	 */
+	public static function use_experimental_auditing_features() {
+		return defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES' ) ? NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES : false;
+	}
 }

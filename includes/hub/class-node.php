@@ -12,7 +12,7 @@ use Newspack_Network\Rest_Authenticaton;
 use WP_Post;
 
 /**
- * Class to represent one Node of the netowrk
+ * Class to represent a Node in the network
  */
 class Node {
 	/**
@@ -169,5 +169,19 @@ class Node {
 		$base_url = $this->get_url();
 
 		return self::generate_bookmarks( $base_url );
+	}
+
+	/**
+	 * Get site info.
+	 */
+	public function get_site_info() {
+		$response = wp_remote_get( // phpcs:ignore
+			$this->get_url() . '/wp-json/newspack-network/v1/info',
+			[
+				'headers' => $this->get_authorization_headers( 'info' ),
+				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+			]
+		);
+		return json_decode( wp_remote_retrieve_body( $response ) );
 	}
 }

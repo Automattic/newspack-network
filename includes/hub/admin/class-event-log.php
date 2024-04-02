@@ -8,13 +8,12 @@
 namespace Newspack_Network\Hub\Admin;
 
 use Newspack_Network\Admin as Network_Admin;
+use const Newspack_Network\constants\EVENT_LOG_PAGE_SLUG;
 
 /**
  * Class to handle the Event log admin page
  */
 class Event_Log {
-
-	const PAGE_SLUG = 'newspack-network-event-log';
 
 	/**
 	 * Runs the initialization.
@@ -30,7 +29,7 @@ class Event_Log {
 	 * @return void
 	 */
 	public static function add_admin_menu() {
-		Network_Admin::add_submenu_page( __( 'Event Log', 'newspack-network' ), self::PAGE_SLUG, [ __CLASS__, 'render_page' ] );
+		Network_Admin::add_submenu_page( __( 'Event Log', 'newspack-network' ), EVENT_LOG_PAGE_SLUG, [ __CLASS__, 'render_page' ] );
 	}
 
 	/**
@@ -39,7 +38,7 @@ class Event_Log {
 	 * @return void
 	 */
 	public static function admin_enqueue_scripts() {
-		$page_slug = Network_Admin::PAGE_SLUG . '_page_' . self::PAGE_SLUG;
+		$page_slug = Network_Admin::PAGE_SLUG . '_page_' . EVENT_LOG_PAGE_SLUG;
 		if ( get_current_screen()->id !== $page_slug ) {
 			return;
 		}
@@ -62,7 +61,7 @@ class Event_Log {
 
 		echo '<div class="wrap"><h2>', esc_html( __( 'Event Log', 'newspack-network' ) ), '</h2>';
 		echo '<form method="get">';
-		echo '<input type="hidden" name="page" value="' . esc_attr( self::PAGE_SLUG ) . '" />';
+		echo '<input type="hidden" name="page" value="' . esc_attr( EVENT_LOG_PAGE_SLUG ) . '" />';
 
 		$table->prepare_items();
 
