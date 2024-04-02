@@ -187,6 +187,7 @@ class Misc {
 		if ( ! isset( $membership_plans_from_network_data['discrepancies_emails'] ) ) {
 			WP_CLI::error( 'Missing discrepancies emails in network memberships data.' );
 		}
+		WP_CLI::line( sprintf( 'Found %d discrepant email(s).', count( $membership_plans_from_network_data['discrepancies_emails'] ) ) );
 		$by_origin_site = [];
 		foreach ( $membership_plans_from_network_data['discrepancies_emails'] as $email_address ) {
 			$user = get_user_by( 'email', $email_address );
@@ -308,11 +309,16 @@ class Misc {
 
 		global $wpdb;
 		$duplicate_users_result = $wpdb->get_results(
-			'SELECT user_email, COUNT(user_email) as count FROM wp_users GROUP BY user_email HAVING count > 1'
+			'SELECT user_email, ID, COUNT(user_email) as count FROM wp_users GROUP BY user_email HAVING count > 1'
 		);
 		WP_CLI::line( sprintf( 'Found %d duplicated user(s)', count( $duplicate_users_result ) ) );
 		WP_CLI::line( '' );
 		foreach ( $duplicate_users_result as $key => $result ) {
+			if ( empty( $result->user_email ) ) {
+				WP_CLI::warning( 'No email address for user #' . $result->ID );
+				WP_CLI::line( '' );
+				continue;
+			}
 			WP_CLI::line( 'Email address: ' . $result->user_email );
 			$user_ids_results = $wpdb->get_results(
 				$wpdb->prepare(

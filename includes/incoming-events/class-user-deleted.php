@@ -29,7 +29,6 @@ class User_Deleted extends Abstract_Incoming_Event {
 	 * @return void
 	 */
 	public function process_user_deleted() {
-		error_log( 'process_user_deleted!!&vlkk ' );
 		$email = $this->get_email();
 		Debugger::log( 'Processing user deletion with email: ' . $email );
 		if ( ! $email ) {

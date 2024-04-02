@@ -210,7 +210,6 @@ abstract class Membership_Plans {
 				'network_pass_id'          => $network_pass_id,
 				'active_memberships_count' => $plan->get_memberships_count( 'active' ),
 			];
-			error_log( print_r( $plan_data, true ) );
 			if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 				$plan_data['active_members_emails'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_active_members_emails( $plan );
 				if ( $network_pass_id ) {
