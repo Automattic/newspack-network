@@ -348,7 +348,7 @@ class Misc {
 			$not_on_hub = array_diff( $site_info->sync_users_emails, $user_emails_on_hub );
 			WP_CLI::line( 'Site: ' . $url );
 			WP_CLI::line(
-				sprintf( '%1$d on the Hub only, %2$d on only', count( $not_on_hub ), count( $not_on_node ) )
+				sprintf( '%1$d on the Hub only, %2$d on Node only', count( $not_on_hub ), count( $not_on_node ) )
 			);
 			WP_CLI::line( sprintf( 'Found %d no-role user(s).', count( $site_info->no_role_users_emails ) ) );
 
