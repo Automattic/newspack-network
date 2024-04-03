@@ -50,6 +50,15 @@ class Reader_Registered extends Abstract_Incoming_Event {
 
 		User_Update_Watcher::$enabled = false;
 
-		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '', (array) $this->data );
+		// If a user exists, but has a non-synchronizable role, add a synchronizable role.
+		$existing_user = get_user_by( 'email', $email );
+		if ( $existing_user ) {
+			$synced_roles = \Newspack_Network\Utils\Users::get_synced_user_roles();
+			if ( ! array_intersect( $existing_user->roles, $synced_roles ) ) {
+				$existing_user->add_role( $synced_roles[0] );
+			}
+		} else {
+			$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '', (array) $this->data );
+		}
 	}
 }
