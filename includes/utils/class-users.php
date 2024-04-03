@@ -139,8 +139,18 @@ class Users {
 	 * Get synchronized users emails.
 	 */
 	public static function get_synchronized_users_emails() {
-		$sync_users_emails = array_column( self::get_synchronized_users( [ 'user_email' ] ), 'user_email' );
-		return array_map( 'strtolower', $sync_users_emails );
+		return array_map( 'strtolower', array_column( self::get_synchronized_users( [ 'user_email' ] ), 'user_email' ) );
+	}
+
+	/**
+	 * Get no-role users emails.
+	 */
+	public static function get_no_role_users_emails() {
+		global $wpdb;
+		$no_role_users_emails = $wpdb->get_results(
+			"SELECT user_email FROM wp_users WHERE ID IN (SELECT user_id FROM wp_usermeta WHERE meta_key = 'wp_capabilities' AND (meta_value = 'a:0:{}' OR meta_value = '')) OR ID NOT IN (SELECT user_id FROM wp_usermeta WHERE meta_key = 'wp_capabilities')"
+		);
+		return array_map( 'strtolower', array_column( $no_role_users_emails, 'user_email' ) );
 	}
 
 	/**
@@ -161,14 +171,27 @@ class Users {
 	/**
 	 * Get not synchronized users count.
 	 */
-	public static function get_not_synchronized_users_count() {
-		$users = get_users(
+	public static function get_not_synchronized_users( $fields = [] ) {
+		return get_users(
 			[
 				'role__not_in' => self::get_synced_user_roles(),
-				'fields'       => [ 'id' ],
+				'fields'       => $fields,
 				'number'       => -1,
 			]
 		);
-		return count( $users );
+	}
+
+	/**
+	 * Get synchronized users emails.
+	 */
+	public static function get_not_synchronized_users_emails() {
+		return array_map( 'strtolower', array_column( self::get_not_synchronized_users( [ 'user_email' ] ), 'user_email' ) );
+	}
+
+	/**
+	 * Get not synchronized users count.
+	 */
+	public static function get_not_synchronized_users_count() {
+		return count( self::get_not_synchronized_users( [ 'id' ] ) );
 	}
 }

@@ -32,6 +32,7 @@ class Misc {
 			WP_CLI::add_command( 'newspack-network fix-roles', [ __CLASS__, 'fix_roles' ] );
 			WP_CLI::add_command( 'newspack-network get-user-memberships', [ __CLASS__, 'get_user_memberships' ] );
 			WP_CLI::add_command( 'newspack-network fix-membership-discrepancies', [ __CLASS__, 'fix_membership_discrepancies' ] );
+			WP_CLI::add_command( 'newspack-network fix-user-discrepancies', [ __CLASS__, 'fix_user_discrepancies' ] );
 			WP_CLI::add_command( 'newspack-network deduplicate-users', [ __CLASS__, 'deduplicate_users' ] );
 			WP_CLI::add_command( 'newspack-network fix-subscriptions', [ __CLASS__, 'fix_subscriptions' ] );
 		}
@@ -288,6 +289,128 @@ class Misc {
 
 		WP_CLI::line( '' );
 	}
+
+	/**
+	 * Fix user discrepancies.
+	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network fix-user-discrepancies
+	 */
+	public static function fix_user_discrepancies( array $args, array $assoc_args ) {
+		WP_CLI::line( '' );
+
+		if ( ! Site_Role::is_hub() ) {
+			WP_CLI::error( 'This command can only be run on the Hub.' );
+		}
+
+		$user_emails_on_hub = \Newspack_Network\Utils\Users::get_synchronized_users_emails();
+		WP_CLI::line( sprintf( 'Found %d synchronizable user(s) on the Hub.', count( $user_emails_on_hub ) ) );
+		$user_not_synced_emails_on_hub = \Newspack_Network\Utils\Users::get_not_synchronized_users_emails();
+		WP_CLI::line( sprintf( 'Found %d synchronizable user(s) on the Hub.', count( $user_not_synced_emails_on_hub ) ) );
+		$no_role_users_emails = \Newspack_Network\Utils\Users::get_no_role_users_emails();
+		WP_CLI::line( sprintf( 'Found %d no-role user(s) on the Hub.', count( $no_role_users_emails ) ) );
+
+		WP_CLI::line( '' );
+
+		$nodes = \Newspack_Network\Hub\Nodes::get_all_nodes();
+		$users_by_site = [
+			'hub' => [
+				'not_synced' => $user_not_synced_emails_on_hub,
+				'no_role'    => $no_role_users_emails,
+				'synced'     => $user_emails_on_hub,
+			],
+		];
+		$all_discrepant_emails = [];
+		foreach ( $nodes as $node ) {
+			$url = $node->get_url();
+
+			$site_info = $node->get_site_info();
+			if ( $site_info === null ) {
+				WP_CLI::warning( 'Missing user data for site ' . $url );
+				WP_CLI::line( '' );
+				continue;
+			}
+
+			$users_by_site[ $url ] = [
+				'not_synced' => $site_info->not_sync_users_emails,
+				'no_role'    => $site_info->no_role_users_emails,
+				'synced'     => $site_info->sync_users_emails,
+			];
+
+			// Users who are on the Hub but not on the Node.
+			$not_on_node = array_diff( $user_emails_on_hub, $site_info->sync_users_emails );
+			// Users who are not on the Node but are on the Hub.
+			$not_on_hub = array_diff( $site_info->sync_users_emails, $user_emails_on_hub );
+			WP_CLI::line( 'Site: ' . $url );
+			WP_CLI::line(
+				sprintf( '%1$d on the Hub only, %2$d on only', count( $not_on_hub ), count( $not_on_node ) )
+			);
+			WP_CLI::line( sprintf( 'Found %d no-role user(s).', count( $site_info->no_role_users_emails ) ) );
+
+			$all_discrepant_emails = array_unique( array_merge( $all_discrepant_emails, $not_on_node, $not_on_hub ) );
+
+			WP_CLI::line( '' );
+		}
+
+		WP_CLI::line( 'Unique discrepant emails in total: ' . count( $all_discrepant_emails ) );
+		WP_CLI::line( '' );
+
+		$users_to_handle = $all_discrepant_emails;
+
+		// For each user, check who they are on all sites.
+		foreach ( $users_to_handle as $email_address ) {
+			if ( ! $email_address ) {
+				continue;
+			}
+			$user_record = [];
+			foreach ( $users_by_site as $site_url => $email_groups ) {
+				foreach ( $email_groups as $key => $users ) {
+					if ( in_array( $email_address, $users ) ) {
+						$user_record[ $site_url ] = $key;
+					}
+				}
+			}
+			$user_sites = array_keys( $user_record );
+			$all_states = array_unique( array_values( $user_record ) );
+			$wp_user = get_user_by( 'email', $email_address );
+			$user_identification = $email_address;
+			if ( $wp_user ) {
+				$origin_site = get_user_meta( $wp_user->ID, \Newspack_Network\Utils\Users::USER_META_REMOTE_SITE, true );
+				if ( $origin_site ) {
+					$user_identification = sprintf( '%s (%s)', $email_address, $origin_site );
+				}
+			}
+
+			if ( empty( $user_record ) ) {
+				WP_CLI::warning( sprintf( 'User %s is not present on any site.', $user_identification ) );
+				WP_CLI::line( '' );
+			} elseif ( ! in_array( 'synced', $all_states ) ) {
+				WP_CLI::line( sprintf( 'User %s is not synced on any site, they won\'t cause discrepancies.', $user_identification ) );
+				WP_CLI::line( '' );
+			} elseif ( count( $user_sites ) === 1 ) {
+				WP_CLI::success( sprintf( 'User %s is synced on a single site only (%s).', $user_identification, $user_sites[0] ) );
+				WP_CLI::line( '' );
+			} else {
+				if ( count( $user_sites ) === 8 ) {
+					WP_CLI::success( sprintf( 'User %s is synced on all sites.', $user_identification ) );
+				} else {
+					WP_CLI::success( sprintf( 'User %s is present on the following sites:', $user_identification ) );
+				}
+				foreach ( $user_record as $url => $key ) {
+					WP_CLI::line( sprintf( '%s on site %s', $key, $url ) );
+				}
+				WP_CLI::line( '' );
+			}
+		}
+
+		WP_CLI::line( '' );
+	}
+
 
 	/**
 	 * Deduplicate users.
