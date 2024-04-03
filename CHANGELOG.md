@@ -1,3 +1,17 @@
+## [1.4.2](https://github.com/Automattic/newspack-network/compare/v1.4.1...v1.4.2) (2024-04-02)
+
+
+### Bug Fixes
+
+* add new filter callback for Network Registration Site field ([#87](https://github.com/Automattic/newspack-network/issues/87)) ([00facbc](https://github.com/Automattic/newspack-network/commit/00facbcfe9468493c480c80872ebcf7b13824fc1))
+
+## [1.4.1](https://github.com/Automattic/newspack-network/compare/v1.4.0...v1.4.1) (2024-03-29)
+
+
+### Bug Fixes
+
+* **event-log:** only show users filter with environment constant ([#86](https://github.com/Automattic/newspack-network/issues/86)) ([cd4a91a](https://github.com/Automattic/newspack-network/commit/cd4a91ab65a81d7abc54359ff6e1537aae253b84))
+
 # [1.4.0](https://github.com/Automattic/newspack-network/compare/v1.3.0...v1.4.0) (2024-03-27)
 
 
