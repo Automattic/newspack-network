@@ -33,6 +33,7 @@ class Misc {
 			WP_CLI::add_command( 'newspack-network get-user-memberships', [ __CLASS__, 'get_user_memberships' ] );
 			WP_CLI::add_command( 'newspack-network fix-membership-discrepancies', [ __CLASS__, 'fix_membership_discrepancies' ] );
 			WP_CLI::add_command( 'newspack-network fix-user-discrepancies', [ __CLASS__, 'fix_user_discrepancies' ] );
+			WP_CLI::add_command( 'newspack-network fix-email-display-names', [ __CLASS__, 'fix_email_display_names' ] );
 			WP_CLI::add_command( 'newspack-network deduplicate-users', [ __CLASS__, 'deduplicate_users' ] );
 			WP_CLI::add_command( 'newspack-network fix-subscriptions', [ __CLASS__, 'fix_subscriptions' ] );
 		}
@@ -163,6 +164,92 @@ class Misc {
 			WP_CLI::line( '➡ Membership ID: ' . $membership->get_id() . ', status: ' . $membership->get_status() . ', plan: ' . $plan_name );
 		}
 
+		WP_CLI::line( '' );
+	}
+
+	/**
+	 * Update display names if they are same as email address.
+	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--live]
+	 * : Run the command in live mode, updating the users.
+	 *
+	 * [--verbose]
+	 * : More output.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network fix-email-display-names
+	 */
+	public static function fix_email_display_names( array $args, array $assoc_args ) {
+		WP_CLI::line( '' );
+
+		$live = isset( $assoc_args['live'] ) ? true : false;
+		$verbose = isset( $assoc_args['verbose'] ) ? true : false;
+		if ( $live ) {
+			WP_CLI::line( 'Live mode – users will be or updated.' );
+		} else {
+			WP_CLI::line( 'Dry run – users will not be updated. Use --live flag to run in live mode.' );
+		}
+
+		global $wpdb;
+		$users = $wpdb->get_results(
+			'SELECT ID, user_email FROM wp_users WHERE display_name = user_email'
+		);
+
+		WP_CLI::line( 'Found ' . count( $users ) . ' users with email-based display names.' );
+		WP_CLI::line( '' );
+
+		foreach ( $users as $user_result ) {
+			$new_display_name = explode( '@', $user_result->user_email )[0];
+			$new_display_name = str_replace( [ '.', '_', '-', '+' ], ' ', $new_display_name );
+			// Unless the name is composed of numbers only, strip them.
+			if ( ! preg_match( '/\A\d+\z/', $new_display_name ) ) {
+				$new_display_name = preg_replace( '/[0-9]/', '', $new_display_name );
+			}
+			// Update the display_name directly in the DB to avoid triggering any hooks.
+			if ( $live ) {
+				$wpdb->update(
+					$wpdb->users,
+					[ 'display_name' => $new_display_name ],
+					[ 'ID' => $user_result->ID ]
+				);
+				if ( $verbose ) {
+					WP_CLI::line( "👉 Updated display name for user $user_result->user_email (#$user_result->ID) to '$new_display_name'." );
+				}
+			} elseif ( $verbose ) {
+				WP_CLI::line( "👉 In live mode, would update display name for user $user_result->user_email (#$user_result->ID) to '$new_display_name'." );
+			}
+
+			// Find all comments with comment_author set to the email address.
+			$comments = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT comment_ID FROM wp_comments WHERE comment_author = %s',
+					$user_result->user_email
+				)
+			);
+			if ( $verbose && ! $live ) {
+				WP_CLI::line( 'Found ' . count( $comments ) . ' comment(s) with user\'s email address.' );
+			}
+			if ( $live ) {
+				if ( $verbose ) {
+					WP_CLI::line( 'Will update ' . count( $comments ) . ' comment(s) where the author was set to the email address.' );
+				}
+				foreach ( $comments as $comment ) {
+					// Update the comment_author field.
+					$wpdb->update(
+						$wpdb->comments,
+						[ 'comment_author' => $new_display_name ],
+						[ 'comment_ID' => $comment->comment_ID ]
+					);
+				}
+			}       
+		}
 		WP_CLI::line( '' );
 	}
 
