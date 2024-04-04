@@ -207,11 +207,6 @@ class Misc {
 
 		foreach ( $users as $user_result ) {
 			$new_display_name = explode( '@', $user_result->user_email )[0];
-			$new_display_name = str_replace( [ '.', '_', '-', '+' ], ' ', $new_display_name );
-			// Unless the name is composed of numbers only, strip them.
-			if ( ! preg_match( '/\A\d+\z/', $new_display_name ) ) {
-				$new_display_name = preg_replace( '/[0-9]/', '', $new_display_name );
-			}
 			// Update the display_name directly in the DB to avoid triggering any hooks.
 			if ( $live ) {
 				$wpdb->update(
@@ -248,7 +243,7 @@ class Misc {
 						[ 'comment_ID' => $comment->comment_ID ]
 					);
 				}
-			}       
+			}
 		}
 		WP_CLI::line( '' );
 	}
