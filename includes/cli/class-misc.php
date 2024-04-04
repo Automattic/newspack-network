@@ -308,10 +308,11 @@ class Misc {
 		$live = isset( $assoc_args['live'] ) ? true : false;
 		$verbose = isset( $assoc_args['verbose'] ) ? true : false;
 		if ( $live ) {
-			WP_CLI::line( 'Live mode – users will be or updated.' );
+			WP_CLI::line( 'Live mode – users and comments will be or updated.' );
 		} else {
-			WP_CLI::line( 'Dry run – users will not be updated. Use --live flag to run in live mode.' );
+			WP_CLI::line( 'Dry run – users and comments will not be updated. Use --live flag to run in live mode.' );
 		}
+		WP_CLI::line( '' );
 
 		global $wpdb;
 		$users = $wpdb->get_results(
@@ -336,31 +337,28 @@ class Misc {
 			} elseif ( $verbose ) {
 				WP_CLI::line( "👉 In live mode, would update display name for user $user_result->user_email (#$user_result->ID) to '$new_display_name'." );
 			}
+		}
 
-			// Find all comments with comment_author set to the email address.
-			$comments = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT comment_ID FROM wp_comments WHERE comment_author = %s',
-					$user_result->user_email
-				)
-			);
-			if ( $verbose && ! $live ) {
-				WP_CLI::line( 'Found ' . count( $comments ) . ' comment(s) with user\'s email address.' );
+		// Find all comments with comment_author set to an email address.
+		$comments = $wpdb->get_results(
+			"SELECT comment_ID,comment_author FROM wp_comments WHERE comment_author LIKE '%@%'",
+		);
+		WP_CLI::line( 'Found ' . count( $comments ) . ' comment(s) with an email address as author.' );
+		if ( count( $comments ) > 0 && $live ) {
+			if ( $verbose ) {
+				WP_CLI::line( 'Will update ' . count( $comments ) . ' comment(s).' );
 			}
-			if ( $live ) {
-				if ( $verbose ) {
-					WP_CLI::line( 'Will update ' . count( $comments ) . ' comment(s) where the author was set to the email address.' );
-				}
-				foreach ( $comments as $comment ) {
-					// Update the comment_author field.
-					$wpdb->update(
-						$wpdb->comments,
-						[ 'comment_author' => $new_display_name ],
-						[ 'comment_ID' => $comment->comment_ID ]
-					);
-				}
+			foreach ( $comments as $comment ) {
+				$new_author = explode( '@', $comment->comment_author )[0];
+				// Update the comment_author field.
+				$wpdb->update(
+					$wpdb->comments,
+					[ 'comment_author' => $new_author ],
+					[ 'comment_ID' => $comment->comment_ID ]
+				);
 			}
 		}
+
 		WP_CLI::line( '' );
 	}
 
