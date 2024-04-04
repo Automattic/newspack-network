@@ -352,6 +352,20 @@ class Misc {
 			);
 			WP_CLI::line( sprintf( 'Found %d no-role user(s).', count( $site_info->no_role_users_emails ) ) );
 
+			$unique_synced_email_addresses = array_unique( $site_info->sync_users_emails );
+			WP_CLI::line( sprintf( 'Found %d synced email addresses (%d unique).', count( $site_info->sync_users_emails ), count( $unique_synced_email_addresses ) ) );
+			if ( in_array( '', $site_info->sync_users_emails ) ) {
+				WP_CLI::warning( 'Empty email address found.' );
+			}
+			if ( count( $unique_synced_email_addresses ) !== count( $site_info->sync_users_emails ) ) {
+				$counts = array_count_values( $site_info->sync_users_emails );
+				foreach ( $counts as $email => $count ) {
+					if ( $count > 1 ) {
+						WP_CLI::warning( 'Duplicate email address: ' . $email );
+					}
+				}
+			}
+
 			$all_discrepant_emails = array_unique( array_merge( $all_discrepant_emails, $not_on_node, $not_on_hub ) );
 
 			WP_CLI::line( '' );
