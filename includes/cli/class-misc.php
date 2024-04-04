@@ -32,6 +32,7 @@ class Misc {
 			WP_CLI::add_command( 'newspack-network fix-roles', [ __CLASS__, 'fix_roles' ] );
 			WP_CLI::add_command( 'newspack-network get-user-memberships', [ __CLASS__, 'get_user_memberships' ] );
 			WP_CLI::add_command( 'newspack-network fix-membership-discrepancies', [ __CLASS__, 'fix_membership_discrepancies' ] );
+			WP_CLI::add_command( 'newspack-network fix-registration-based-memberships', [ __CLASS__, 'fix_registration_based_memberships' ] );
 			WP_CLI::add_command( 'newspack-network fix-user-discrepancies', [ __CLASS__, 'fix_user_discrepancies' ] );
 			WP_CLI::add_command( 'newspack-network fix-email-display-names', [ __CLASS__, 'fix_email_display_names' ] );
 			WP_CLI::add_command( 'newspack-network deduplicate-users', [ __CLASS__, 'deduplicate_users' ] );
@@ -162,6 +163,121 @@ class Misc {
 			}
 
 			WP_CLI::line( '➡ Membership ID: ' . $membership->get_id() . ', status: ' . $membership->get_status() . ', plan: ' . $plan_name );
+		}
+
+		WP_CLI::line( '' );
+	}
+
+	/**
+	 * Fix registration-based memberships. All registered users should have a membership if it's
+	 * set to be created on registration.
+	 *
+	 * @param array $args Indexed array of args.
+	 * @param array $assoc_args Associative array of args.
+	 * @return void
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--live]
+	 * : Run the command in live mode, updating the users.
+	 *
+	 * [--verbose]
+	 * : More output.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp newspack-network fix-registration-based-memberships
+	 */
+	public static function fix_registration_based_memberships( array $args, array $assoc_args ) {
+		WP_CLI::line( '' );
+
+
+		$live = isset( $assoc_args['live'] ) ? true : false;
+		$verbose = isset( $assoc_args['verbose'] ) ? true : false;
+		if ( $live ) {
+			WP_CLI::line( 'Live mode – memberships will be created.' );
+		} else {
+			WP_CLI::line( 'Dry run – memberships will not be created. Use --live flag to run in live mode.' );
+		}
+		WP_CLI::line( '' );
+
+		global $wpdb;
+		$user_emails_with_ids = $wpdb->get_results( 'SELECT ID, user_email FROM wp_users WHERE user_email != ""' );
+		// Turn it into an associative array, keyed by email.
+		$user_emails_with_ids = array_combine(
+			array_map(
+				function( $user ) {
+					return $user->user_email;
+				},
+				$user_emails_with_ids
+			),
+			array_map(
+				function( $user ) {
+					return $user->ID;
+				},
+				$user_emails_with_ids
+			)
+		);
+		$user_emails = array_keys( $user_emails_with_ids );
+
+		WP_CLI::line( 'Found ' . count( $user_emails ) . ' users.' );
+		WP_CLI::line( '' );
+
+		// Get the registration-based memberships.
+		$plans = \wc_memberships_get_membership_plans();
+		foreach ( $plans as $plan ) {
+			if ( $plan->get_access_method() === 'signup' ) {
+				$memberships = $plan->get_memberships();
+
+				WP_CLI::line( 'Found ' . count( $memberships ) . ' memberships for plan ' . $plan->get_name() . '.' );
+
+				// Get email addresses of all members.
+				foreach ( $memberships as $membership ) {
+					$user_id = $membership->get_user_id();
+					// Get user email directly from the DB for performance reasons.
+					$user_email = $wpdb->get_var(
+						$wpdb->prepare(
+							'SELECT user_email FROM wp_users WHERE ID = %d',
+							$user_id
+						)
+					);
+					if ( $user_email ) {
+						// Remove this user from the list of all users.
+						$key = array_search( $user_email, $user_emails );
+						if ( $key !== false ) {
+							unset( $user_emails[ $key ] );
+						}
+					}
+				}
+
+				if ( count( $user_emails ) > 0 ) {
+					if ( $live ) {
+						WP_CLI::line( 'Will create memberships for the ' . count( $user_emails ) . ' missing users.' );
+					} else {
+						WP_CLI::line( 'Would create memberships for the ' . count( $user_emails ) . ' missing users in live mode.' );
+					}
+					WP_CLI::line( '' );
+					foreach ( $user_emails as $email ) {
+						// Create the membership for the user.
+						$user_id = $user_emails_with_ids[ $email ];
+						if ( $verbose ) {
+							if ( $live ) {
+								WP_CLI::line( "Creating membership for user $email (#$user_id)." );
+							} else {
+								WP_CLI::line( "Would create membership for user $email (#$user_id)." );
+							}
+						}
+						if ( $live ) {
+							wc_memberships_create_user_membership(
+								[
+									'plan_id' => $plan->get_id(),
+									'user_id' => $user_id,
+								]
+							);
+						}
+					}
+				}
+			}
 		}
 
 		WP_CLI::line( '' );
