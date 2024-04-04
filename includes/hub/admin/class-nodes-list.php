@@ -51,16 +51,17 @@ class Nodes_List {
 		unset( $columns['date'] );
 		unset( $columns['stats'] );
 		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+			$sync_users_count = \Newspack_Network\Utils\Users::get_synchronized_users_count();
 			$sync_users_info = sprintf(
 				' <span class="dashicons dashicons-info-outline" title="%s"></span>',
 				sprintf(
 					/* translators: list of user roles which will entail synchronization */
 					esc_attr__( 'Users with the following roles: %1$s (%2$d on the Hub)', 'newspack-network' ),
 					implode( ', ', \Newspack_Network\Utils\Users::get_synced_user_roles() ),
-					\Newspack_Network\Utils\Users::get_synchronized_users_count()
+					$sync_users_count
 				)
 			);
-			$columns['sync_users'] = __( 'Synchronizable Users', 'newspack-network' ) . $sync_users_info;
+			$columns['sync_users'] = sprintf( __( 'Synchronizable Users (%d)', 'newspack-network' ), $sync_users_count ) . $sync_users_info;
 			if ( isset( $_GET['_newspack_user_discrepancies'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$columns['user_discrepancies'] = __( 'Discrepancies in Sync. Users', 'newspack-network' );
 			}
