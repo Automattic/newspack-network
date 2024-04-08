@@ -11,7 +11,6 @@ use Newspack_Network\Accepted_Actions;
 use Newspack_Network\Debugger;
 use WP_REST_Response;
 use WP_REST_Request;
-use WP_REST_Server;
 
 /**
  * Class to handle the Webhook
@@ -85,7 +84,7 @@ class Webhook {
 		$verified_data = $node->decrypt_message( $data, $nonce );
 		if ( ! $verified_data ) {
 			Debugger::log( 'Signature check failed' );
-			return new WP_REST_Response( array( 'error' => 'Invalid Signature.' ), 403 );
+			return new WP_REST_Response( array( 'error' => 'INVALID_SIGNATURE' ), 403 );
 		}
 
 		$verified_data = json_decode( $verified_data );

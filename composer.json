@@ -14,7 +14,8 @@
 	"autoload": {
 		"classmap": [
 			"./includes"
-		]
+		],
+		"files": ["./includes/constants.php"]
 	},
 	"config": {
 		"allow-plugins": {

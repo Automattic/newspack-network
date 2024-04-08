@@ -58,11 +58,12 @@ class User_Manual_Sync {
 		}
 
 		return [
-			'email'   => $user_data->user_email,
-			'role'    => array_shift( $user_data->roles ),
-			'user_id' => $user_data->ID,
-			'meta'    => $synced_metadata,
-			'prop'    => $synced_props,
+			'email'      => $user_data->user_email,
+			'role'       => array_shift( $user_data->roles ),
+			'user_id'    => $user_data->ID,
+			'meta'       => $synced_metadata,
+			'prop'       => $synced_props,
+			'user_login' => $user_data->user_login,
 		];
 	}
 
@@ -105,7 +106,7 @@ class User_Manual_Sync {
 							<?php esc_html_e( 'Sync user across network', 'newspack-network' ); ?>
 						</a>
 						<p class="description">
-							<?php esc_html_e( 'Manually sync this user\'s information across all sites in your network, including their role. If this is a new user, clicking this button will also propigate the user account across your network.', 'newspack-network' ); ?>
+							<?php esc_html_e( 'Manually sync this user\'s information across all sites in your network, including their role. If this is a new user, clicking this button will also propagate the user account across your network.', 'newspack-network' ); ?>
 						</p>
 					</td>
 				</tr>

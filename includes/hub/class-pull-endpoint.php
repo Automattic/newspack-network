@@ -92,7 +92,7 @@ class Pull_Endpoint {
 
 		if ( ! $verified || ! is_object( $verified_message ) || (int) $last_processed_id !== (int) $verified_message->last_processed_id ) {
 			Debugger::log( 'Signature check failed' );
-			return new WP_REST_Response( array( 'error' => 'Invalid Signature.' ), 403 );
+			return new WP_REST_Response( array( 'error' => 'INVALID_SIGNATURE' ), 403 );
 		}
 
 		Debugger::log( 'Successfully verified request' );

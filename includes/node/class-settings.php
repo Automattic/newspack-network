@@ -13,6 +13,8 @@ use Newspack_Network\Hub\Node as Hub_Node;
 use Newspack_Network\Hub\Nodes as Hub_Nodes;
 use WP_Error;
 
+use const Newspack_Network\constants\WEBHOOK_RESPONSE_ERRORS;
+
 /**
  * Class to handle Node settings page
  */
@@ -401,7 +403,18 @@ class Settings {
 				<tr>
 					<td><?php echo esc_html( $date ); ?> (#<?php echo esc_html( $r['request_id'] ); ?>)</td>
 					<td><?php echo esc_html( $r['action'] ); ?></td>
+					<?php if ( false === $data ) : ?>
+						<td>
+							🚫 <strong><?php _e( 'Decryption Error!', 'newspack-network' ); ?></strong><br>
+							<?php if ( 'finished' !== $request['status'] ) : ?>
+									<?php _e( 'Data is unencrypted and cannot be processed.', 'newspack-network' ); ?>
+								<?php endif; ?>
+								<br><br>
+							<code><?php echo esc_html( wp_json_encode( $r['data'] ) ); ?></code>
+						</td>
+					<?php else : ?>
 					<td><code><?php echo esc_html( $data ); ?></code></td>
+					<?php endif; ?>
 					<td>
 						<?php echo esc_html( $icon . ' ' . $status_label ); ?>.
 						<?php
@@ -432,7 +445,7 @@ class Settings {
 								echo '<ul>';
 							foreach ( $request['errors'] as $error ) {
 								echo '<li><code>';
-								echo esc_html( $error );
+								echo esc_html( WEBHOOK_RESPONSE_ERRORS[ $error ] ?? $error );
 								echo '</code></li>';
 							}
 								echo '</ul>';
