@@ -32,7 +32,7 @@ class Reader_Registered extends Abstract_Backfiller {
 	 */
 	public function get_events() {
 		$roles_to_sync = \Newspack_Network\Utils\Users::get_synced_user_roles();
-		if ( $roles_to_sync === [] ) {
+		if ( empty( $roles_to_sync ) ) {
 			WP_CLI::error( 'Incompatible Newspack plugin version or no roles to sync.' );
 		}
 		// Get all users registered between this-> and $end.
@@ -55,7 +55,7 @@ class Reader_Registered extends Abstract_Backfiller {
 			]
 		);
 
-		WP_CLI::line( sprintf( 'Found %s users eligible for sync.', count( $users ) ) );
+		WP_CLI::line( sprintf( 'Found %s user(s) eligible for sync.', count( $users ) ) );
 
 		$this->maybe_initialize_progress_bar( 'Processing users', count( $users ) );
 
