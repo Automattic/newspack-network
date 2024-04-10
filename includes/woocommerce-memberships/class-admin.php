@@ -143,6 +143,24 @@ class Admin {
 	}
 
 	/**
+	 * Get memberships from the site, with the network plan ID.
+	 *
+	 * @param string $email The email of the user.
+	 */
+	public static function get_memberships_by_user_email_with_plan_network_id( $email ) {
+		if ( ! function_exists( '\wc_memberships_get_user_memberships' ) ) {
+			return [];
+		}
+		$found_memberships = \wc_memberships_get_user_memberships( get_user_by( 'email', $email ) );
+		foreach ( $found_memberships as $membership ) {
+			$membership->customer_id = $membership->get_user_id();
+			$membership->start_date = $membership->get_local_start_date( 'Y-m-d\TH:i:s' );
+			$membership->plan_network_id = get_post_meta( $membership->plan_id, self::NETWORK_ID_META_KEY, true );
+		}
+		return $found_memberships;
+	}
+
+	/**
 	 * Adds a meta box to the membership plan edit screen.
 	 */
 	public static function add_meta_box() {
