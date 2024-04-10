@@ -73,6 +73,10 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 		User_Update_Watcher::$enabled     = false;
 
 		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
+		if ( ! $user ) {
+			Debugger::log( 'User not found.' );
+			return;
+		}
 
 		$user_membership = wc_memberships_get_user_membership( $user->ID, $local_plan_id );
 
@@ -99,16 +103,52 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
-		$user_membership->update_status( $this->get_new_status() );
-		$user_membership->add_note(
-			sprintf(
-				// translators: %s is the site URL.
-				__( 'Membership status updated via Newspack Network. Status propagated from %s', 'newspack-network' ),
-				$this->get_site()
-			)
-		);
+		$new_status = $this->get_new_status();
+		$can_update_membership_status = false;
 
-		Debugger::log( 'User membership updated' );
+		// Unless new status is active, perform additional checks.
+		if ( $new_status !== 'active' ) {
+			if ( \Newspack_Network\Site_Role::is_hub() ) {
+				$active_subscriptions_ids = \Newspack_Network\Hub\Network_Data_Endpoint::get_active_subscription_ids_from_network(
+					$email,
+					$this->get_plan_network_id(),
+					get_bloginfo( 'url' )
+				);
+				$can_update_membership_status = empty( $active_subscriptions_ids );
+			} else {
+				// Check the subscriptions status on the network. The reader might have another subscription on
+				// a different node that would override the non-active status change here.
+				$params = [
+					'site'            => get_bloginfo( 'url' ),
+					'plan_network_id' => $this->get_plan_network_id(),
+					'email'           => $email,
+				];
+				$response = \Newspack_Network\Utils\Requests::request_to_hub( 'wp-json/newspack-network/v1/network-subscriptions', $params, 'GET' );
+				if ( is_wp_error( $response ) ) {
+					Debugger::log( 'Error retrieving network subscription data.' );
+				} else {
+					$active_subscriptions_ids = json_decode( wp_remote_retrieve_body( $response ) )->active_subscriptions_ids ?? [];
+					$can_update_membership_status = empty( $active_subscriptions_ids );
+				}
+			}
+		} else {
+			$can_update_membership_status = true;
+		}
+
+		if ( $can_update_membership_status ) {
+			$user_membership->update_status( $new_status );
+			$user_membership->add_note(
+				sprintf(
+					// translators: %s is the site URL.
+					__( 'Membership status updated via Newspack Network. Status propagated from %s', 'newspack-network' ),
+					$this->get_site()
+				)
+			);
+
+			Debugger::log( 'User membership updated.' );
+		} else {
+			Debugger::log( 'Did not update user membership.' );
+		}
 	}
 
 	/**
