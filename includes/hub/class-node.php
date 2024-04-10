@@ -12,7 +12,7 @@ use Newspack_Network\Rest_Authenticaton;
 use WP_Post;
 
 /**
- * Class to represent one Node of the netowrk
+ * Class to represent a Node in the network
  */
 class Node {
 	/**
@@ -179,6 +179,30 @@ class Node {
 			$this->get_url() . '/wp-json/newspack-network/v1/info',
 			[
 				'headers' => $this->get_authorization_headers( 'info' ),
+				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+			]
+		);
+		return json_decode( wp_remote_retrieve_body( $response ) );
+	}
+
+	/**
+	 * Get all subscriptions.
+	 *
+	 * @param string $email The email to get subscriptions for.
+	 * @param string $plan_network_id The plan network ID to get subscriptions for.
+	 */
+	public function get_subscriptions_with_network_plan( $email, $plan_network_id ) {
+		$response = wp_remote_get( // phpcs:ignore
+			add_query_arg(
+				[
+					'email'           => $email,
+					'plan_network_id' => $plan_network_id,
+				],
+				$this->get_url() . '/wp-json/newspack-network/v1/subscriptions'
+			),
+			[
+				'headers' => $this->get_authorization_headers( 'subscriptions' ),
+				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			]
 		);
 		return json_decode( wp_remote_retrieve_body( $response ) );
