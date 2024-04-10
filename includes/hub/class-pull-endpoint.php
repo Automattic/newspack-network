@@ -61,42 +61,22 @@ class Pull_Endpoint {
 	 * @return WP_REST_Response
 	 */
 	public static function handle_pull( $request ) {
+		$request_error = \Newspack_Network\Utils\Requests::get_request_to_hub_errors( $request );
+		if ( \is_wp_error( $request_error ) ) {
+			return new WP_REST_Response( [ 'error' => $request_error->get_error_message() ], 403 );
+		}
+
 		$site              = $request['site'];
 		$last_processed_id = $request['last_processed_id'];
 		$actions           = $request['actions'];
-		$signature         = $request['signature'];
-		$nonce             = $request['nonce'];
 
-		Debugger::log( 'Pull request received' );
-		Debugger::log( $site );
-		Debugger::log( $last_processed_id );
-		Debugger::log( $actions );
+		Debugger::log( sprintf( 'Pull request received from site %s, with last processed ID %d, for actions: %s.', $site, $last_processed_id, implode( ', ', $actions ) ) );
 
-		if ( empty( $site ) ||
-			empty( $actions ) ||
-			empty( $nonce ) ||
-			empty( $signature )
-		) {
+		if ( empty( $actions ) ) {
 			return new WP_REST_Response( array( 'error' => 'Bad request.' ), 400 );
 		}
 
 		$node = Nodes::get_node_by_url( $site );
-
-		if ( ! $node ) {
-			Debugger::log( 'Node not found.' );
-			return new WP_REST_Response( array( 'error' => 'Bad request. Site not registered in this Hub.' ), 403 );
-		}
-
-		$verified         = $node->decrypt_message( $signature, $nonce );
-		$verified_message = json_decode( $verified );
-
-		if ( ! $verified || ! is_object( $verified_message ) || (int) $last_processed_id !== (int) $verified_message->last_processed_id ) {
-			Debugger::log( 'Signature check failed' );
-			return new WP_REST_Response( array( 'error' => 'INVALID_SIGNATURE' ), 403 );
-		}
-
-		Debugger::log( 'Successfully verified request' );
-
 		$query_args = [
 			'excluded_node_id' => $node->get_id(),
 			'id_greater_than'  => $last_processed_id,
