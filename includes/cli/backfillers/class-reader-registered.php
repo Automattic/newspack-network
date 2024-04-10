@@ -56,7 +56,9 @@ class Reader_Registered extends Abstract_Backfiller {
 			]
 		);
 
+		WP_CLI::line( '' );
 		WP_CLI::line( sprintf( 'Found %s user(s) eligible for sync.', count( $users ) ) );
+		WP_CLI::line( '' );
 
 		$this->maybe_initialize_progress_bar( 'Processing users', count( $users ) );
 
