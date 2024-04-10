@@ -174,13 +174,68 @@ class Users {
 	 * Get synchronized users count.
 	 */
 	public static function get_synchronized_users_count() {
-		$users = get_users(
+		return count( self::get_synchronized_users( [ 'id' ] ) );
+	}
+
+	/**
+	 * Get synchronized users emails.
+	 */
+	public static function get_synchronized_users_emails() {
+		return array_map( 'strtolower', array_column( self::get_synchronized_users( [ 'user_email' ] ), 'user_email' ) );
+	}
+
+	/**
+	 * Get no-role users emails.
+	 */
+	public static function get_no_role_users_emails() {
+		global $wpdb;
+		$no_role_users_emails = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			"SELECT user_email FROM wp_users WHERE ID IN (SELECT user_id FROM wp_usermeta WHERE meta_key = 'wp_capabilities' AND (meta_value = 'a:0:{}' OR meta_value = '')) OR ID NOT IN (SELECT user_id FROM wp_usermeta WHERE meta_key = 'wp_capabilities')"
+		);
+		return array_map( 'strtolower', array_column( $no_role_users_emails, 'user_email' ) );
+	}
+
+	/**
+	 * Get synchronized users.
+	 *
+	 * @param array $fields Fields to return.
+	 */
+	public static function get_synchronized_users( $fields = [] ) {
+		return get_users(
 			[
 				'role__in' => self::get_synced_user_roles(),
-				'fields'   => [ 'id' ],
+				'fields'   => $fields,
 				'number'   => -1,
 			]
 		);
-		return count( $users );
+	}
+
+	/**
+	 * Get not synchronized users count.
+	 *
+	 * @param array $fields Fields to return.
+	 */
+	public static function get_not_synchronized_users( $fields = [] ) {
+		return get_users(
+			[
+				'role__not_in' => self::get_synced_user_roles(),
+				'fields'       => $fields,
+				'number'       => -1,
+			]
+		);
+	}
+
+	/**
+	 * Get synchronized users emails.
+	 */
+	public static function get_not_synchronized_users_emails() {
+		return array_map( 'strtolower', array_column( self::get_not_synchronized_users( [ 'user_email' ] ), 'user_email' ) );
+	}
+
+	/**
+	 * Get not synchronized users count.
+	 */
+	public static function get_not_synchronized_users_count() {
+		return count( self::get_not_synchronized_users( [ 'id' ] ) );
 	}
 }
