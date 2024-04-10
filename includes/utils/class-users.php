@@ -50,6 +50,10 @@ class Users {
 
 		$user_array = array_merge( $user_array, $insert_array );
 
+		if ( isset( $user_array['meta_input'] ) ) {
+			$user_array['meta_input'] = (array) $user_array['meta_input'];
+		}
+
 		$user_id = wp_insert_user( $user_array );
 
 		if ( is_wp_error( $user_id ) ) {
