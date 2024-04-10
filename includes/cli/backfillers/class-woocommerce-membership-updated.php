@@ -77,10 +77,20 @@ class Woocommerce_Membership_Updated extends Abstract_Backfiller {
 				'membership_id'   => $membership->get_id(),
 				'new_status'      => $status,
 			];
-			if ( $status === 'active' ) {
+			switch ( $status ) {
+				case 'paused':
+					$timestamp = strtotime( $membership->get_paused_date() );
+					break;
+				case 'cancelled':
+					$timestamp = strtotime( $membership->get_cancelled_date() );
+					break;
+				case 'expired':
+					$timestamp = strtotime( $membership->get_end_date() );
+					break;
+			}
+
+			if ( ! $timestamp ) {
 				$timestamp = strtotime( $membership->get_start_date() );
-			} else {
-				$timestamp = strtotime( $membership->get_end_date() );
 			}
 
 			$events[] = new \Newspack_Network\Incoming_Events\Woocommerce_Membership_Updated( get_bloginfo( 'url' ), $membership_data, $timestamp );
