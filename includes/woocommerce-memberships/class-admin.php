@@ -50,6 +50,13 @@ class Admin {
 	const SITE_URL_META_KEY = '_remote_site_url';
 
 	/**
+	 * The special param to filter the WC Memberships table.
+	 *
+	 * @var string
+	 */
+	const MEMBERSHIPS_TABLE_EMAILS_QUERY_PARAM = '_newspack_emails_query';
+
+	/**
 	 * Initializer.
 	 */
 	public static function init() {
@@ -58,6 +65,43 @@ class Admin {
 		add_filter( 'get_edit_post_link', array( __CLASS__, 'get_edit_post_link' ), 10, 2 );
 		add_filter( 'post_row_actions', array( __CLASS__, 'post_row_actions' ), 99, 2 ); // After the Memberships plugin.
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap' ), 20, 4 );
+		add_filter( 'wc_memberships_rest_api_membership_plan_data', [ __CLASS__, 'add_data_to_membership_plan_response' ], 2, 3 );
+		add_filter( 'request', [ __CLASS__, 'request_query' ] );
+		add_action( 'pre_user_query', [ __CLASS__, 'pre_user_query' ] );
+		add_action( 'admin_notices', [ __CLASS__, 'admin_notices' ] );
+	}
+
+	/**
+	 * Get active members' emails.
+	 *
+	 * @param \WC_Memberships_Membership_Plan $plan the membership plan.
+	 */
+	public static function get_active_members_emails( $plan ) {
+		$active_memberships = $plan->get_memberships( [ 'post_status' => 'wcm-active' ] );
+		return array_map(
+			function ( $membership ) {
+				$user = get_user_by( 'id', $membership->get_user_id() );
+				return $user->user_email;
+			},
+			$active_memberships
+		);
+	}
+
+	/**
+	 * Filter membership plans to add user count.
+	 *
+	 * @param array                           $data associative array of membership plan data.
+	 * @param \WC_Memberships_Membership_Plan $plan the membership plan.
+	 * @param null|\WP_REST_Request           $request The request object.
+	 */
+	public static function add_data_to_membership_plan_response( $data, $plan, $request ) {
+		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
+			$data['active_members_count'] = $plan->get_memberships_count( 'active' );
+			if ( $request->get_param( 'include_active_members_emails' ) ) {
+				$data['active_members_emails'] = self::get_active_members_emails( $plan );
+			}
+		}
+		return $data;
 	}
 
 	/**
@@ -183,5 +227,81 @@ class Admin {
 			}
 		}
 		return $caps;
+	}
+
+	/**
+	 * Get table email query param.
+	 */
+	private static function get_table_emails_query_param() {
+		$emails_param_value = isset( $_GET[ self::MEMBERSHIPS_TABLE_EMAILS_QUERY_PARAM ] ) ? sanitize_text_field( $_GET[ self::MEMBERSHIPS_TABLE_EMAILS_QUERY_PARAM ] ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( $emails_param_value ) {
+			return explode( ',', $emails_param_value );
+		}
+		return false;
+	}
+
+	/**
+	 * Handles custom filters for the user memberships screen.
+	 *
+	 * @param array $vars query vars for \WP_Query.
+	 * @return array modified query vars.
+	 */
+	public static function request_query( $vars ) {
+		global $typenow;
+		if ( 'wc_user_membership' === $typenow ) {
+			if ( self::get_table_emails_query_param() ) {
+				$users = get_users(
+					[
+						'fields'         => 'ID',
+						'search'         => 'emails',
+						'search_columns' => [ 'user_email' ],
+					]
+				);
+				$vars['author__in'] = $users;
+			}
+		}
+		return $vars;
+	}
+
+	/**
+	 * Handles custom filters for the user query.
+	 *
+	 * @param \WP_User_Query $user_query The user query.
+	 */
+	public static function pre_user_query( $user_query ) {
+		$emails_from_query = self::get_table_emails_query_param();
+		if ( $emails_from_query ) {
+			$emails = array_map(
+				function( $email ) {
+					return "'$email'";
+				},
+				$emails_from_query
+			);
+			$user_query->query_where = preg_replace(
+				"/user_email LIKE 'emails'/",
+				'user_email LIKE ' . implode( ' OR user_email LIKE ', $emails ),
+				$user_query->query_where
+			);
+		}
+	}
+
+	/**
+	 * Admin notice if viewing memberships table with emails filter.
+	 */
+	public static function admin_notices() {
+		$emails_from_query = self::get_table_emails_query_param();
+		if ( $emails_from_query ) {
+			?>
+				<div class="notice notice-info">
+					<p>
+						<?php
+						/* translators: %s is the list of emails */
+						printf( esc_html__( 'Filtering memberships by emails (%d email addresses in the query).', 'newspack-network' ), count( $emails_from_query ) );
+						?>
+					</p>
+				</div>
+				<style>.subsubsub,.search-box,.tablenav.top{display: none;}</style>
+			<?php
+		}
 	}
 }

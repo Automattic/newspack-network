@@ -15,6 +15,14 @@ use Newspack_Network\Hub\Stores\Woo_Item;
  * Class to handle the Subscriptions admin page by customizing the Custom Post type screen
  */
 class Subscriptions extends Woo {
+	/**
+	 * Runs the initialization.
+	 */
+	public static function init() {
+		parent::init();
+		add_filter( 'manage_edit-' . \Newspack_Network\Hub\Database\Subscriptions::POST_TYPE_SLUG . '_sortable_columns', [ __CLASS__, 'subscription_sortable_columns' ] );
+		add_filter( 'request', [ __CLASS__, 'request_query' ] );
+	}
 
 	/**
 	 * Modify columns on post type table
@@ -47,7 +55,6 @@ class Subscriptions extends Woo {
 	 * @return void
 	 */
 	public static function posts_columns_values( $column, $post_id ) {
-		
 		$store_class_name = str_replace( 'Admin', 'Stores', get_called_class() );
 		$item             = $store_class_name::get_item( $post_id );
 
@@ -98,12 +105,12 @@ class Subscriptions extends Woo {
 						$line_item['name'] ?? ''
 					);
 				}
-                echo $output; // phpcs:ignore
+				echo $output; // phpcs:ignore
 				break;
 			case 'orders':
 				$link = sprintf(
 					'%s/wp-admin/edit.php?post_status=all&post_type=shop_order&_subscription_related_orders=%d',
-					$item->get_node_url(), 
+					$item->get_node_url(),
 					$item->get_remote_id()
 				);
 				printf( '<a href="%s" target="blank">%s</a>', $link, $item->get_payment_count() ); // phpcs:ignore
@@ -112,5 +119,57 @@ class Subscriptions extends Woo {
 				printf( '%s<br/>Via %s', $item->get_formatted_total(), $item->get_payment_method_title() ); // phpcs:ignore
 				break;
 		}
+	}
+
+	/**
+	 * Add sortable columns.
+	 *
+	 * @param array $columns Columns.
+	 * @return array
+	 */
+	public static function subscription_sortable_columns( $columns ) {
+		$sortable_columns = [
+			'start_date'        => 'start_date',
+			'trial_end_date'    => 'trial_end_date',
+			'next_payment_date' => 'next_payment_date',
+			'last_payment_date' => 'last_payment_date',
+			'end_date'          => 'end_date',
+		];
+
+		return wp_parse_args( $sortable_columns, $columns );
+	}
+
+	/**
+	 * Sorts the request for subscriptions stored in WP Post tables.
+	 *
+	 * @param array $vars Query variables.
+	 *
+	 * @return array
+	 */
+	public static function request_query( $vars ) {
+		global $typenow;
+
+		if ( \Newspack_Network\Hub\Database\Subscriptions::POST_TYPE_SLUG === $typenow ) {
+			if ( isset( $vars['orderby'] ) ) {
+				switch ( $vars['orderby'] ) {
+					case 'start_date':
+					case 'trial_end_date':
+					case 'next_payment_date':
+					case 'last_payment_date':
+					case 'end_date':
+						$vars = array_merge(
+							$vars,
+							[
+								'meta_key'  => $vars['orderby'],
+								'meta_type' => 'DATETIME',
+								'orderby'   => 'meta_value',
+							]
+						);
+						break;
+				}
+			}
+		}
+
+		return $vars;
 	}
 }
