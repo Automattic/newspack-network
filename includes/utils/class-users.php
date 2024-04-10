@@ -198,6 +198,9 @@ class Users {
 	/**
 	 * Get synchronized users.
 	 *
+	 * Note that if a user has duplicate entries for the `wp_capabilities` meta in the `wp_usermeta` table,
+	 * this function will return the user multiple times.
+	 *
 	 * @param array $fields Fields to return.
 	 */
 	public static function get_synchronized_users( $fields = [] ) {
