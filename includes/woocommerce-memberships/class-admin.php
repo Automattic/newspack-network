@@ -74,14 +74,18 @@ class Admin {
 	/**
 	 * Get active members' emails.
 	 *
-	 * @param \WC_Memberships_Membership_Plan $plan the membership plan.
+	 * @param \WC_Memberships_Membership_Plan $plan The membership plan.
 	 */
 	public static function get_active_members_emails( $plan ) {
 		$active_memberships = $plan->get_memberships( [ 'post_status' => 'wcm-active' ] );
 		return array_map(
 			function ( $membership ) {
 				$user = get_user_by( 'id', $membership->get_user_id() );
-				return $user->user_email;
+				if ( $user ) {
+					return strtolower( $user->user_email );
+				} else {
+					return '';
+				}
 			},
 			$active_memberships
 		);
