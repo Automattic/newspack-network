@@ -30,6 +30,13 @@ class Users {
 		$existing_user = get_user_by( 'email', $email );
 
 		if ( $existing_user ) {
+			/**
+			 * Fires when fetching an existing network reader account.
+			 *
+			 * @param WP_User $new_user The existing user.
+			 */
+			do_action( 'newspack_network_network_reader', $existing_user );
+
 			return $existing_user;
 		}
 
@@ -53,7 +60,16 @@ class Users {
 		update_user_meta( $user_id, self::USER_META_REMOTE_SITE, $remote_site_url );
 		update_user_meta( $user_id, self::USER_META_REMOTE_ID, $remote_id );
 
-		return get_user_by( 'id', $user_id );
+		$new_user = get_user_by( 'id', $user_id );
+
+		/**
+		 * Fires when a new network reader account is created and all network user meta has been added.
+		 *
+		 * @param WP_User $new_user The newly created user.
+		 */
+		do_action( 'newspack_network_new_network_reader', $new_user );
+
+		return $new_user;
 	}
 
 	/**
