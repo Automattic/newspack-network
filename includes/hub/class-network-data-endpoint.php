@@ -80,6 +80,9 @@ class Network_Data_Endpoint {
 		if ( \is_wp_error( $request_error ) ) {
 			return new WP_REST_Response( [ 'error' => $request_error->get_error_message() ], 403 );
 		}
+		if ( ! isset( $request['plan_network_id'] ) || empty( $request['plan_network_id'] ) ) {
+			return new WP_REST_Response( [ 'error' => __( 'Missing plan_network_id', 'newspack-network' ) ], 400 );
+		}
 
 		return new WP_REST_Response(
 			[

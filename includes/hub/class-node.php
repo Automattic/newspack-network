@@ -186,7 +186,7 @@ class Node {
 	}
 
 	/**
-	 * Get all subscriptions.
+	 * Get subscriptions from Node.
 	 *
 	 * @param string $email The email to get subscriptions for.
 	 * @param string $plan_network_id The plan network ID to get subscriptions for.

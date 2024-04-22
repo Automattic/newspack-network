@@ -140,7 +140,7 @@ class Distributor_Settings {
 	public static function canonical_node_callback() {
 		$current = self::get_canonical_node();
 
-		Nodes::nodes_dropdown( $current, self::CANONICAL_NODE_OPTION_NAME, __( 'Default', 'newspack-network' ) );
+		Nodes::network_sites_dropdown( $current, self::CANONICAL_NODE_OPTION_NAME, __( 'Default', 'newspack-network' ) );
 
 		printf(
 			'<br/><small>%1$s</small>',
