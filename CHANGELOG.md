@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/Automattic/newspack-network/compare/v1.5.0...v1.6.0) (2024-04-24)
+
+
+### Features
+
+* experimental auditing features ([#79](https://github.com/Automattic/newspack-network/issues/79)) ([0c31fd6](https://github.com/Automattic/newspack-network/commit/0c31fd60eeb404ab36f0d5eff7482f4cd4a5085e))
+
 # [1.6.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.5.0...v1.6.0-alpha.1) (2024-04-11)
 
 
