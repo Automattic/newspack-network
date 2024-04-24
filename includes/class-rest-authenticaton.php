@@ -37,6 +37,10 @@ class Rest_Authenticaton {
 			'endpoint' => '|^/wc/v2/memberships/plans|',
 			'callback' => [ __CLASS__, 'add_filter_for_woo_read_endpoints' ],
 		],
+		'get-woo-memberships'      => [
+			'endpoint' => '|^/wc/v2/memberships|',
+			'callback' => [ __CLASS__, 'add_filter_for_woo_read_endpoints' ],
+		],
 	];
 
 	/**

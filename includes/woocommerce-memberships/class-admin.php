@@ -66,6 +66,7 @@ class Admin {
 		add_filter( 'post_row_actions', array( __CLASS__, 'post_row_actions' ), 99, 2 ); // After the Memberships plugin.
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap' ), 20, 4 );
 		add_filter( 'wc_memberships_rest_api_membership_plan_data', [ __CLASS__, 'add_data_to_membership_plan_response' ], 2, 3 );
+		add_filter( 'woocommerce_rest_prepare_wc_user_membership', [ __CLASS__, 'add_data_to_wc_user_membership_response' ], 2, 3 );
 		add_filter( 'request', [ __CLASS__, 'request_query' ] );
 		add_action( 'pre_user_query', [ __CLASS__, 'pre_user_query' ] );
 		add_action( 'admin_notices', [ __CLASS__, 'admin_notices' ] );
@@ -74,14 +75,18 @@ class Admin {
 	/**
 	 * Get active members' emails.
 	 *
-	 * @param \WC_Memberships_Membership_Plan $plan the membership plan.
+	 * @param \WC_Memberships_Membership_Plan $plan The membership plan.
 	 */
 	public static function get_active_members_emails( $plan ) {
 		$active_memberships = $plan->get_memberships( [ 'post_status' => 'wcm-active' ] );
 		return array_map(
 			function ( $membership ) {
 				$user = get_user_by( 'id', $membership->get_user_id() );
-				return $user->user_email;
+				if ( $user ) {
+					return strtolower( $user->user_email );
+				} else {
+					return '';
+				}
 			},
 			$active_memberships
 		);
@@ -96,12 +101,61 @@ class Admin {
 	 */
 	public static function add_data_to_membership_plan_response( $data, $plan, $request ) {
 		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
-			$data['active_members_count'] = $plan->get_memberships_count( 'active' );
-			if ( $request->get_param( 'include_active_members_emails' ) ) {
-				$data['active_members_emails'] = self::get_active_members_emails( $plan );
+			$data['active_memberships_count'] = $plan->get_memberships_count( 'active' );
+			$network_pass_id = get_post_meta( $plan->id, self::NETWORK_ID_META_KEY, true );
+			if ( $network_pass_id && $request->get_param( 'include_active_members_emails' ) ) {
+				$data['active_subscriptions_count'] = self::get_plan_related_active_subscriptions( $plan );
+				$data['active_members_emails'] = array_values( array_unique( self::get_active_members_emails( $plan ) ) );
+			} else {
+				$data['active_subscriptions_count'] = __( 'Only displayed for plans with a Network ID.', 'newspack-network' );
 			}
 		}
 		return $data;
+	}
+
+	/**
+	 * Get the active subscriptions related to a membership plan.
+	 *
+	 * @param \WC_Memberships_Membership_Plan $plan The membership plan.
+	 */
+	public static function get_plan_related_active_subscriptions( $plan ) {
+		$product_ids = $plan->get_product_ids();
+		$subscriptions = wcs_get_subscriptions_for_product( $product_ids, 'ids', [ 'subscription_status' => 'active' ] );
+		return count( $subscriptions );
+	}
+
+	/**
+	 * Filter user membership data from REST API.
+	 *
+	 * @param \WP_REST_Response $response the response object.
+	 * @param null|\WP_Post     $user the user membership post object.
+	 * @param \WP_REST_Request  $request the request object.
+	 */
+	public static function add_data_to_wc_user_membership_response( $response, $user, $request ) {
+		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
+			// Add network plan ID to the response.
+			$plan = wc_memberships_get_membership_plan( $response->data['plan_id'] );
+			$response->data['plan_network_id'] = get_post_meta( $plan->id, self::NETWORK_ID_META_KEY, true );
+		}
+		return $response;
+	}
+
+	/**
+	 * Get memberships from the site, with the network plan ID.
+	 *
+	 * @param string $email The email of the user.
+	 */
+	public static function get_memberships_by_user_email_with_plan_network_id( $email ) {
+		if ( ! function_exists( '\wc_memberships_get_user_memberships' ) ) {
+			return [];
+		}
+		$found_memberships = \wc_memberships_get_user_memberships( get_user_by( 'email', $email ) );
+		foreach ( $found_memberships as $membership ) {
+			$membership->customer_id = $membership->get_user_id();
+			$membership->start_date = $membership->get_local_start_date( 'Y-m-d\TH:i:s' );
+			$membership->plan_network_id = get_post_meta( $membership->plan_id, self::NETWORK_ID_META_KEY, true );
+		}
+		return $found_memberships;
 	}
 
 	/**

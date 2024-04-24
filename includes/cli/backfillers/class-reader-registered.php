@@ -35,7 +35,7 @@ class Reader_Registered extends Abstract_Backfiller {
 		if ( empty( $roles_to_sync ) ) {
 			WP_CLI::error( 'Incompatible Newspack plugin version or no roles to sync.' );
 		}
-		// Get all users registered between this-> and $end.
+		// Get all users registered between specified dates.
 		$users = get_users(
 			[
 				'role__in'   => $roles_to_sync,
@@ -44,6 +44,7 @@ class Reader_Registered extends Abstract_Backfiller {
 					'before'    => $this->end,
 					'inclusive' => true,
 				],
+				'orderby'    => 'user_registered',
 				'fields'     => [ 'id', 'user_email', 'user_registered' ],
 				'number'     => -1,
 				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
@@ -55,7 +56,9 @@ class Reader_Registered extends Abstract_Backfiller {
 			]
 		);
 
+		WP_CLI::line( '' );
 		WP_CLI::line( sprintf( 'Found %s user(s) eligible for sync.', count( $users ) ) );
+		WP_CLI::line( '' );
 
 		$this->maybe_initialize_progress_bar( 'Processing users', count( $users ) );
 
@@ -76,9 +79,12 @@ class Reader_Registered extends Abstract_Backfiller {
 		foreach ( $users as $user ) {
 			$registration_method = get_user_meta( $user->ID, \Newspack\Reader_Activation::REGISTRATION_METHOD, true );
 			$user_data = [
-				'user_id'  => $user->ID,
-				'email'    => $user->user_email,
-				'metadata' => [
+				'user_id'         => $user->ID,
+				'email'           => $user->user_email,
+				'user_registered' => $user->user_registered,
+				'first_name'      => get_user_meta( $user->ID, 'first_name', true ),
+				'last_name'       => get_user_meta( $user->ID, 'last_name', true ),
+				'meta_input'      => [
 					// 'current_page_url' is not saved, can't be backfilled.
 					'registration_method' => empty( $registration_method ) ? 'backfill-script' : $registration_method,
 				],

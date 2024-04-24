@@ -38,6 +38,17 @@ class Info_Endpoints {
 				],
 			]
 		);
+		register_rest_route(
+			'newspack-network/v1',
+			'/subscriptions',
+			[
+				[
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => [ __CLASS__, 'handle_subscriptions_request' ],
+					'permission_callback' => '__return_true',
+				],
+			]
+		);
 	}
 
 	/**
@@ -46,8 +57,24 @@ class Info_Endpoints {
 	public static function handle_info_request() {
 		return rest_ensure_response(
 			[
-				'sync_users_count' => \Newspack_Network\Utils\Users::get_synchronized_users_count(),
+				'sync_users_count'      => \Newspack_Network\Utils\Users::get_synchronized_users_count(),
+				'sync_users_emails'     => \Newspack_Network\Utils\Users::get_synchronized_users_emails(),
+				'not_sync_users_count'  => \Newspack_Network\Utils\Users::get_not_synchronized_users_count(),
+				'not_sync_users_emails' => \Newspack_Network\Utils\Users::get_not_synchronized_users_emails(),
+				'no_role_users_emails'  => \Newspack_Network\Utils\Users::get_no_role_users_emails(),
 			]
+		);
+	}
+
+	/**
+	 * Handles the subscriptions request.
+	 * Will return the active subscription IDs for the given email, when matching a membership by plan network ID.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 */
+	public static function handle_subscriptions_request( $request ) {
+		return rest_ensure_response(
+			\Newspack_Network\Utils\Users::get_users_active_subscriptions_tied_to_network_id( $request['email'], $request['plan_network_id'] )
 		);
 	}
 }

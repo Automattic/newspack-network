@@ -24,9 +24,12 @@ class Initializer {
 			Hub\Nodes::init();
 			Hub\Webhook::init();
 			Hub\Pull_Endpoint::init();
+			Hub\Network_Data_Endpoint::init();
 			Hub\Event_Listeners::init();
-			Hub\Database\Subscriptions::init();
-			Hub\Database\Orders::init();
+			// phpcs:disable
+			// Hub\Database\Subscriptions::init();
+			// Hub\Database\Orders::init();
+			// phpcs:enable
 			Hub\Newspack_Ads_GAM::init();
 			Hub\Connect_Node::init();
 		}
@@ -53,6 +56,7 @@ class Initializer {
 
 		Synchronize_All::init();
 		Data_Backfill::init();
+		Misc::init();
 		Membership_Dedupe::init();
 
 		Woocommerce_Memberships\Admin::init();

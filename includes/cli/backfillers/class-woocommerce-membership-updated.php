@@ -58,6 +58,9 @@ class Woocommerce_Membership_Updated extends Abstract_Backfiller {
 		$this->maybe_initialize_progress_bar( 'Processing memberships', count( $membership_posts_ids ) );
 
 		$events = [];
+		WP_CLI::line( '' );
+		WP_CLI::line( sprintf( 'Found %s membership(s) eligible for sync.', count( $membership_posts_ids ) ) );
+		WP_CLI::line( '' );
 
 		foreach ( $membership_posts_ids as $post_id ) {
 			$membership = new \WC_Memberships_User_Membership( $post_id );
@@ -77,10 +80,21 @@ class Woocommerce_Membership_Updated extends Abstract_Backfiller {
 				'membership_id'   => $membership->get_id(),
 				'new_status'      => $status,
 			];
-			if ( $status === 'active' ) {
+			$timestamp = null;
+			switch ( $status ) {
+				case 'paused':
+					$timestamp = strtotime( $membership->get_paused_date() );
+					break;
+				case 'cancelled':
+					$timestamp = strtotime( $membership->get_cancelled_date() );
+					break;
+				case 'expired':
+					$timestamp = strtotime( $membership->get_end_date() );
+					break;
+			}
+
+			if ( ! $timestamp ) {
 				$timestamp = strtotime( $membership->get_start_date() );
-			} else {
-				$timestamp = strtotime( $membership->get_end_date() );
 			}
 
 			$events[] = new \Newspack_Network\Incoming_Events\Woocommerce_Membership_Updated( get_bloginfo( 'url' ), $membership_data, $timestamp );

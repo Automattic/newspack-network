@@ -12,7 +12,7 @@ use Newspack_Network\Admin as Network_Admin;
 use Newspack_Network\Debugger;
 
 /**
- * Class to handle the ubscriptions post type registration
+ * Class to handle the Orders post type registration
  */
 class Orders {
 
