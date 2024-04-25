@@ -50,7 +50,7 @@ class User_Deleted extends Abstract_Incoming_Event {
 		}
 
 		// Ensure this is a reader.
-		if (!\Newspack\Reader_Activation::is_user_reader( $user )) {
+		if ( ! \Newspack\Reader_Activation::is_user_reader( $user ) ) {
 			Debugger::log( sprintf( 'User %s is not a reader, skipping deletion.', $email ) );
 			return;
 		}
