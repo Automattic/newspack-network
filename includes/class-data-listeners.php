@@ -103,6 +103,8 @@ class Data_Listeners {
 			Debugger::log( 'User deletion with email: ' . $user->user_email . ' was skipped due to filter use.' );
 			return;
 		}
+		// Prevent deletion-related changes triggering a 'network_user_updated' event.
+		User_Update_Watcher::$enabled = false;
 		return [
 			'email' => $user->user_email,
 		];

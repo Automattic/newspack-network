@@ -61,6 +61,8 @@ class User_Deleted extends Abstract_Incoming_Event {
 
 		// Don't broadcast this deletion on the network.
 		add_filter( 'newspack_network_process_user_deleted', '__return_false' );
+		// Prevent deletion-related changes triggering a 'network_user_updated' event.
+		\Newspack_Network\User_Update_Watcher::$enabled = false;
 		// Delete the user.
 		$result = \wp_delete_user( $user->ID );
 		remove_filter( 'newspack_network_process_user_deleted', '__return_false' );
