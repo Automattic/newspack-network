@@ -1,3 +1,10 @@
+# [1.7.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.6.0...v1.7.0-alpha.1) (2024-04-25)
+
+
+### Features
+
+* handle user deletion event on the network ([#91](https://github.com/Automattic/newspack-network/issues/91)) ([cf3df3b](https://github.com/Automattic/newspack-network/commit/cf3df3b5d2d61f2a1679823f80c4780467a0f4f5))
+
 # [1.6.0](https://github.com/Automattic/newspack-network/compare/v1.5.0...v1.6.0) (2024-04-24)
 
 
