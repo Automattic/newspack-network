@@ -49,10 +49,9 @@ class User_Deleted extends Abstract_Incoming_Event {
 			return;
 		}
 
-		// Ensure this is a network reader.
-		$userdata = get_userdata( $user->ID );
-		if ( [ NEWSPACK_NETWORK_READER_ROLE ] !== $userdata->roles ) {
-			Debugger::log( sprintf( 'User %s is not only or not a network reader, skipping deletion.', $email ) );
+		// Ensure this is a reader.
+		if (!\Newspack\Reader_Activation::is_user_reader( $user )) {
+			Debugger::log( sprintf( 'User %s is not a reader, skipping deletion.', $email ) );
 			return;
 		}
 
