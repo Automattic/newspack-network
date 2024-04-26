@@ -25,8 +25,6 @@ class Initializer {
 			Hub\Webhook::init();
 			Hub\Pull_Endpoint::init();
 			Hub\Event_Listeners::init();
-			Hub\Database\Subscriptions::init();
-			Hub\Database\Orders::init();
 			Hub\Newspack_Ads_GAM::init();
 			Hub\Connect_Node::init();
 		}
