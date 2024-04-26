@@ -18,15 +18,6 @@ See the troubleshooting section in the [developer docs](DEV_NOTES.md) to learn h
 
 `reader_registered` is covered in the instructions above
 
-### `newspack_node_order_changed` and `newspack_node_subscription_changed`:
-
-* In one of the Nodes, make a Woocommerce purchase.
-* Check that the event show up in the Hub's Event Log
-* In the Hub, go to the Subscriptions or Order panels under the "Newspack Network" menu and confirm you see the Order or Subscription there, and that its links point to the Node
-* Back to the Node admin, make a change to the Order or Subscription (for example changing its status)
-* Confirm the change shows up in the Event Log
-* Confirm that the Order or Subscription in the panel shows the updated status
-
 ### `donation_new` and `donation_subscription_cancelled`
 
 * In one of the Nodes, make a one-time donation using the Donation block.

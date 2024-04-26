@@ -33,49 +33,9 @@ class Data_Listeners {
 			return;
 		}
 
-		Data_Events::register_listener( 'woocommerce_subscription_status_changed', 'newspack_node_subscription_changed', [ __CLASS__, 'item_changed' ] );
-		Data_Events::register_listener( 'woocommerce_order_status_changed', 'newspack_node_order_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'newspack_network_user_updated', 'network_user_updated', [ __CLASS__, 'user_updated' ] );
 		Data_Events::register_listener( 'delete_user', 'network_user_deleted', [ __CLASS__, 'user_deleted' ] );
 		Data_Events::register_listener( 'newspack_network_nodes_synced', 'network_nodes_synced', [ __CLASS__, 'nodes_synced' ] );
-	}
-
-	/**
-	 * Callback for the Data Events API listeners
-	 *
-	 * @param int    $item_id     The Subscription or Order ID.
-	 * @param string $status_from The status before the change.
-	 * @param string $status_to   The status after the change.
-	 * @param object $item        The Subscription or Order object.
-	 * @return array
-	 */
-	public static function item_changed( $item_id, $status_from, $status_to, $item ) {
-		$relationship = 'normal';
-		if ( function_exists( 'wcs_order_contains_subscription' ) ) {
-			if ( wcs_order_contains_subscription( $item_id, 'renewal' ) ) {
-				$relationship = 'renewal';
-			} elseif ( wcs_order_contains_subscription( $item_id, 'resubscribe' ) ) {
-				$relationship = 'resubscribe';
-			} elseif ( wcs_order_contains_subscription( $item_id, 'parent' ) ) {
-				$relationship = 'parent';
-			}
-		}
-		$result = [
-			'id'                        => $item_id,
-			'user_id'                   => $item->get_customer_id(),
-			'user_name'                 => '',
-			'email'                     => $item->get_billing_email(),
-			'status_before'             => $status_from,
-			'status_after'              => $status_to,
-			'formatted_total'           => wp_strip_all_tags( $item->get_formatted_order_total() ),
-			'payment_count'             => method_exists( $item, 'get_payment_count' ) ? $item->get_payment_count() : 1,
-			'subscription_relationship' => $relationship,
-		];
-		$user   = $item->get_user();
-		if ( $user ) {
-			$result['user_name'] = $user->display_name;
-		}
-		return $result;
 	}
 
 	/**
