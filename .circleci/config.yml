@@ -11,7 +11,7 @@ workflows:
       - newspack/build-distributable:
           requires:
             - newspack/build
-          archive-name: 'newspack-blocks'
+          archive-name: 'newspack-network'
       - newspack/release:
           requires:
             - newspack/build
