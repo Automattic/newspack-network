@@ -174,9 +174,9 @@ class Nodes {
 	 * @param string $empty_label The label for the empty option.
 	 * @return void
 	 */
-	public static function nodes_dropdown( $current_node = '', $name = 'node_id', $empty_label = '' ) {
+	public static function network_sites_dropdown( $current_node = '', $name = 'node_id', $empty_label = '' ) {
 		if ( empty( $empty_label ) ) {
-			$empty_label = __( 'All Nodes', 'newspack-network' );
+			$empty_label = __( 'All Sites', 'newspack-network' );
 		}
 		$all_nodes = self::get_all_nodes();
 		?>
