@@ -39,7 +39,7 @@ class Membership_Dedupe {
 						[
 							'type'     => 'assoc',
 							'name'     => 'plan-id',
-							'optional' => false,
+							'optional' => true,
 						],
 						[
 							'type'     => 'flag',
@@ -64,62 +64,97 @@ class Membership_Dedupe {
 	 *
 	 *     wp newspack-network clean-up-duplicate-memberships --plan-id=1234
 	 *
+	 * ## OPTIONS
+	 *
+	 * [--plan-id]
+	 * : Membership plan ID to clean up. If not set, all synchronized plans will be cleaned up.
+	 *
+	 * [--live]
+	 * : Run the command in live mode, updating the users.
+	 *
+	 * [--csv]
+	 * : Output CSV.
+	 *
 	 * @param array $args Positional args.
 	 * @param array $assoc_args Associative args and flags.
 	 */
 	public static function clean_duplicate_memberships( $args, $assoc_args ) {
 		WP_CLI::line( '' );
+
 		$live = isset( $assoc_args['live'] );
-		$csv = isset( $assoc_args['csv'] );
-
-		$plan_id = $assoc_args['plan-id'];
-		if ( ! is_numeric( $plan_id ) ) {
-			WP_CLI::error( 'Membership plan ID must be numeric' );
-		}
-		$plan_id = (int) $plan_id;
-
 		if ( ! $live ) {
 			WP_CLI::line( 'Running in dry-run mode. Use --live flag to run in live mode.' );
 			WP_CLI::line( '' );
 		}
 
-		$user_ids = self::get_users_with_duplicate_membership( $plan_id );
-		WP_CLI::line( sprintf( '%d users found with duplicate memberships', count( $user_ids ) ) );
+		$csv = isset( $assoc_args['csv'] );
 
-		$duplicates = [];
-		foreach ( $user_ids as $user_id ) {
-			$memberships = get_posts(
+		$plan_id_from_args = isset( $assoc_args['plan-id'] ) ? $assoc_args['plan-id'] : null;
+		$plan_ids = [];
+		if ( $plan_id_from_args ) {
+			if ( ! is_numeric( $plan_id_from_args ) ) {
+				WP_CLI::error( 'Membership plan ID must be numeric' );
+			}
+			$plan_ids = [ (int) $plan_id_from_args ];
+		} else {
+			// Get all network-sync'd membership plans.
+			$plan_ids = get_posts(
 				[
-					'author'      => $user_id,
-					'post_type'   => 'wc_user_membership',
-					'post_status' => 'any',
-					'post_parent' => $plan_id,
+					'post_type'  => 'wc_membership_plan',
+					'fields'     => 'ids',
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						[
+							'key'     => \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY,
+							'compare' => 'EXISTS',
+						],
+					],
 				]
 			);
+		}
 
-			foreach ( $memberships as $membership ) {
-				$user = get_user_by( 'id', $membership->post_author );
-				$duplicates[] = [
-					'user'         => $membership->post_author,
-					'email'        => $user->user_email,
-					'membership'   => $membership->ID,
-					'subscription' => get_post_meta( $membership->ID, '_subscription_id', true ),
-					'status'       => $membership->post_status,
-					'remote'       => get_post_meta( $membership->ID, '_remote_site_url', true ),
-				];
+		$user_ids = [];
+		foreach ( $plan_ids as $plan_id ) {
+			WP_CLI::line( sprintf( 'Checking plan #%d', $plan_id ) );
+
+			$user_ids = array_merge( $user_ids, self::get_users_with_duplicate_membership( $plan_id ) );
+			WP_CLI::line( sprintf( '%d users found with duplicate memberships', count( $user_ids ) ) );
+
+			$duplicates = [];
+			foreach ( $user_ids as $user_id ) {
+				$memberships = get_posts(
+					[
+						'author'      => $user_id,
+						'post_type'   => 'wc_user_membership',
+						'post_status' => 'any',
+						'post_parent' => $plan_id,
+					]
+				);
+
+				foreach ( $memberships as $membership ) {
+					$user = get_user_by( 'id', $membership->post_author );
+					if ( $user === false ) {
+						continue;
+					}
+					$duplicates[] = [
+						'user'         => $membership->post_author,
+						'email'        => $user->user_email,
+						'membership'   => $membership->ID,
+						'subscription' => get_post_meta( $membership->ID, '_subscription_id', true ),
+						'status'       => $membership->post_status,
+						'remote'       => get_post_meta( $membership->ID, '_remote_site_url', true ),
+					];
+				}
 			}
-		}
 
-		if ( $csv && ! empty( $duplicates ) ) {
-			WP_CLI::line( 'COPY AND PASTE THIS CSV: ' );
-			WP_CLI::line();
-			WP_CLI\Utils\format_items( 'csv', $duplicates, array_keys( $duplicates[0] ) );
-			WP_CLI::line();
-		}
+			if ( $csv && ! empty( $duplicates ) ) {
+				WP_CLI::line( 'COPY AND PASTE THIS CSV: ' );
+				WP_CLI::line();
+				WP_CLI\Utils\format_items( 'csv', $duplicates, array_keys( $duplicates[0] ) );
+				WP_CLI::line();
+			}
 
-		if ( $live ) {
-			WP_CLI::line( 'Deleting duplicates' );
-			self::deduplicate_memberships( $duplicates );
+			self::deduplicate_memberships( $duplicates, $live );
+			WP_CLI::line( '' );
 		}
 
 		WP_CLI::success( 'Done' );
@@ -151,8 +186,12 @@ class Membership_Dedupe {
 	 * De-duplicate memberships so that users only have one membership of a plan.
 	 *
 	 * @param array $duplicates Analyzed data from ::clean_duplicate_memberships.
+	 * @param bool  $live Whether to actually delete the duplicates.
 	 */
-	private static function deduplicate_memberships( $duplicates ) {
+	private static function deduplicate_memberships( $duplicates, $live ) {
+		if ( $live ) {
+			WP_CLI::line( 'Deleting duplicates' );
+		}
 		$userdata = [];
 
 		foreach ( $duplicates as $duplicate ) {
@@ -166,13 +205,17 @@ class Membership_Dedupe {
 		foreach ( $userdata as $email => $duplicates ) {
 			WP_CLI::line( sprintf( 'Processing %s', $email ) );
 			if ( count( $duplicates ) < 2 ) {
-				WP_CLI::line( '  - User does not have too many memberships' );
+				WP_CLI::line( '  - User has multiple memberships, but no duplicates' );
 			}
 
 			$memberships_to_delete = array_slice( $duplicates, 1 );
 			foreach ( $memberships_to_delete as $duplicate ) {
-				wp_delete_post( $duplicate['membership'], true );
-				WP_CLI::line( sprintf( '  - Deleted extra membership %d', $duplicate['membership'] ) );
+				if ( $live ) {
+					wp_delete_post( $duplicate['membership'], true );
+					WP_CLI::line( sprintf( '  - Deleted extra membership %d', $duplicate['membership'] ) );
+				} else {
+					WP_CLI::line( sprintf( '  - Would have deleted extra membership %d', $duplicate['membership'] ) );
+				}
 			}
 		}
 	}
