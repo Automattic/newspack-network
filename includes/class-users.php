@@ -19,7 +19,7 @@ class Users {
 	 */
 	public static function init() {
 		add_filter( 'manage_users_columns', [ __CLASS__, 'manage_users_columns' ] );
-		add_filter( 'manage_users_custom_column', [ __CLASS__, 'manage_users_custom_column' ], 10, 3 );
+		add_filter( 'manage_users_custom_column', [ __CLASS__, 'manage_users_custom_column' ], 99, 3 ); // priority must be higher than Jetpack's jetpack_show_connection_status (10).
 		add_filter( 'users_list_table_query_args', [ __CLASS__, 'users_list_table_query_args' ] );
 	}
 
@@ -30,9 +30,7 @@ class Users {
 	 * @return array
 	 */
 	public static function manage_users_columns( $columns ) {
-		if ( Site_Role::is_hub() ) {
-			$columns['newspack_network_activity'] = __( 'Newspack Network Activity', 'newspack-network' );
-		}
+		$columns['newspack_network_activity'] = __( 'Newspack Network Activity', 'newspack-network' );
 		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
 			$columns['newspack_network_user'] = __( 'Network Original User', 'newspack-network' );
 		}
@@ -60,36 +58,45 @@ class Users {
 				);
 			}
 		}
-		if ( 'newspack_network_activity' === $column_name && Site_Role::is_hub() ) {
+		if ( 'newspack_network_activity' === $column_name ) {
 			$user = get_user_by( 'id', $user_id );
 			if ( ! $user ) {
 				return $value;
 			}
+			if ( Site_Role::is_hub() ) {
+				$last_activity = \Newspack_Network\Hub\Stores\Event_Log::get( [ 'email' => $user->user_email ], 1 );
+				if ( empty( $last_activity ) ) {
+					return '-';
+				}
 
-			$last_activity = \Newspack_Network\Hub\Stores\Event_Log::get( [ 'email' => $user->user_email ], 1 );
-
-			if ( empty( $last_activity ) ) {
-				return '-';
+				$event_log_url = add_query_arg(
+					[
+						'page'  => EVENT_LOG_PAGE_SLUG,
+						'email' => urlencode( $user->user_email ),
+					],
+					admin_url( 'admin.php' )
+				);
+				return sprintf(
+					'%s: <code>%s</code><br><a href="%s">%s</a>',
+					__( 'Last Activity', 'newspack-network' ),
+					$last_activity[0]->get_summary(),
+					$event_log_url,
+					__( 'View all', 'newspack-network' )
+				);
+			} else {
+				$event_log_url = add_query_arg(
+					[
+						'page'  => EVENT_LOG_PAGE_SLUG,
+						'email' => urlencode( $user->user_email ),
+					],
+					untrailingslashit( Node\Settings::get_hub_url() ) . '/wp-admin/admin.php'
+				);
+				return sprintf(
+					'<a href="%s">%s</a>',
+					$event_log_url,
+					__( 'View activity', 'newspack-network' )
+				);
 			}
-
-			$last_activity = $last_activity[0];
-
-			$summary       = $last_activity->get_summary();
-			$event_log_url = add_query_arg(
-				[
-					'page'  => EVENT_LOG_PAGE_SLUG,
-					'email' => $user->user_email,
-				],
-				admin_url( 'admin.php' )
-			);
-			return sprintf(
-				'%s: <code>%s</code><br><a href="%s">%s</a>',
-				__( 'Last Activity', 'newspack-network' ),
-				$summary,
-				$event_log_url,
-				__( 'View all', 'newspack-network' )
-			);
-
 		}
 		return $value;
 	}
@@ -104,6 +111,10 @@ class Users {
 	public static function users_list_table_query_args( $args ) {
 		if ( isset( $_REQUEST['role__in'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$args['role__in'] = explode( ',', sanitize_text_field( $_REQUEST['role__in'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			unset( $args['role'] );
+		}
+		if ( isset( $_REQUEST['role__not_in'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$args['role__not_in'] = explode( ',', sanitize_text_field( $_REQUEST['role__not_in'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			unset( $args['role'] );
 		}
 		return $args;
