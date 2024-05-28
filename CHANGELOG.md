@@ -1,3 +1,33 @@
+# [1.8.0](https://github.com/Automattic/newspack-network/compare/v1.7.0...v1.8.0) (2024-05-28)
+
+
+### Bug Fixes
+
+* **backfill:** reader registered, membership updated ([b177538](https://github.com/Automattic/newspack-network/commit/b177538edded61491582cf72f254e51e026553f6))
+
+
+### Features
+
+* **admin:** subscriptions view ([cb5bcb7](https://github.com/Automattic/newspack-network/commit/cb5bcb7be0235c72a21d89ffcdac6ae154a3fa15))
+* auditing features env variable name change ([e1df42b](https://github.com/Automattic/newspack-network/commit/e1df42b605e284723c9d8babeee4456125307e27))
+* remove hub's subscriptions and orders ([e234425](https://github.com/Automattic/newspack-network/commit/e23442525922b95d66455ff48b40b1cb85ed7eeb))
+* sync Network Registration Site on network reader creation or fetch ([eeba099](https://github.com/Automattic/newspack-network/commit/eeba099429d87e7012c1397d432140dadd8c2916))
+
+# [1.8.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.7.0...v1.8.0-alpha.1) (2024-05-21)
+
+
+### Bug Fixes
+
+* **backfill:** reader registered, membership updated ([b177538](https://github.com/Automattic/newspack-network/commit/b177538edded61491582cf72f254e51e026553f6))
+
+
+### Features
+
+* **admin:** subscriptions view ([cb5bcb7](https://github.com/Automattic/newspack-network/commit/cb5bcb7be0235c72a21d89ffcdac6ae154a3fa15))
+* auditing features env variable name change ([e1df42b](https://github.com/Automattic/newspack-network/commit/e1df42b605e284723c9d8babeee4456125307e27))
+* remove hub's subscriptions and orders ([e234425](https://github.com/Automattic/newspack-network/commit/e23442525922b95d66455ff48b40b1cb85ed7eeb))
+* sync Network Registration Site on network reader creation or fetch ([eeba099](https://github.com/Automattic/newspack-network/commit/eeba099429d87e7012c1397d432140dadd8c2916))
+
 # [1.7.0](https://github.com/Automattic/newspack-network/compare/v1.6.0...v1.7.0) (2024-05-15)
 
 
