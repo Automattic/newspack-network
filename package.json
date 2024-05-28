@@ -1,6 +1,6 @@
 {
 	"name": "newspack-network",
-	"version": "1.7.0",
+	"version": "1.8.0-alpha.1",
 	"description": "The Newspack Network plugin.",
 	"license": "GPL-3.0",
 	"browserslist": [
@@ -8,6 +8,7 @@
 	],
 	"scripts": {
 		"cm": "git-cz",
+		"build": "echo 'No build step necessary for Newspack Network.'",
 		"semantic-release": "newspack-scripts release --files=newspack-network.php",
 		"start": "npm ci",
 		"lint:php": "./vendor/bin/phpcs .",

@@ -25,8 +25,6 @@ class Initializer {
 			Hub\Webhook::init();
 			Hub\Pull_Endpoint::init();
 			Hub\Event_Listeners::init();
-			Hub\Database\Subscriptions::init();
-			Hub\Database\Orders::init();
 			Hub\Newspack_Ads_GAM::init();
 			Hub\Connect_Node::init();
 		}
@@ -57,6 +55,7 @@ class Initializer {
 
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();
+		Woocommerce_Subscriptions\Admin::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
