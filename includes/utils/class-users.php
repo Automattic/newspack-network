@@ -26,7 +26,6 @@ class Users {
 	 * @return WP_User|WP_Error
 	 */
 	public static function get_or_create_user_by_email( $email, $remote_site_url, $remote_id, $insert_array = [] ) {
-
 		$existing_user = get_user_by( 'email', $email );
 
 		if ( $existing_user ) {
@@ -40,10 +39,13 @@ class Users {
 			return $existing_user;
 		}
 
+		$nicename = self::generate_user_nicename( $email );
+
 		$user_array = [
-			'user_login'    => $email,
+			'user_login'    => substr( $email, 0, 60 ),
 			'user_email'    => $email,
-			'user_nicename' => $email,
+			'user_nicename' => $nicename,
+			'display_name'  => $nicename,
 			'user_pass'     => wp_generate_password(),
 			'role'          => NEWSPACK_NETWORK_READER_ROLE,
 		];
@@ -74,6 +76,29 @@ class Users {
 		do_action( 'newspack_network_new_network_reader', $new_user );
 
 		return $new_user;
+	}
+
+	/**
+	 * Generate a URL-sanitized version of the given string for a new reader account.
+	 *
+	 * @param string $name User's display name, or email if not available.
+	 * @return string
+	 */
+	public static function generate_user_nicename( $name ) {
+		$name = self::strip_email_domain( $name ); // If an email address, strip the domain.
+
+		return substr( \sanitize_title( \sanitize_user( $name, true ) ), 0, 50 );
+	}
+
+	/**
+	 * Strip the domain part of an email address string.
+	 * If not an email address, just return the string.
+	 *
+	 * @param string $str String to check.
+	 * @return string
+	 */
+	public static function strip_email_domain( $str ) {
+		return trim( explode( '@', $str, 2 )[0] );
 	}
 
 	/**

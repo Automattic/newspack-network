@@ -132,49 +132,17 @@ class Pulling {
 	}
 
 	/**
-	 * Gets the request parameters for the pull request
-	 *
-	 * @return array
-	 */
-	public static function get_request_params() {
-		$params = [
-			'last_processed_id' => self::get_last_processed_id(),
-			'actions'           => Accepted_Actions::ACTIONS_THAT_NODES_PULL,
-			'site'              => get_bloginfo( 'url' ),
-		];
-		return self::sign_params( $params );
-	}
-
-	/**
-	 * Signs the request parameters with the Node's secret key
-	 *
-	 * @param array $params The request parameters.
-	 * @return array The params array with an additional signature key.
-	 */
-	public static function sign_params( $params ) {
-		$message             = wp_json_encode( $params );
-		$secret_key          = Settings::get_secret_key();
-		$nonce               = Crypto::generate_nonce();
-		$signature           = Crypto::encrypt_message( $message, $secret_key, $nonce );
-		$params['signature'] = $signature;
-		$params['nonce']     = $nonce;
-		return $params;
-	}
-
-	/**
 	 * Makes a request to the Hub to pull data
 	 *
 	 * @return array|\WP_Error
 	 */
 	public static function make_request() {
-		$url      = trailingslashit( Settings::get_hub_url() ) . 'wp-json/newspack-network/v1/pull';
-		$params   = self::get_request_params();
-		$response = wp_remote_post(
-			$url,
-			[
-				'body' => $params,
-			]
-		);
+		$params = [
+			'last_processed_id' => self::get_last_processed_id(),
+			'actions'           => Accepted_Actions::ACTIONS_THAT_NODES_PULL,
+			'site'              => get_bloginfo( 'url' ),
+		];
+		$response = \Newspack_Network\Utils\Requests::request_to_hub( 'wp-json/newspack-network/v1/pull', $params );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
