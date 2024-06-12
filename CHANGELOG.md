@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/Automattic/newspack-network/compare/v1.8.0...v1.9.0) (2024-06-12)
+
+
+### Features
+
+* handle existing users by adding a role; username generation and membership dedupe command fixes ([#98](https://github.com/Automattic/newspack-network/issues/98)) ([9f74e75](https://github.com/Automattic/newspack-network/commit/9f74e75d65c6abeb8bcceca30299a533ddd1aed9)), closes [#84](https://github.com/Automattic/newspack-network/issues/84)
+
 # [1.9.0-alpha.1](https://github.com/Automattic/newspack-network/compare/v1.8.0...v1.9.0-alpha.1) (2024-05-31)
 
 
