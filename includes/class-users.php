@@ -7,6 +7,8 @@
 
 namespace Newspack_Network;
 
+use const Newspack_Network\constants\EVENT_LOG_PAGE_SLUG;
+
 /**
  * Class to handle the Users admin page
  */
@@ -75,7 +77,7 @@ class Users {
 			$summary       = $last_activity->get_summary();
 			$event_log_url = add_query_arg(
 				[
-					'page'  => \Newspack_Network\Hub\Admin\Event_Log::PAGE_SLUG,
+					'page'  => EVENT_LOG_PAGE_SLUG,
 					'email' => $user->user_email,
 				],
 				admin_url( 'admin.php' )
