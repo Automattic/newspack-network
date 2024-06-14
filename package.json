@@ -22,12 +22,9 @@
 		"*.php": "npm run lint:php:staged"
 	},
 	"devDependencies": {
-		"@rushstack/eslint-patch": "^1.1.0",
-		"eslint": "^7.29.0",
-		"lint-staged": "^13.2.0",
+		"lint-staged": "^15.2.0",
 		"newspack-scripts": "^5.3.0",
-		"postcss-scss": "^4.0.6",
-		"prettier": "npm:wp-prettier@^2.2.1-beta-1"
+		"postcss-scss": "^4.0.9"
 	},
 	"repository": {
 		"type": "git",
