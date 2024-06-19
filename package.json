@@ -14,16 +14,15 @@
 		"lint:php": "./vendor/bin/phpcs .",
 		"format:php": "./vendor/bin/phpcbf .",
 		"lint:php:staged": "./vendor/bin/phpcs",
-		"release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-network --exclude-from='./.distignore' && cd release && zip -r newspack-network.zip newspack-network",
 		"release": "npm run semantic-release",
-		"postinstall": "rm -rf node_modules/newspack-scripts/node_modules/prettier"
+		"release:archive": "rm -rf release && mkdir -p release && rsync -r . ./release/newspack-network --exclude-from='./.distignore' && cd release && zip -r newspack-network.zip newspack-network"
 	},
 	"lint-staged": {
 		"*.php": "npm run lint:php:staged"
 	},
 	"devDependencies": {
 		"lint-staged": "^15.2.0",
-		"newspack-scripts": "^5.5.1-alpha.3",
+		"newspack-scripts": "^5.6.0-alpha.3",
 		"postcss-scss": "^4.0.9"
 	},
 	"repository": {
