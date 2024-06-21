@@ -8,9 +8,19 @@
 	],
 	"scripts": {
 		"cm": "git-cz",
-		"build": "echo 'No build step necessary for Newspack Network.'",
 		"semantic-release": "newspack-scripts release --files=newspack-network.php",
 		"start": "npm ci",
+		"build": "echo 'No build step necessary for Newspack Network.'",
+		"watch": "echo 'No build step necessary for Newspack Network.'",
+		"test": "echo 'No JS unit tests in this repository.'",
+		"lint": "npm run lint:scss && npm run lint:js",
+		"lint:js": "echo 'No JS files in this repository.'",
+		"lint:js:staged": "echo 'No JS files in this repository.'",
+		"format:js": "echo 'No JS files in this repository.'",
+		"lint:scss": "echo 'No SCSS files in this repository.'",
+		"lint:scss:staged": "echo 'No SCSS files in this repository.'",
+		"format:scss": "echo 'No SCSS files in this repository.'",
+		"typescript:check": "echo 'No TypeScript files in this repository.'",
 		"lint:php": "./vendor/bin/phpcs .",
 		"format:php": "./vendor/bin/phpcbf .",
 		"lint:php:staged": "./vendor/bin/phpcs",
@@ -22,7 +32,7 @@
 	},
 	"devDependencies": {
 		"lint-staged": "^15.2.0",
-		"newspack-scripts": "^5.6.0-alpha.4",
+		"newspack-scripts": "^5.6.0-alpha.7",
 		"postcss-scss": "^4.0.9"
 	},
 	"repository": {
