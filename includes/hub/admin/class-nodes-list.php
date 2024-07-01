@@ -134,7 +134,7 @@ class Nodes_List {
 						<?php
 							echo esc_html(
 								/* translators: %d - users on the Hub only, %d on the Node only */
-								sprintf( __( '%1$d on the Hub only, %2$d on the Node only', 'newspack-network' ), count( $not_on_hub ), count( $not_on_node ) )
+								sprintf( __( '%1$d on the Hub only, %2$d on the Node only', 'newspack-network' ), count( $not_on_node ), count( $not_on_hub ) )
 							);
 						?>
 					</span>
