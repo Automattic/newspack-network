@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/Automattic/newspack-network/compare/v1.9.0...v1.9.1) (2024-07-01)
+
+
+### Bug Fixes
+
+* update newspack-scripts to v5.5.1 ([#105](https://github.com/Automattic/newspack-network/issues/105)) ([32acd37](https://github.com/Automattic/newspack-network/commit/32acd377ae0bda3acca4bde970c8db46557ad256))
+
 # [1.9.0](https://github.com/Automattic/newspack-network/compare/v1.8.0...v1.9.0) (2024-06-12)
 
 
