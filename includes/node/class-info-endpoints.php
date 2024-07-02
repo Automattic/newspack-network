@@ -46,7 +46,11 @@ class Info_Endpoints {
 	public static function handle_info_request() {
 		return rest_ensure_response(
 			[
-				'sync_users_count' => \Newspack_Network\Utils\Users::get_synchronized_users_count(),
+				'sync_users_count'      => \Newspack_Network\Utils\Users::get_synchronized_users_count(),
+				'sync_users_emails'     => \Newspack_Network\Utils\Users::get_synchronized_users_emails(),
+				'not_sync_users_count'  => \Newspack_Network\Utils\Users::get_not_synchronized_users_count(),
+				'not_sync_users_emails' => \Newspack_Network\Utils\Users::get_not_synchronized_users_emails(),
+				'no_role_users_emails'  => \Newspack_Network\Utils\Users::get_no_role_users_emails(),
 			]
 		);
 	}
