@@ -17,8 +17,6 @@ class Admin {
 	 */
 	public static function init() {
 		Admin\Event_Log::init();
-		Admin\Subscriptions::init();
-		Admin\Orders::init();
 		Admin\Membership_Plans::init();
 		Admin\Nodes_List::init();
 		Distributor_Settings::init();
