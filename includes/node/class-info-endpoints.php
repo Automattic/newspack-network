@@ -7,9 +7,6 @@
 
 namespace Newspack_Network\Node;
 
-use Newspack_Network\Accepted_Actions;
-use Newspack_Network\Crypto;
-
 /**
  * Class that register the webhook endpoint that will send events to the Hub
  */
@@ -34,7 +31,9 @@ class Info_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_info_request' ],
-					'permission_callback' => '__return_true',
+					'permission_callback' => function( $request ) {
+						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'info', Settings::get_secret_key() );
+					},
 				],
 			]
 		);
