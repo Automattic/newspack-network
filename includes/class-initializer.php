@@ -26,6 +26,7 @@ class Initializer {
 			Hub\Pull_Endpoint::init();
 			Hub\Event_Listeners::init();
 			Hub\Newspack_Ads_GAM::init();
+			Hub\Network_Data_Endpoint::init();
 			Hub\Connect_Node::init();
 		}
 
@@ -56,6 +57,7 @@ class Initializer {
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();
 		Woocommerce_Subscriptions\Admin::init();
+		Woocommerce_Subscriptions\Limiter::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}

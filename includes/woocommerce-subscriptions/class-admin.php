@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Network Admin customizations for woocommerce subscriptions.
+ * Newspack Network Admin customizations for WooCommerce Subscriptions.
  *
  * @package Newspack
  */
@@ -8,7 +8,7 @@
 namespace Newspack_Network\Woocommerce_Subscriptions;
 
 /**
- * Handles admin tweaks for woocommerce subscriptions.
+ * Handles admin tweaks for WooCommerce Subscriptions.
  *
  * Adds a metabox to the membership plan edit screen to allow the user to add a network id metadata to the plans
  */

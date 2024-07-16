@@ -36,7 +36,7 @@ class Network_Data_Endpoint {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'api_get_network_subscriptions' ],
-					'permission_callback' => '__return_true',
+					'permission_callback' => '__return_true', // Auth will be handled by \Newspack_Network\Utils\Requests::get_request_to_hub_errors.
 				],
 			]
 		);
@@ -46,25 +46,23 @@ class Network_Data_Endpoint {
 	 * Get active subscription IDs from the network.
 	 *
 	 * @param string $email Email of the user.
-	 * @param string $plan_network_id Network ID of the plan.
+	 * @param string $plan_network_ids Network ID of the plan.
 	 * @param string $site Site URL.
 	 */
-	public static function get_active_subscription_ids_from_network( $email, $plan_network_id, $site ) {
+	public static function get_active_subscription_ids_from_network( $email, $plan_network_ids, $site ) {
 		$active_subscriptions_ids = [];
 		foreach ( Nodes::get_all_nodes() as $node ) {
 			if ( $site === $node->get_url() ) {
-				// Skip the node which is making the request. It's only interested in the other nodes.
+				// Skip the node which is making the request.
 				continue;
 			}
-			$active_subscriptions_ids = array_merge(
-				$active_subscriptions_ids,
-				$node->get_subscriptions_with_network_plan( $email, $plan_network_id )
-			);
+			$node_subscription_ids = $node->get_subscriptions_with_network_plans( $email, $plan_network_ids );
+			$active_subscriptions_ids = array_merge( $active_subscriptions_ids, $node_subscription_ids );
 		}
 		// Also look on the Hub itself.
 		$active_subscriptions_ids = array_merge(
 			$active_subscriptions_ids,
-			\Newspack_Network\Utils\Users::get_users_active_subscriptions_tied_to_network_id( $email, $plan_network_id )
+			\Newspack_Network\Utils\Users::get_users_active_subscriptions_tied_to_network_ids( $email, $plan_network_ids )
 		);
 		return $active_subscriptions_ids;
 	}
@@ -80,13 +78,12 @@ class Network_Data_Endpoint {
 		if ( \is_wp_error( $request_error ) ) {
 			return new WP_REST_Response( [ 'error' => $request_error->get_error_message() ], 403 );
 		}
-		if ( ! isset( $request['plan_network_id'] ) || empty( $request['plan_network_id'] ) ) {
-			return new WP_REST_Response( [ 'error' => __( 'Missing plan_network_id', 'newspack-network' ) ], 400 );
+		if ( ! isset( $request['plan_network_ids'] ) || empty( $request['plan_network_ids'] ) ) {
+			return new WP_REST_Response( [ 'error' => __( 'Missing plan_network_ids', 'newspack-network' ) ], 400 );
 		}
-
 		return new WP_REST_Response(
 			[
-				'active_subscriptions_ids' => self::get_active_subscription_ids_from_network( $request['email'], $request['plan_network_id'], $request['site'] ),
+				'active_subscriptions_ids' => self::get_active_subscription_ids_from_network( $request['email'], $request['plan_network_ids'], $request['site'] ),
 			]
 		);
 	}
