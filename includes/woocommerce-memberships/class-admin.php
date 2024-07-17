@@ -135,7 +135,9 @@ class Admin {
 		if ( $request && isset( $request->get_headers()['x_np_network_signature'] ) ) {
 			// Add network plan ID to the response.
 			$plan = wc_memberships_get_membership_plan( $response->data['plan_id'] );
-			$response->data['plan_network_id'] = get_post_meta( $plan->id, self::NETWORK_ID_META_KEY, true );
+			if ( $plan !== false ) {
+				$response->data['plan_network_id'] = get_post_meta( $plan->id, self::NETWORK_ID_META_KEY, true );
+			}
 		}
 		return $response;
 	}

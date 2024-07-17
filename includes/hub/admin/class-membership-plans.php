@@ -88,7 +88,7 @@ abstract class Membership_Plans {
 		);
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			Debugger::log( 'API request for node\'s memberships failed' );
-			return;
+			return null;
 		}
 		return json_decode( wp_remote_retrieve_body( $response ) );
 	}
@@ -126,6 +126,9 @@ abstract class Membership_Plans {
 				$query_args['include_active_members_emails'] = 1;
 			}
 			$node_plans = self::fetch_collection_from_api( $node, 'wc/v2/memberships/plans', 'membership-plans', $query_args );
+			if ( $node_plans === null ) {
+				continue;
+			}
 			foreach ( $node_plans as $plan ) {
 				$network_pass_id = null;
 				foreach ( $plan->meta_data as $meta ) {

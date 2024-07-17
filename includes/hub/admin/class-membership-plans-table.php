@@ -54,8 +54,8 @@ class Membership_Plans_Table extends \WP_List_Table {
 		$membership_plans_from_network_data = Membership_Plans::get_membership_plans_from_network();
 
 		// Handle table sorting.
-		$order = $_REQUEST['order'] ?? false; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$orderby = $_REQUEST['orderby'] ?? false; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$order = isset( $_REQUEST['order'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+		$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['orderby'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 		if ( $order && $orderby ) {
 			usort(
 				$membership_plans_from_network_data['plans'],
