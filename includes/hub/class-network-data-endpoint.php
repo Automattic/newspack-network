@@ -57,7 +57,9 @@ class Network_Data_Endpoint {
 				continue;
 			}
 			$node_subscription_ids = $node->get_subscriptions_with_network_plans( $email, $plan_network_ids );
-			$active_subscriptions_ids = array_merge( $active_subscriptions_ids, $node_subscription_ids );
+			if ( is_array( $node_subscription_ids ) ) {
+				$active_subscriptions_ids = array_merge( $active_subscriptions_ids, $node_subscription_ids );
+			}
 		}
 		// Also look on the Hub itself, unless the $site was provided.
 		if ( $site !== false ) {

@@ -247,32 +247,42 @@ class Users {
 	 * @return array Array of active subscription IDs.
 	 */
 	public static function get_users_active_subscriptions_tied_to_network_ids( $email, $plan_network_ids ) {
-		if ( ! function_exists( 'wc_memberships_get_user_memberships' ) || ! function_exists( 'wcs_get_subscription' ) ) {
+		if ( ! function_exists( 'wcs_get_subscriptions' ) ) {
 			return [];
 		}
-		$active_subscription_ids = [];
 		$user = get_user_by( 'email', $email );
 		if ( ! $user ) {
 			return [];
 		}
-		$memberships = wc_memberships_get_user_memberships( $user->ID );
-		foreach ( $memberships as $membership ) {
-			$membership_plan_network_id = get_post_meta( $membership->get_plan()->get_id(), \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY, true );
-			if ( ! in_array( $membership_plan_network_id, $plan_network_ids ) ) {
-				continue;
-			}
-			$wcm_wcs_integration = wc_memberships()->get_integrations_instance()->get_subscriptions_instance();
-			if ( ! $wcm_wcs_integration ) {
-				continue;
-			}
-			$subscription_id = $wcm_wcs_integration->get_user_membership_subscription_id( $membership->get_id() );
-			if ( ! $subscription_id ) {
-				continue;
-			}
-			$subscription = wcs_get_subscription( $subscription_id );
-			$subscription_status = $subscription ? $subscription->get_status() : null;
-			if ( $subscription_status === 'active' ) {
-				$active_subscription_ids[] = $subscription_id;
+		// If a membership is a "shadowed" membership, no subscription will be tied to it.
+		// The relevant subscription has to be found by matching the plan-granting products with subscriptions.
+		$plan_ids = get_posts(
+			[
+				'meta_key'     => \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY,
+				'meta_value'   => $plan_network_ids, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_compare' => 'IN',
+				'post_type'    => \Newspack_Network\Woocommerce_Memberships\Admin::MEMBERSHIPS_CPT,
+				'field'        => 'ID',
+			]
+		);
+		$product_ids = [];
+		foreach ( $plan_ids as $plan_id ) {
+			// Get the products that grant membership in the plan.
+			$product_ids = array_merge( $product_ids, get_post_meta( $plan_id->ID, '_product_ids', true ) );
+		}
+		// Get any active subscriptions for these product IDs.
+		$active_subscription_ids = [];
+		foreach ( $product_ids as $product_id ) {
+			$args = [
+				'customer_id'            => $user->ID,
+				'product_id'             => $product_id,
+				'subscription_status'    => 'active',
+				'subscriptions_per_page' => 1,
+			];
+			$subscriptions = \wcs_get_subscriptions( $args );
+			$subscription = reset( $subscriptions );
+			if ( $subscription ) {
+				$active_subscription_ids[] = $subscription->get_id();
 			}
 		}
 		return $active_subscription_ids;
