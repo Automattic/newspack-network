@@ -238,4 +238,53 @@ class Users {
 	public static function get_not_synchronized_users_count() {
 		return count( self::get_not_synchronized_users( [ 'id' ] ) );
 	}
+
+	/**
+	 * Get user's active subscriptions tied to a network ID.
+	 *
+	 * @param string $email The email of the user to look for.
+	 * @param array  $plan_network_ids Network IDs of the plans.
+	 * @return array Array of active subscription IDs.
+	 */
+	public static function get_users_active_subscriptions_tied_to_network_ids( $email, $plan_network_ids ) {
+		if ( ! function_exists( 'wcs_get_subscriptions' ) ) {
+			return [];
+		}
+		$user = get_user_by( 'email', $email );
+		if ( ! $user ) {
+			return [];
+		}
+		// If a membership is a "shadowed" membership, no subscription will be tied to it.
+		// The relevant subscription has to be found by matching the plan-granting products with subscriptions.
+		$plan_ids = get_posts(
+			[
+				'meta_key'     => \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY,
+				'meta_value'   => $plan_network_ids, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_compare' => 'IN',
+				'post_type'    => \Newspack_Network\Woocommerce_Memberships\Admin::MEMBERSHIPS_CPT,
+				'field'        => 'ID',
+			]
+		);
+		$product_ids = [];
+		foreach ( $plan_ids as $plan_id ) {
+			// Get the products that grant membership in the plan.
+			$product_ids = array_merge( $product_ids, get_post_meta( $plan_id->ID, '_product_ids', true ) );
+		}
+		// Get any active subscriptions for these product IDs.
+		$active_subscription_ids = [];
+		foreach ( $product_ids as $product_id ) {
+			$args = [
+				'customer_id'            => $user->ID,
+				'product_id'             => $product_id,
+				'subscription_status'    => 'active',
+				'subscriptions_per_page' => 1,
+			];
+			$subscriptions = \wcs_get_subscriptions( $args );
+			$subscription = reset( $subscriptions );
+			if ( $subscription ) {
+				$active_subscription_ids[] = $subscription->get_id();
+			}
+		}
+		return $active_subscription_ids;
+	}
 }
