@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Distributor Publication Date tweak.
+ * Newspack Distributor Comment Status Sync.
  *
  * @package Newspack
  */
@@ -8,7 +8,7 @@
 namespace Newspack_Network\Distributor_Customizations;
 
 /**
- * Class to keep the publication date on the distributed posts.
+ * Class to keep the Comment and Ping statuses in sync.
  */
 class Comment_Status {
 
