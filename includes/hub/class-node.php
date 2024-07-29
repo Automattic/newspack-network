@@ -12,7 +12,7 @@ use Newspack_Network\Rest_Authenticaton;
 use WP_Post;
 
 /**
- * Class to represent one Node of the netowrk
+ * Class to represent a Node in the network
  */
 class Node {
 	/**
@@ -174,21 +174,37 @@ class Node {
 	/**
 	 * Get site info.
 	 */
-	private function get_site_info() {
+	public function get_site_info() {
 		$response = wp_remote_get( // phpcs:ignore
 			$this->get_url() . '/wp-json/newspack-network/v1/info',
 			[
 				'headers' => $this->get_authorization_headers( 'info' ),
+				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
 			]
 		);
 		return json_decode( wp_remote_retrieve_body( $response ) );
 	}
 
 	/**
-	 * Get synchronized users count.
+	 * Get all subscriptions of a user, related to provided network plan IDs.
+	 *
+	 * @param string $email The email to get subscriptions for.
+	 * @param string $plan_network_ids The plan network ID to get subscriptions for.
 	 */
-	public function get_sync_users_count() {
-		$site_info = $this->get_site_info();
-		return $site_info->sync_users_count ?? 0;
+	public function get_subscriptions_with_network_plans( $email, $plan_network_ids ) {
+		$response = wp_remote_get( // phpcs:ignore
+			add_query_arg(
+				[
+					'email'            => $email,
+					'plan_network_ids' => $plan_network_ids,
+				],
+				$this->get_url() . '/wp-json/newspack-network/v1/subscriptions'
+			),
+			[
+				'headers' => $this->get_authorization_headers( 'subscriptions' ),
+				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+			]
+		);
+		return json_decode( wp_remote_retrieve_body( $response ) );
 	}
 }

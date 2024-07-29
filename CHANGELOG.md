@@ -1,3 +1,10 @@
+## [1.9.2](https://github.com/Automattic/newspack-network/compare/v1.9.1...v1.9.2) (2024-07-16)
+
+
+### Bug Fixes
+
+* **api:** improve /info endpoint ([70e2208](https://github.com/Automattic/newspack-network/commit/70e2208b9ca47ad71506f030f5a4765ab64b4bc9))
+
 ## [1.9.1](https://github.com/Automattic/newspack-network/compare/v1.9.0...v1.9.1) (2024-07-01)
 
 
