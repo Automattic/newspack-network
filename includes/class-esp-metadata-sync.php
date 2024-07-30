@@ -80,7 +80,7 @@ class Esp_Metadata_Sync {
 	 */
 	private static function get_registration_site_meta( $user_id ) {
 		$remote_site = \get_user_meta( $user_id, User_Utils::USER_META_REMOTE_SITE, true );
-		return \esc_url( ! empty( \wp_http_validate_url( $remote_site ) ) ? $remote_site : \get_site_url() );
+		return \esc_url( ! empty( $remote_site ) ? $remote_site : \get_site_url() );
 	}
 
 	/**
