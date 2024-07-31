@@ -58,19 +58,18 @@ class Orders extends Woo_Store {
 
 		Debugger::log( 'Persisting order ' . $order_id );
 
-		$local_id   = self::get_local_id( $order );
-		$order_data = self::fetch_data_from_api( $order );
+		$local_id = self::get_local_id( $order );
 
 		Debugger::log( 'Local ID: ' . $local_id );
-
-		if ( ! $order_data ) {
-			return;
-		}
 
 		// Data from the event.
 		update_post_meta( $local_id, 'payment_count', $order->get_payment_count() );
 		update_post_meta( $local_id, 'formatted_total', $order->get_formatted_total() );
 		update_post_meta( $local_id, 'subscription_relationship', $order->get_subscription_relationship() );
+		update_post_meta( $local_id, 'currency', $order->get_currency() );
+		update_post_meta( $local_id, 'total', $order->get_total() );
+		update_post_meta( $local_id, 'payment_method_title', $order->get_payment_method_title() );
+
 		Debugger::log( 'Updating post status to ' . $order->get_status_after() );
 		$update_array = [
 			'ID'          => $local_id,
@@ -78,11 +77,6 @@ class Orders extends Woo_Store {
 		];
 		$update       = wp_update_post( $update_array );
 		Debugger::log( 'Updated post status: ' . $update );
-
-		// Data from the API.
-		update_post_meta( $local_id, 'currency', $order_data->currency );
-		update_post_meta( $local_id, 'total', $order_data->total );
-		update_post_meta( $local_id, 'date_created', $order_data->date_created );
 
 		return $local_id;
 	}

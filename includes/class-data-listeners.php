@@ -33,8 +33,8 @@ class Data_Listeners {
 			return;
 		}
 
-		Data_Events::register_listener( 'woocommerce_subscription_status_changed', 'newspack_node_subscription_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'woocommerce_order_status_changed', 'newspack_node_order_changed', [ __CLASS__, 'item_changed' ] );
+		Data_Events::register_listener( 'woocommerce_subscription_status_changed', 'newspack_node_subscription_changed', [ __CLASS__, 'subscription_changed' ] );
 		Data_Events::register_listener( 'newspack_network_user_updated', 'network_user_updated', [ __CLASS__, 'user_updated' ] );
 		Data_Events::register_listener( 'delete_user', 'network_user_deleted', [ __CLASS__, 'user_deleted' ] );
 		Data_Events::register_listener( 'newspack_network_nodes_synced', 'network_nodes_synced', [ __CLASS__, 'nodes_synced' ] );
@@ -70,11 +70,38 @@ class Data_Listeners {
 			'formatted_total'           => wp_strip_all_tags( $item->get_formatted_order_total() ),
 			'payment_count'             => method_exists( $item, 'get_payment_count' ) ? $item->get_payment_count() : 1,
 			'subscription_relationship' => $relationship,
+			'currency'                  => $item->get_currency(),
+			'total'                     => wc_format_decimal( $item->get_total(), 2 ),
+			'payment_method_title'      => $item->get_payment_method_title(),
+			'date_created'              => wc_rest_prepare_date_response( $item->get_date_created() ),
 		];
 		$user   = $item->get_user();
 		if ( $user ) {
 			$result['user_name'] = $user->display_name;
 		}
+
+		return $result;
+	}
+
+	/**
+	 * Callback for the Data Events API listeners
+	 *
+	 * @param int    $item_id     The Subscription ID.
+	 * @param string $status_from The status before the change.
+	 * @param string $status_to   The status after the change.
+	 * @param object $item        The Subscription object.
+	 * @return array
+	 */
+	public static function subscription_changed( $item_id, $status_from, $status_to, $item ) {
+
+		$result = self::item_changed( $item_id, $status_from, $status_to, $item );
+
+		$result['start_date'] = $item->get_date( 'start_date' );
+		$result['trial_end_date'] = $item->get_date( 'trial_end_date' );
+		$result['next_payment_date'] = $item->get_date( 'next_payment_date' );
+		$result['last_payment_date'] = $item->get_date( 'last_payment_date' );
+		$result['end_date'] = $item->get_date( 'end_date' );
+
 		return $result;
 	}
 
