@@ -33,4 +33,49 @@ class Subscription_Changed extends Woo_Item_Changed {
 
 		Subscriptions::persist( $this );
 	}
+
+	/**
+	 * Returns the start_date property
+	 *
+	 * @return ?string
+	 */
+	public function get_start_date() {
+		return $this->data->start_date ?? null;
+	}
+
+	/**
+	 * Returns the trial_end_date property
+	 *
+	 * @return ?string
+	 */
+	public function get_trial_end_date() {
+		return $this->data->trial_end_date ?? null;
+	}
+
+	/**
+	 * Returns the next_payment_date property
+	 *
+	 * @return ?string
+	 */
+	public function get_next_payment_date() {
+		return $this->data->next_payment_date ?? null;
+	}
+
+	/**
+	 * Returns the last_payment_date property
+	 *
+	 * @return ?string
+	 */
+	public function get_last_payment_date() {
+		return $this->data->last_payment_date ?? null;
+	}
+
+	/**
+	 * Returns the end_date property
+	 *
+	 * @return ?string
+	 */
+	public function get_end_date() {
+		return $this->data->end_date ?? null;
+	}
 }
