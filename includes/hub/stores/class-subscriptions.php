@@ -58,18 +58,22 @@ class Subscriptions extends Woo_Store {
 
 		Debugger::log( 'Persisting subscription ' . $subscription_id );
 
-		$local_id          = self::get_local_id( $subscription );
-		$subscription_data = self::fetch_data_from_api( $subscription );
+		$local_id = self::get_local_id( $subscription );
 
 		Debugger::log( 'Local ID: ' . $local_id );
-
-		if ( ! $subscription_data ) {
-			return;
-		}
 
 		// Data from the event.
 		update_post_meta( $local_id, 'payment_count', $subscription->get_payment_count() );
 		update_post_meta( $local_id, 'formatted_total', $subscription->get_formatted_total() );
+		update_post_meta( $local_id, 'currency', $subscription->get_currency() );
+		update_post_meta( $local_id, 'total', $subscription->get_total() );
+		update_post_meta( $local_id, 'payment_method_title', $subscription->get_payment_method_title() );
+		update_post_meta( $local_id, 'start_date', $subscription->get_start_date() );
+		update_post_meta( $local_id, 'trial_end_date', $subscription->get_trial_end_date() );
+		update_post_meta( $local_id, 'next_payment_date', $subscription->get_next_payment_date() );
+		update_post_meta( $local_id, 'last_payment_date', $subscription->get_last_payment_date() );
+		update_post_meta( $local_id, 'end_date', $subscription->get_end_date() );
+
 		Debugger::log( 'Updating post status to ' . $subscription->get_status_after() );
 		$update_array = [
 			'ID'          => $local_id,
@@ -78,26 +82,16 @@ class Subscriptions extends Woo_Store {
 		$update       = wp_update_post( $update_array );
 		Debugger::log( 'Updated post status: ' . $update );
 
-		// Data from the API.
-		update_post_meta( $local_id, 'currency', $subscription_data->currency );
-		update_post_meta( $local_id, 'total', $subscription_data->total );
-		update_post_meta( $local_id, 'payment_method_title', $subscription_data->payment_method_title );
-		update_post_meta( $local_id, 'start_date', $subscription_data->start_date_gmt );
-		update_post_meta( $local_id, 'trial_end_date', $subscription_data->trial_end_date_gmt );
-		update_post_meta( $local_id, 'next_payment_date', $subscription_data->next_payment_date_gmt );
-		update_post_meta( $local_id, 'last_payment_date', $subscription_data->last_payment_date_gmt );
-		update_post_meta( $local_id, 'end_date', $subscription_data->end_date_gmt );
-
 		delete_post_meta( $local_id, 'line_items' );
 		foreach ( $subscription_data->line_items as $line_item ) {
 			$line_item = (object) $line_item;
 			add_post_meta(
-				$local_id, 
-				'line_items', 
+				$local_id,
+				'line_items',
 				[
 					'name'       => $line_item->name,
 					'product_id' => $line_item->product_id,
-				] 
+				]
 			);
 		}
 
