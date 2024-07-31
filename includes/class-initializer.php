@@ -55,7 +55,6 @@ class Initializer {
 
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();
-		Woocommerce_Subscriptions\Admin::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
