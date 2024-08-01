@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/Automattic/newspack-network/compare/v1.10.0...v1.10.1) (2024-08-01)
+
+
+### Bug Fixes
+
+* **memberships-sync:** handle active subs from other nodes ([#114](https://github.com/Automattic/newspack-network/issues/114)) ([4255f8c](https://github.com/Automattic/newspack-network/commit/4255f8c7676cc22f9a354de163fea763986b6a7e))
+
 # [1.10.0](https://github.com/Automattic/newspack-network/compare/v1.9.2...v1.10.0) (2024-07-30)
 
 
