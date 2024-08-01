@@ -1,6 +1,6 @@
 {
 	"name": "newspack-network",
-	"version": "1.10.0",
+	"version": "1.10.1",
 	"description": "The Newspack Network plugin.",
 	"license": "GPL-3.0",
 	"browserslist": [
