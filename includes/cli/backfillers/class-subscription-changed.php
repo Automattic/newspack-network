@@ -7,7 +7,7 @@
 
 namespace Newspack_Network\Backfillers;
 
-use Newspack_Network\Data_Listeners;
+use Newspack_Network\Woocommerce\Events as Woo_Listeners;
 
 /**
  * Backfiller class.
@@ -64,7 +64,7 @@ class Subscription_Changed extends Abstract_Backfiller {
 
 		foreach ( $subscriptions as $subscription ) {
 
-			$subscription_data = Data_Listeners::subscription_changed( $subscription->get_id(), '', $subscription->get_status(), $subscription );
+			$subscription_data = Woo_Listeners::subscription_changed( $subscription->get_id(), '', $subscription->get_status(), $subscription );
 
 			$timestamp = strtotime( $subscription->get_date_created() );
 

@@ -58,5 +58,6 @@ class Accepted_Actions {
 		'newspack_network_woo_membership_updated',
 		'network_manual_sync_user',
 		'network_nodes_synced',
+		'newspack_node_subscription_changed',
 	];
 }

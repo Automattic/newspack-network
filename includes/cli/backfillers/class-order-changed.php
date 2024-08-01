@@ -7,7 +7,7 @@
 
 namespace Newspack_Network\Backfillers;
 
-use Newspack_Network\Data_Listeners;
+use Newspack_Network\Woocommerce\Events as Woo_Listeners;
 
 /**
  * Backfiller class.
@@ -53,7 +53,7 @@ class Order_Changed extends Abstract_Backfiller {
 
 		foreach ( $orders as $order ) {
 
-			$order_data = Data_Listeners::item_changed( $order->get_id(), '', $order->get_status(), $order );
+			$order_data = Woo_Listeners::item_changed( $order->get_id(), '', $order->get_status(), $order );
 
 			$timestamp = strtotime( $order->get_date_created() );
 
