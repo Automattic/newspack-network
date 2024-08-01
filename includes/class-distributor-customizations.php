@@ -27,5 +27,6 @@ class Distributor_Customizations {
 		Distributor_Customizations\Author_Distribution::init();
 		Distributor_Customizations\Author_Ingestion::init();
 		Distributor_Customizations\Authorship_Filters::init();
+		Distributor_Customizations\Comment_Status::init();
 	}
 }
