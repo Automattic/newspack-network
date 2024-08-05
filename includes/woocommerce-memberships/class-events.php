@@ -8,6 +8,7 @@
 namespace Newspack_Network\Woocommerce_Memberships;
 
 use Newspack\Data_Events;
+use WC_Memberships_Membership_Plan;
 
 /**
  * Fire the events for Woocommerce Memberships
@@ -47,6 +48,7 @@ class Events {
 		Data_Events::register_listener( 'wc_memberships_user_membership_status_changed', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_granted' ] );
 		Data_Events::register_listener( 'wc_memberships_user_membership_deleted', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_deleted' ] );
 		Data_Events::register_listener( 'wc_memberships_user_membership_saved', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_revoked' ] );
+		Data_Events::register_listener( 'newspack_network_save_membership_plan', 'newspack_network_membership_plan_updated', [ __CLASS__, 'membership_plan_updated' ] );
 	}
 
 	/**
@@ -120,7 +122,7 @@ class Events {
 		}
 
 		// When creating the membership via admin panel, this hook is called once before the membership is actually created.
-		if ( ! $plan instanceof \WC_Memberships_Membership_Plan ) {
+		if ( ! $plan instanceof WC_Memberships_Membership_Plan ) {
 			return;
 		}
 
@@ -156,5 +158,34 @@ class Events {
 			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $user_membership->get_status(),
 		];
+	}
+
+	/**
+	 * Triggers a data event when the membership plan is updated
+	 *
+	 * @param int $plan_id The ID of the membership plan.
+	 * @return array
+	 */
+	public static function membership_plan_updated( $plan_id ) {
+		$plan = new WC_Memberships_Membership_Plan( $plan_id );
+		$data = [
+			'id'         => $plan->get_id(),
+			'network_id' => get_post_meta( $plan->get_id(), Admin::NETWORK_ID_META_KEY, true ),
+			'name'       => $plan->get_name(),
+			'slug'       => $plan->get_slug(),
+			'products'   => [],
+		];
+
+		$products = $plan->get_products();
+
+		foreach ( $products as $product ) {
+			$data['products'][] = [
+				'id'   => $product->get_id(),
+				'name' => $product->get_name(),
+				'slug' => $product->get_slug(),
+			];
+		}
+
+		return $data;
 	}
 }
