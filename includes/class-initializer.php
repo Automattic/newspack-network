@@ -57,6 +57,7 @@ class Initializer {
 
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();
+		Woocommerce_Memberships\Subscriptions_Integration::init();
 
 		Woocommerce\Events::init();
 
