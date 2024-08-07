@@ -39,7 +39,7 @@ class Webhook {
 					'callback'            => [ __CLASS__, 'handle_webhook' ],
 					'permission_callback' => '__return_true',
 				],
-			] 
+			]
 		);
 	}
 
@@ -56,7 +56,7 @@ class Webhook {
 		$timestamp       = $request['timestamp'];
 		$nonce           = $request['nonce'];
 		$incoming_events = Accepted_Actions::ACTIONS;
-		
+
 		Debugger::log( 'Webhook received' );
 		Debugger::log( $site );
 		Debugger::log( $data );
@@ -64,8 +64,8 @@ class Webhook {
 		Debugger::log( $action );
 		Debugger::log( $timestamp );
 
-		if ( empty( $site ) || 
-			empty( $data ) || 
+		if ( empty( $site ) ||
+			empty( $data ) ||
 			empty( $timestamp ) ||
 			empty( $action ) ||
 			empty( $nonce ) ||
@@ -87,7 +87,7 @@ class Webhook {
 			return new WP_REST_Response( array( 'error' => 'INVALID_SIGNATURE' ), 403 );
 		}
 
-		$verified_data = json_decode( $verified_data );
+		$verified_data = json_decode( $verified_data, true );
 
 		if ( empty( $verified_data ) ) {
 			Debugger::log( 'Invalid data' );
