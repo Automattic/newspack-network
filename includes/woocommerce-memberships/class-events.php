@@ -179,7 +179,7 @@ class Events {
 		$products = $plan->get_products();
 
 		foreach ( $products as $product ) {
-			$data['products'][] = [
+			$data['products'][ $product->get_id() ] = [
 				'id'   => $product->get_id(),
 				'name' => $product->get_name(),
 				'slug' => $product->get_slug(),
