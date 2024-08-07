@@ -104,7 +104,7 @@ class Events {
 		$items = $item->get_items();
 		foreach ( $items as $item ) {
 			$product = $item->get_product();
-			$result['products'][] = [
+			$result['products'][ $product->get_id() ] = [
 				'id'   => $product->get_id(),
 				'name' => $product->get_name(),
 				'slug' => $product->get_slug(),
