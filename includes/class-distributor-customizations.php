@@ -20,7 +20,6 @@ class Distributor_Customizations {
 	public static function init() {
 		Distributor_Customizations\Pull_Permissions::init();
 		Distributor_Customizations\Publication_Date::init();
-		Distributor_Customizations\Cache_Bug_Workaround::init();
 		Distributor_Customizations\Yoast_Primary_Cat::init();
 		Distributor_Customizations\Sync_Post_Status::init();
 		Distributor_Customizations\Canonical_Url::init();
