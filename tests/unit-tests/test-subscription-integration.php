@@ -255,55 +255,55 @@ class TestSubscriptionIntegration extends WP_UnitTestCase {
 	 * Test get_network_membership_plans
 	 */
 	public function test_get_network_membership_plans() {
-		$method = self::get_method( 'get_network_membership_plans' );
+		$get_user_network_active_subscriptions_method = self::get_method( 'get_network_membership_plans' );
 
-		$result = $method->invoke( null, 'net-1' );
-		$this->assertCount( 2, $result );
-		$this->assertArrayHasKey( 'http://site1', $result );
-		$this->assertArrayHasKey( 'http://site2', $result );
-		$this->assertArrayHasKey( 1, $result['http://site1'] );
-		$this->assertArrayHasKey( 1, $result['http://site2'] );
+		$network_membership_plans = $get_user_network_active_subscriptions_method->invoke( null, 'net-1' );
+		$this->assertCount( 2, $network_membership_plans );
+		$this->assertArrayHasKey( 'http://site1', $network_membership_plans );
+		$this->assertArrayHasKey( 'http://site2', $network_membership_plans );
+		$this->assertArrayHasKey( 1, $network_membership_plans['http://site1'] );
+		$this->assertArrayHasKey( 1, $network_membership_plans['http://site2'] );
 
-		$result = $method->invoke( null, 'net-2' );
-		$this->assertCount( 2, $result );
-		$this->assertArrayHasKey( 'http://site1', $result );
-		$this->assertArrayHasKey( 'http://site2', $result );
-		$this->assertArrayHasKey( 2, $result['http://site1'] );
-		$this->assertArrayHasKey( 20, $result['http://site2'] );
+		$network_membership_plans = $get_user_network_active_subscriptions_method->invoke( null, 'net-2' );
+		$this->assertCount( 2, $network_membership_plans );
+		$this->assertArrayHasKey( 'http://site1', $network_membership_plans );
+		$this->assertArrayHasKey( 'http://site2', $network_membership_plans );
+		$this->assertArrayHasKey( 2, $network_membership_plans['http://site1'] );
+		$this->assertArrayHasKey( 20, $network_membership_plans['http://site2'] );
 
-		$result = $method->invoke( null, 'net-3' );
-		$this->assertEquals( [], $result );
+		$network_membership_plans = $get_user_network_active_subscriptions_method->invoke( null, 'net-3' );
+		$this->assertEquals( [], $network_membership_plans );
 	}
 
 	/**
 	 * Test get_user_network_active_subscriptions
 	 */
 	public function test_get_user_network_active_subscriptions() {
-		$method = self::get_method( 'get_user_network_active_subscriptions' );
+		$get_user_network_active_subscriptions_method = self::get_method( 'get_user_network_active_subscriptions' );
 
-		$result = $method->invoke( null, self::$user_with_sub_on_1 );
-		$this->assertCount( 1, $result );
-		$this->assertArrayHasKey( 'http://site1', $result );
-		$this->assertCount( 1, $result['http://site1'] );
-		$this->assertArrayHasKey( 500, $result['http://site1'] );
+		$user_network_active_subscriptions = $get_user_network_active_subscriptions_method->invoke( null, self::$user_with_sub_on_1 );
+		$this->assertCount( 1, $user_network_active_subscriptions );
+		$this->assertArrayHasKey( 'http://site1', $user_network_active_subscriptions );
+		$this->assertCount( 1, $user_network_active_subscriptions['http://site1'] );
+		$this->assertArrayHasKey( 500, $user_network_active_subscriptions['http://site1'] );
 
-		$result = $method->invoke( null, self::$user_with_sub_on_2 );
-		$this->assertCount( 1, $result );
-		$this->assertArrayHasKey( 'http://site2', $result );
-		$this->assertCount( 1, $result['http://site2'] );
-		$this->assertArrayHasKey( 501, $result['http://site2'] );
+		$user_network_active_subscriptions = $get_user_network_active_subscriptions_method->invoke( null, self::$user_with_sub_on_2 );
+		$this->assertCount( 1, $user_network_active_subscriptions );
+		$this->assertArrayHasKey( 'http://site2', $user_network_active_subscriptions );
+		$this->assertCount( 1, $user_network_active_subscriptions['http://site2'] );
+		$this->assertArrayHasKey( 501, $user_network_active_subscriptions['http://site2'] );
 
-		$result = $method->invoke( null, self::$user_with_cancelled_sub_on_2 );
-		$this->assertEquals( [], $result );
+		$user_network_active_subscriptions = $get_user_network_active_subscriptions_method->invoke( null, self::$user_with_cancelled_sub_on_2 );
+		$this->assertEquals( [], $user_network_active_subscriptions );
 
-		$result = $method->invoke( null, self::$user_with_non_network_sub_on_1 );
-		$this->assertCount( 1, $result );
-		$this->assertArrayHasKey( 'http://site1', $result );
-		$this->assertCount( 1, $result['http://site1'] );
-		$this->assertArrayHasKey( 503, $result['http://site1'] );
+		$user_network_active_subscriptions = $get_user_network_active_subscriptions_method->invoke( null, self::$user_with_non_network_sub_on_1 );
+		$this->assertCount( 1, $user_network_active_subscriptions );
+		$this->assertArrayHasKey( 'http://site1', $user_network_active_subscriptions );
+		$this->assertCount( 1, $user_network_active_subscriptions['http://site1'] );
+		$this->assertArrayHasKey( 503, $user_network_active_subscriptions['http://site1'] );
 
-		$result = $method->invoke( null, self::$user_without_subs );
-		$this->assertEquals( [], $result );
+		$user_network_active_subscriptions = $get_user_network_active_subscriptions_method->invoke( null, self::$user_without_subs );
+		$this->assertEquals( [], $user_network_active_subscriptions );
 	}
 
 	/**
@@ -352,16 +352,16 @@ class TestSubscriptionIntegration extends WP_UnitTestCase {
 	 */
 	public function test_subscriptions_includes_plan( $site, $user, $plan_network_id, $expected_id ) {
 		$get_subscriptions_method = self::get_method( 'get_user_network_active_subscriptions' );
-		$method = self::get_method( 'subscriptions_includes_plan' );
+		$subscriptions_includes_plan_method = self::get_method( 'subscriptions_includes_plan' );
 
 		$subscriptions = $get_subscriptions_method->invoke( null, self::$$user );
 
-		$result = $method->invoke( null, $site, $subscriptions[ $site ], $plan_network_id );
+		$subscriptions_includes_plan = $subscriptions_includes_plan_method->invoke( null, $site, $subscriptions[ $site ], $plan_network_id );
 		if ( $expected_id ) {
-			$this->assertArrayHasKey( 'id', $result );
-			$this->assertEquals( $expected_id, $result['id'] );
+			$this->assertArrayHasKey( 'id', $subscriptions_includes_plan );
+			$this->assertEquals( $expected_id, $subscriptions_includes_plan['id'] );
 		} else {
-			$this->assertFalse( $result );
+			$this->assertFalse( $subscriptions_includes_plan );
 		}
 	}
 
