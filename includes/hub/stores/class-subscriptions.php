@@ -74,6 +74,11 @@ class Subscriptions extends Woo_Store {
 		update_post_meta( $local_id, 'last_payment_date', $subscription->get_last_payment_date() );
 		update_post_meta( $local_id, 'end_date', $subscription->get_end_date() );
 
+		delete_post_meta( $local_id, 'products' );
+		foreach ( $subscription->get_products() as $product ) {
+			add_post_meta( $local_id, 'products', $product );
+		}
+
 		Debugger::log( 'Updating post status to ' . $subscription->get_status_after() );
 		$update_array = [
 			'ID'          => $local_id,
@@ -81,19 +86,6 @@ class Subscriptions extends Woo_Store {
 		];
 		$update       = wp_update_post( $update_array );
 		Debugger::log( 'Updated post status: ' . $update );
-
-		delete_post_meta( $local_id, 'line_items' );
-		foreach ( $subscription_data->line_items as $line_item ) {
-			$line_item = (object) $line_item;
-			add_post_meta(
-				$local_id,
-				'line_items',
-				[
-					'name'       => $line_item->name,
-					'product_id' => $line_item->product_id,
-				]
-			);
-		}
 
 		return $local_id;
 	}
