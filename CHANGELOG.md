@@ -1,3 +1,40 @@
+# [2.0.0](https://github.com/Automattic/newspack-network/compare/v1.10.1...v2.0.0) (2024-08-13)
+
+
+### Bug Fixes
+
+* **memberships-sync:** handle active subs from other nodes ([#114](https://github.com/Automattic/newspack-network/issues/114)) ([97f9a58](https://github.com/Automattic/newspack-network/commit/97f9a58b90e660ec9511833b84af881357176163))
+* update dependencies to support `@wordpress/scripts` ([#104](https://github.com/Automattic/newspack-network/issues/104)) ([e9691b8](https://github.com/Automattic/newspack-network/commit/e9691b8edcdc58cd3466bff46d2cbe4eacba9eaf))
+
+
+### Features
+
+* **distributor:** sync comment status ([#116](https://github.com/Automattic/newspack-network/issues/116)) ([5844853](https://github.com/Automattic/newspack-network/commit/58448533aa562238a6ea080b866155cb13764853))
+* ensure that membership plans have unique network id ([#108](https://github.com/Automattic/newspack-network/issues/108)) ([d2d63a0](https://github.com/Automattic/newspack-network/commit/d2d63a04127718cadca74a57ff074d5fcfebb300))
+
+
+### BREAKING CHANGES
+
+* Updates dependencies for compatibility with WordPress 6.6.*, but breaks JS in WordPress 6.5.* and below. If you need support for WP 6.5.*, please do not upgrade to this new major version.
+
+* chore: refactor for newspack-scripts dependency updates
+
+* chore: update composer
+
+* fix: peer dependencies
+
+* chore: update newspack-scripts to v5.6.0-alpha.3
+
+* chore: update newspack-scripts to v5.6.0-alpha.4
+
+* chore: remove unnecessary prettier config file
+
+* chore: update newspack-scripts to v5.6.0-alpha.7
+
+* fix: update phpcs.xml
+
+* chore: bump newspack-scripts to v5.5.2
+
 ## [1.10.1](https://github.com/Automattic/newspack-network/compare/v1.10.0...v1.10.1) (2024-08-01)
 
 
