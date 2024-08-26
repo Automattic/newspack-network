@@ -92,17 +92,17 @@ class Subscriptions extends Woo {
 				echo $output; // phpcs:ignore
 				break;
 			case 'items':
-				$line_items = $item->get_line_items();
+				$products = $item->get_products();
 				$output     = '';
-				foreach ( $line_items as $line_item ) {
+				foreach ( $products as $product ) {
 					$output .= sprintf(
 						'<a href="%s" target="_blank">%s</a><br />',
 						sprintf(
 							'%s/wp-admin/post.php?post=%d&action=edit',
 							$item->get_node_url(),
-							$line_item['product_id'] ?? ''
+							$product['id'] ?? ''
 						),
-						$line_item['name'] ?? ''
+						$product['name'] ?? ''
 					);
 				}
 				echo $output; // phpcs:ignore

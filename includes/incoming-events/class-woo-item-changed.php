@@ -11,7 +11,7 @@ namespace Newspack_Network\Incoming_Events;
  * Class to handle the Generic Woo Changed Incoming Event for Subscription and Orders
  */
 abstract class Woo_Item_Changed extends Abstract_Incoming_Event {
-	
+
 	/**
 	 * Returns the subscription_id property
 	 *
@@ -73,5 +73,41 @@ abstract class Woo_Item_Changed extends Abstract_Incoming_Event {
 	 */
 	public function get_subscription_relationship() {
 		return $this->data->subscription_relationship ?? null;
+	}
+
+	/**
+	 * Returns the currency property
+	 *
+	 * @return ?string
+	 */
+	public function get_currency() {
+		return $this->data->currency ?? null;
+	}
+
+	/**
+	 * Returns the total property
+	 *
+	 * @return ?string
+	 */
+	public function get_total() {
+		return $this->data->total ?? null;
+	}
+
+	/**
+	 * Returns the payment_method_title property
+	 *
+	 * @return ?string
+	 */
+	public function get_payment_method_title() {
+		return $this->data->payment_method_title ?? null;
+	}
+
+	/**
+	 * Returns the date_created property
+	 *
+	 * @return ?string
+	 */
+	public function get_date_created() {
+		return $this->data->date_created ?? null;
 	}
 }

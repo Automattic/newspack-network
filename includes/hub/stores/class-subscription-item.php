@@ -80,11 +80,11 @@ class Subscription_Item extends Woo_Item {
 	}
 
 	/**
-	 * Returns the Item's line_items
+	 * Returns the Item's products
 	 *
 	 * @return ?array Array of line items with name and product_id keys.
 	 */
-	public function get_line_items() {
-		return get_post_meta( $this->get_id(), 'line_items', false );
+	public function get_products() {
+		return get_post_meta( $this->get_id(), 'products', false );
 	}
 }
