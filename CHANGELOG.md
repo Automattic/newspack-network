@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/Automattic/newspack-network/compare/v2.0.0...v2.1.0) (2024-08-26)
+
+
+### Features
+
+* consolidate data flows ([#127](https://github.com/Automattic/newspack-network/issues/127)) ([d5f9c8f](https://github.com/Automattic/newspack-network/commit/d5f9c8f06dd06c8ec7a76ba827c7b11f6dd65c36))
+
 # [2.0.0](https://github.com/Automattic/newspack-network/compare/v1.10.1...v2.0.0) (2024-08-13)
 
 
