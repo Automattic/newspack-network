@@ -64,6 +64,9 @@ class Esp_Metadata_Sync {
 	 */
 	public static function handle_esp_sync_contact( $contact ) {
 		$user = get_user_by( 'email', $contact['email'] );
+		if ( ! $user ) {
+			return $contact;
+		}
 		$contact['metadata']['network_registration_site'] = self::get_registration_site_meta( $user->ID );
 		return $metadata;
 	}
