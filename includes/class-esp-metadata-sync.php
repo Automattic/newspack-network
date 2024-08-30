@@ -63,7 +63,8 @@ class Esp_Metadata_Sync {
 	 * @return array The updated contact data.
 	 */
 	public static function handle_esp_sync_contact( $contact ) {
-		$contact['metadata']['network_registration_site'] = self::get_registration_site_meta( $user_id );
+		$user = get_user_by( 'email', $contact['email'] );
+		$contact['metadata']['network_registration_site'] = self::get_registration_site_meta( $user->ID );
 		return $metadata;
 	}
 
