@@ -23,7 +23,7 @@ class Esp_Metadata_Sync {
 	public static function init() {
 		\add_filter( 'newspack_ras_metadata_keys', [ __CLASS__, 'add_custom_metadata_fields' ] );
 		\add_filter( 'newspack_register_reader_metadata', [ __CLASS__, 'handle_custom_metadata_fields' ], 10, 2 );
-		\add_filter( 'newspack_data_events_reader_registered_metadata', [ __CLASS__, 'handle_custom_metadata_fields' ], 10, 2 );
+		\add_filter( 'newspack_esp_sync_contact', [ __CLASS__, 'handle_esp_sync_contact' ], 10, 2 );
 		\add_action( 'init', [ __CLASS__, 'register_listeners' ] );
 	}
 
@@ -53,6 +53,18 @@ class Esp_Metadata_Sync {
 		}
 
 		return $metadata_fields;
+	}
+
+	/**
+	 * Add handling for custom metadata fields when syncing to ESP.
+	 *
+	 * @param array $contact The contact metadata data.
+	 *
+	 * @return array The updated contact data.
+	 */
+	public static function handle_esp_sync_contact( $contact ) {
+		$contact['metadata']['network_registration_site'] = self::get_registration_site_meta( $user_id );
+		return $metadata;
 	}
 
 	/**
