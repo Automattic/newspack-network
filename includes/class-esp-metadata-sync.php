@@ -22,7 +22,6 @@ class Esp_Metadata_Sync {
 	 */
 	public static function init() {
 		\add_filter( 'newspack_ras_metadata_keys', [ __CLASS__, 'add_custom_metadata_fields' ] );
-		\add_filter( 'newspack_register_reader_metadata', [ __CLASS__, 'handle_custom_metadata_fields' ], 10, 2 );
 		\add_filter( 'newspack_esp_sync_contact', [ __CLASS__, 'handle_esp_sync_contact' ], 10, 2 );
 		\add_action( 'init', [ __CLASS__, 'register_listeners' ] );
 	}
@@ -69,22 +68,6 @@ class Esp_Metadata_Sync {
 		}
 		$contact['metadata']['network_registration_site'] = self::get_registration_site_meta( $user->ID );
 		return $contact;
-	}
-
-	/**
-	 * Add handling for custom metadata fields. Only fire for newly created users.
-	 *
-	 * @param array     $metadata The contact metadata data.
-	 * @param int|false $user_id Created user ID, or false if the user already exists.
-	 *
-	 * @return array The updated contact data.
-	 */
-	public static function handle_custom_metadata_fields( $metadata, $user_id ) {
-		if ( $user_id ) {
-			$metadata['network_registration_site'] = self::get_registration_site_meta( $user_id );
-		}
-
-		return $metadata;
 	}
 
 	/**
