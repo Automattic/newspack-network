@@ -102,6 +102,7 @@ Depending on what you want to do with the event, and where, implement one or mor
 
 Examples:
 * `canonical_url_updated` is triggered by the hub, and it has only the `process_in_node` method because the Hub will never receive it from a Node and won't do anything additional after it's triggered
+* `order_changed`: is an event that the Nodes don't care about, so `process_in_node` is not present. And also, changes in Woo Orders need to be persisted in the central Woo dashboard, even for orders that belong to the Hub, so it uses `always_process_in_hub`.
 * `user_updated`: is an event that can happen in any site and all other sites need to update their local users. In this case, you have the same thing happening for `process_in_node` and `post_process_in_hub`. It doesn't matter if it's coming from a Node to the Hub, from the Hub to a node, or from a Node to another Node. Every site will treat this event the same way.
 
 4. Optional. Create a `event-log-item` specific class
