@@ -73,10 +73,6 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 		User_Update_Watcher::$enabled     = false;
 
 		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
-		if ( ! $user ) {
-			Debugger::log( 'User not found.' );
-			return;
-		}
 
 		$user_membership = wc_memberships_get_user_membership( $user->ID, $local_plan_id );
 
@@ -112,7 +108,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			)
 		);
 
-		Debugger::log( 'User membership updated.' );
+		Debugger::log( 'User membership updated' );
 	}
 
 	/**
