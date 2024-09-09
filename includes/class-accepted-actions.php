@@ -28,15 +28,18 @@ class Accepted_Actions {
 	 * @var array Array where the keys are the supported events and the values are the Incoming Events class names
 	 */
 	const ACTIONS = [
-		'reader_registered'                       => 'Reader_Registered',
-		'canonical_url_updated'                   => 'Canonical_Url_Updated',
-		'donation_new'                            => 'Donation_New',
-		'donation_subscription_cancelled'         => 'Donation_Subscription_Cancelled',
-		'network_user_updated'                    => 'User_Updated',
-		'network_user_deleted'                    => 'User_Deleted',
-		'newspack_network_woo_membership_updated' => 'Woocommerce_Membership_Updated',
-		'network_manual_sync_user'                => 'User_Manually_Synced',
-		'network_nodes_synced'                    => 'Nodes_Synced',
+		'reader_registered'                        => 'Reader_Registered',
+		'newspack_node_order_changed'              => 'Order_Changed',
+		'newspack_node_subscription_changed'       => 'Subscription_Changed',
+		'canonical_url_updated'                    => 'Canonical_Url_Updated',
+		'donation_new'                             => 'Donation_New',
+		'donation_subscription_cancelled'          => 'Donation_Subscription_Cancelled',
+		'network_user_updated'                     => 'User_Updated',
+		'network_user_deleted'                     => 'User_Deleted',
+		'newspack_network_woo_membership_updated'  => 'Woocommerce_Membership_Updated',
+		'network_manual_sync_user'                 => 'User_Manually_Synced',
+		'network_nodes_synced'                     => 'Nodes_Synced',
+		'newspack_network_membership_plan_updated' => 'Membership_Plan_Updated',
 	];
 
 	/**
@@ -56,5 +59,7 @@ class Accepted_Actions {
 		'newspack_network_woo_membership_updated',
 		'network_manual_sync_user',
 		'network_nodes_synced',
+		'newspack_node_subscription_changed',
+		'newspack_network_membership_plan_updated',
 	];
 }

@@ -17,7 +17,7 @@ class Admin {
 	 *
 	 * @var string
 	 */
-	const MEMBERSHIPS_CPT = 'wc_membership_plan';
+	const MEMBERSHIP_PLANS_CPT = 'wc_membership_plan';
 
 	/**
 	 * The network id meta key.
@@ -148,7 +148,7 @@ class Admin {
 			'newspack-network-memberships-meta-box',
 			__( 'Newspack Network', 'newspack-network' ),
 			array( __CLASS__, 'render_meta_box' ),
-			self::MEMBERSHIPS_CPT,
+			self::MEMBERSHIP_PLANS_CPT,
 			'advanced'
 		);
 	}
@@ -176,9 +176,11 @@ class Admin {
 	 */
 	public static function save_meta_box( $post_id ) {
 
-		$post_type = sanitize_text_field( $_POST['post_type'] ?? '' );
+		$post = get_post( $post_id );
 
-		if ( self::MEMBERSHIPS_CPT !== $post_type ) {
+		$post_type = $post->post_type;
+
+		if ( self::MEMBERSHIP_PLANS_CPT !== $post_type ) {
 			return;
 		}
 
@@ -203,6 +205,13 @@ class Admin {
 		$network_id = self::unique_network_id( $network_id, $post_id );
 
 		update_post_meta( $post_id, self::NETWORK_ID_META_KEY, $network_id );
+
+		/**
+		 * Triggers an action when a membership plan is saved.
+		 *
+		 * @param int    $post_id The post ID of the membership plan.
+		 */
+		do_action( 'newspack_network_save_membership_plan', $post_id );
 	}
 
 	/**
