@@ -31,32 +31,12 @@ class Info_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_info_request' ],
-					'permission_callback' => [ __CLASS__, 'permission_callback' ],
+					'permission_callback' => function( $request ) {
+						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'info', Settings::get_secret_key() );
+					},
 				],
 			]
 		);
-		register_rest_route(
-			'newspack-network/v1',
-			'/subscriptions',
-			[
-				[
-					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => [ __CLASS__, 'handle_subscriptions_request' ],
-					'permission_callback' => [ __CLASS__, 'permission_callback' ],
-				],
-			]
-		);
-	}
-
-	/**
-	 * The permission callback.
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 */
-	public static function permission_callback( $request ) {
-		$route = $request->get_route();
-		$request_slug = substr( $route, strrpos( $route, '/' ) + 1 );
-		return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, $request_slug, Settings::get_secret_key() );
 	}
 
 	/**
@@ -71,18 +51,6 @@ class Info_Endpoints {
 				'not_sync_users_emails' => \Newspack_Network\Utils\Users::get_not_synchronized_users_emails(),
 				'no_role_users_emails'  => \Newspack_Network\Utils\Users::get_no_role_users_emails(),
 			]
-		);
-	}
-
-	/**
-	 * Handles the subscriptions request.
-	 * Will return the active subscription IDs for the given email, when matching a membership by plan network ID.
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 */
-	public static function handle_subscriptions_request( $request ) {
-		return rest_ensure_response(
-			\Newspack_Network\Utils\Users::get_users_active_subscriptions_tied_to_network_ids( $request['email'], $request['plan_network_ids'] )
 		);
 	}
 }
