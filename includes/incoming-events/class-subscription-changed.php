@@ -15,6 +15,8 @@ use Newspack_Network\Debugger;
  */
 class Subscription_Changed extends Woo_Item_Changed {
 
+	const USER_SUBSCRIPTIONS_META_KEY = '_newspack_network_subscriptions';
+
 	/**
 	 * Processes the event
 	 *
@@ -75,9 +77,7 @@ class Subscription_Changed extends Woo_Item_Changed {
 
 		Debugger::log( 'Found user: ' . $existing_user->ID );
 
-		$meta_key = '_newspack_network_subscriptions';
-
-		$current_value = get_user_meta( $existing_user->ID, $meta_key, true );
+		$current_value = get_user_meta( $existing_user->ID, self::USER_SUBSCRIPTIONS_META_KEY, true );
 
 		if ( ! is_array( $current_value ) ) {
 			$current_value = [];
@@ -95,7 +95,7 @@ class Subscription_Changed extends Woo_Item_Changed {
 
 		Debugger::log( sprintf( 'Adding meta for site %s and subscription id %d. Value: %s', $this->get_site(), $this->get_id(), wp_json_encode( $current_value, true ) ) );
 
-		update_user_meta( $existing_user->ID, $meta_key, $current_value );
+		update_user_meta( $existing_user->ID, self::USER_SUBSCRIPTIONS_META_KEY, $current_value );
 	}
 
 
