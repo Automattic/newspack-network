@@ -1,6 +1,6 @@
 <?php
 /**
- * Newspack Network Woo Membership events
+ * Newspack Network WooCommerce Memberships events
  *
  * @package Newspack
  */
