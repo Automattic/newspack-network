@@ -261,7 +261,7 @@ class Users {
 				'meta_key'     => \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY,
 				'meta_value'   => $plan_network_ids, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 				'meta_compare' => 'IN',
-				'post_type'    => \Newspack_Network\Woocommerce_Memberships\Admin::MEMBERSHIPS_CPT,
+				'post_type'    => \Newspack_Network\Woocommerce_Memberships\Admin::MEMBERSHIP_PLANS_CPT,
 				'field'        => 'ID',
 			]
 		);

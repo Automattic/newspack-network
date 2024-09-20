@@ -115,7 +115,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 		</select>
 		<?php endif; ?>
 
-		<?php Nodes::network_sites_dropdown( $current_node ); ?>
+		<?php Nodes::nodes_dropdown( $current_node ); ?>
 
 		<input type="submit" name="filter_action" class="button" value="<?php esc_attr_e( 'Filter', 'newspack-network' ); ?>">
 
