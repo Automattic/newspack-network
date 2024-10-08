@@ -60,7 +60,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 				"SELECT post_id from $wpdb->postmeta WHERE meta_key = %s AND meta_value = %s AND post_id IN ( SELECT ID FROM $wpdb->posts WHERE post_type = %s ) ",
 				Memberships_Admin::NETWORK_ID_META_KEY,
 				$this->get_plan_network_id(),
-				Memberships_Admin::MEMBERSHIPS_CPT
+				Memberships_Admin::MEMBERSHIP_PLANS_CPT
 			)
 		);
 
