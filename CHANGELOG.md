@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/Automattic/newspack-network/compare/v2.2.0...v2.2.1) (2024-10-10)
+
+
+### Bug Fixes
+
+* exclude refund orders from backfill ([cef82c1](https://github.com/Automattic/newspack-network/commit/cef82c11b2c95f62809a2ca537ea071c7a2c90cc))
+
 # [2.2.0](https://github.com/Automattic/newspack-network/compare/v2.1.0...v2.2.0) (2024-10-08)
 
 
