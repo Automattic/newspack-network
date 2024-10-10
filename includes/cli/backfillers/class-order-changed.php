@@ -33,6 +33,7 @@ class Order_Changed extends Abstract_Backfiller {
 	public function get_events() {
 		$params = [
 			'limit' => -1,
+			'type'  => 'shop_order',
 		];
 
 		if ( $this->start || $this->end ) {
