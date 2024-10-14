@@ -134,9 +134,10 @@ class User_Update_Watcher {
 	 * @param string $type The change type: meta or prop.
 	 * @param string $key The key of the changed meta or prop.
 	 * @param string $value The new value of the changed meta or prop.
+	 * @param string $old_email In case of an email change, use the old email to find the user in the target site.
 	 * @return void
 	 */
-	private static function add_change( $user_id, $type, $key, $value ) {
+	private static function add_change( $user_id, $type, $key, $value, $old_email = '' ) {
 		if ( ! isset( self::$updated_users[ $user_id ] ) ) {
 			$user = get_userdata( $user_id );
 			if ( $user ) {
@@ -146,6 +147,11 @@ class User_Update_Watcher {
 			} else {
 				return;
 			}
+		}
+
+		// If the email is being updated, we need to use the old email to find the user in the target site.
+		if ( ! empty( $old_email ) ) {
+			self::$updated_users[ $user_id ]['email'] = $old_email;
 		}
 
 		if ( ! isset( self::$updated_users[ $user_id ][ $type ] ) ) {
@@ -231,7 +237,8 @@ class User_Update_Watcher {
 
 		foreach ( self::$user_props as $prop ) {
 			if ( $old_user_data->$prop !== $user_data[ $prop ] ) {
-				self::add_change( $user_id, 'prop', $prop, $user_data[ $prop ] );
+				$old_email = 'user_email' === $prop ? $old_user_data->$prop : '';
+				self::add_change( $user_id, 'prop', $prop, $user_data[ $prop ], $old_email );
 			}
 		}
 	}
