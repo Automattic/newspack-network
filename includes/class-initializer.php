@@ -55,11 +55,12 @@ class Initializer {
 		Data_Backfill::init();
 		Membership_Dedupe::init();
 
+		Woocommerce\Events::init();
+
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();
-
-		Woocommerce\Events::init();
 		Woocommerce_Memberships\Subscriptions_Integration::init();
+		Woocommerce_Memberships\Limit_Purchase::init();
 
 		register_activation_hook( NEWSPACK_NETWORK_PLUGIN_FILE, [ __CLASS__, 'activation_hook' ] );
 	}
