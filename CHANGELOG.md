@@ -1,3 +1,22 @@
+## [2.2.1](https://github.com/Automattic/newspack-network/compare/v2.2.0...v2.2.1) (2024-10-10)
+
+
+### Bug Fixes
+
+* exclude refund orders from backfill ([cef82c1](https://github.com/Automattic/newspack-network/commit/cef82c11b2c95f62809a2ca537ea071c7a2c90cc))
+
+# [2.2.0](https://github.com/Automattic/newspack-network/compare/v2.1.0...v2.2.0) (2024-10-08)
+
+
+### Bug Fixes
+
+* **sync:** use `newspack_esp_sync_contact` filter for the `network_registration_site` field ([#132](https://github.com/Automattic/newspack-network/issues/132)) ([3755d07](https://github.com/Automattic/newspack-network/commit/3755d07f83c813c1cc0b4599371722e9eecfbd18))
+
+
+### Features
+
+* subscriptions and  memberships sync reimplementation ([#122](https://github.com/Automattic/newspack-network/issues/122)) ([04fc845](https://github.com/Automattic/newspack-network/commit/04fc845168865bb03e59c1972be319fc8f99d4a5))
+
 # [2.1.0](https://github.com/Automattic/newspack-network/compare/v2.0.0...v2.1.0) (2024-08-26)
 
 

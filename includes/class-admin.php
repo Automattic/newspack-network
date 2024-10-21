@@ -7,8 +7,6 @@
 
 namespace Newspack_Network;
 
-use Newspack_Network\Admin;
-
 /**
  * Class to handle the plugin admin pages
  */
