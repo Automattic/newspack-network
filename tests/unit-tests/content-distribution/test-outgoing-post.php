@@ -94,17 +94,6 @@ class TestOutgoingPost extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Test non-published post.
-	 */
-	public function test_non_published_post() {
-		$post = $this->factory->post->create_and_get( [ 'post_type' => 'post', 'post_status' => 'draft' ] ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
-		// Assert the instantiating an Outgoing_Post throws an exception.
-		$this->expectException( \Exception::class );
-		$this->expectExceptionMessage( 'Only published post are allowed to be distributed.' );
-		new Outgoing_Post( $post );
-	}
-
-	/**
 	 * Test get post distribution.
 	 */
 	public function test_get_distribution() {

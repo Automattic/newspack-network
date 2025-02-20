@@ -118,6 +118,15 @@ class API {
 			return new WP_Error( 'newspack_network_content_distribution_error', $e->getMessage(), [ 'status' => 400 ] );
 		}
 
+		$current_distribution = $outgoing_post->get_distribution();
+
+		$new_urls = array_diff( $urls, $current_distribution );
+
+		// If distributing to new destinations, the post must be published.
+		if ( ! empty( $new_urls ) && 'publish' !== get_post_status( $post_id ) ) {
+			return new WP_Error( 'newspack_network_content_distribution_error', __( 'Post must be published to distribute.', 'newspack-network' ), [ 'status' => 400 ] );
+		}
+
 		$distribution = $outgoing_post->set_distribution( $urls );
 
 		if ( is_wp_error( $distribution ) ) {

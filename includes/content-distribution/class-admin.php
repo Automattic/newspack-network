@@ -44,6 +44,11 @@ class Admin {
 	const CAPABILITY_ROLES_OPTION_NAME = 'newspack_distribute_capability_roles';
 
 	/**
+	 * The default distribution status option name
+	 */
+	const DEFAULT_DISTRIBUTION_STATUS_OPTION_NAME = 'newspack_default_distribution_status';
+
+	/**
 	 * Initialize this class and register hooks
 	 *
 	 * @return void
@@ -98,6 +103,7 @@ class Admin {
 		$allowed_options[ self::SETTINGS_SECTION ] = [
 			self::CANONICAL_NODE_OPTION_NAME,
 			self::CAPABILITY_ROLES_OPTION_NAME,
+			self::DEFAULT_DISTRIBUTION_STATUS_OPTION_NAME,
 		];
 		return $allowed_options;
 	}
@@ -130,6 +136,12 @@ class Admin {
 			'key'      => self::CAPABILITY_ROLES_OPTION_NAME,
 			'label'    => esc_html__( 'Roles Allowed to Distribute', 'newspack-network' ),
 			'callback' => [ __CLASS__, 'capability_roles_callback' ],
+		];
+
+		$settings[] = [
+			'key'      => self::DEFAULT_DISTRIBUTION_STATUS_OPTION_NAME,
+			'label'    => esc_html__( 'Default Post Status for Distribution', 'newspack-network' ),
+			'callback' => [ __CLASS__, 'default_distribution_status_callback' ],
 		];
 
 		foreach ( $settings as $setting ) {
@@ -211,6 +223,51 @@ class Admin {
 			'<br/><small>%1$s</small>',
 			esc_html__( 'Select the roles of users on this site that will be allowed to distribute content to sites in the network.', 'newspack-network' )
 		);
+	}
+
+	/**
+	 * The default distribution status setting callback
+	 *
+	 * @return void
+	 */
+	public static function default_distribution_status_callback() {
+		$current = self::get_default_distribution_status();
+
+		$statuses = [
+			'draft'   => __( 'Draft', 'newspack-network' ),
+			'pending' => __( 'Pending', 'newspack-network' ),
+			'publish' => __( 'Publish', 'newspack-network' ),
+		];
+
+		foreach ( $statuses as $status => $label ) {
+			$checked = '';
+			if ( $status === $current ) {
+				$checked = 'checked';
+			}
+
+			printf(
+				'<p><input type="radio" name="%1$s" value="%2$s" id="distribution-status-%2$s" %3$s> <label for="distribution-status-%2$s">%4$s</label></p>',
+				esc_attr( self::DEFAULT_DISTRIBUTION_STATUS_OPTION_NAME ),
+				esc_attr( $status ),
+				esc_attr( $checked ),
+				esc_html( $label )
+			);
+		}
+
+		printf(
+			'<br/><small>%1$s</small><br/><small>%2$s</small>',
+			esc_html__( 'Select the default status for posts distributed to other sites in the network.', 'newspack-network' ),
+			esc_html__( 'Note: Editors will still be able to modify the status upon distribution of a post.', 'newspack-network' )
+		);
+	}
+
+	/**
+	 * Get the default distribution status.
+	 *
+	 * @return string
+	 */
+	public static function get_default_distribution_status() {
+		return get_option( self::DEFAULT_DISTRIBUTION_STATUS_OPTION_NAME, 'draft' );
 	}
 
 	/**

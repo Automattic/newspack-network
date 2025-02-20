@@ -57,3 +57,11 @@
 		margin: 0;
 	}
 }
+
+.editor-header {
+	.components-button.is-pressed {
+		path[fill="#406ebc"] {
+			fill: currentColor;
+		}
+	}
+}

@@ -210,6 +210,17 @@ class TestIncomingPost extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Test get original post edit URL.
+	 */
+	public function test_get_original_post_edit_url() {
+		$this->incoming_post->insert();
+		$this->assertSame(
+			'https://node1.test/wp-admin/post.php?post=1&action=edit',
+			$this->incoming_post->get_original_post_edit_url()
+		);
+	}
+
+	/**
 	 * Test relink post.
 	 */
 	public function test_relink_post() {
