@@ -45,7 +45,14 @@ class Network_Post_Updated extends Abstract_Incoming_Event {
 			Debugger::log( 'Error processing network_post_updated: ' . $error->get_error_message() );
 			return;
 		}
-		$incoming_post = new Incoming_Post( $payload );
+
+		try {
+			$incoming_post = new Incoming_Post( $payload );
+		} catch ( \Exception $e ) {
+			Debugger::log( 'Error processing network_post_updated: ' . $e->getMessage() );
+			return;
+		}
+
 		$post_id = $incoming_post->insert();
 
 		if ( ! is_wp_error( $post_id ) ) {

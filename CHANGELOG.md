@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/Automattic/newspack-network/compare/v2.6.0...v2.6.1) (2025-02-26)
+
+
+### Bug Fixes
+
+* **content-distribution:** handle incoming post object error ([#221](https://github.com/Automattic/newspack-network/issues/221)) ([b83b8f2](https://github.com/Automattic/newspack-network/commit/b83b8f21e921ac87de390dd85cba4a424e3f1c69))
+
 # [2.6.0](https://github.com/Automattic/newspack-network/compare/v2.5.0...v2.6.0) (2025-02-17)
 
 
