@@ -45,7 +45,14 @@ class Network_Post_Deleted extends Abstract_Incoming_Event {
 			Debugger::log( 'Error processing network_post_deleted: ' . $error->get_error_message() );
 			return;
 		}
-		$incoming_post = new Incoming_Post( $payload );
+
+		try {
+			$incoming_post = new Incoming_Post( $payload );
+		} catch ( \Exception $e ) {
+			Debugger::log( 'Error processing network_post_deleted: ' . $e->getMessage() );
+			return;
+		}
+
 		$incoming_post->delete();
 	}
 }
