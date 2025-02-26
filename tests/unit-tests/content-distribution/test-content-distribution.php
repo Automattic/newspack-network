@@ -68,6 +68,10 @@ class TestContentDistribution extends \WP_UnitTestCase {
 		// Assert that you can add a site to distribution.
 		$result = update_post_meta( $post_id, Outgoing_Post::DISTRIBUTED_POST_META, [ 'https://node.test', 'https://other-node.test' ] );
 		$this->assertNotFalse( $result );
+
+		// Assert that an empty value is not allowed if the post is distributed.
+		$result = update_post_meta( $post_id, Outgoing_Post::DISTRIBUTED_POST_META, [] );
+		$this->assertFalse( $result );
 	}
 
 	/**
