@@ -166,6 +166,12 @@ class Content_Distribution {
 			return $check;
 		}
 
+		// Ignore unchanged values.
+		$current_value = get_post_meta( $object_id, $meta_key, true );
+		if ( $current_value === $meta_value || ( empty( $current_value ) && empty( $meta_value ) ) ) {
+			return $check;
+		}
+
 		// Ensure the post type can be distributed.
 		$post_types = self::get_distributed_post_types();
 		if ( ! in_array( get_post_type( $object_id ), $post_types, true ) ) {
@@ -177,7 +183,6 @@ class Content_Distribution {
 		}
 
 		// Prevent removing existing distributions.
-		$current_value = get_post_meta( $object_id, $meta_key, true );
 		if ( ! empty( array_diff( empty( $current_value ) ? [] : $current_value, $meta_value ) ) ) {
 			return false;
 		}
