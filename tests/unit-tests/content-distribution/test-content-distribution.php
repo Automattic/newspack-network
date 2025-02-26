@@ -49,6 +49,10 @@ class TestContentDistribution extends \WP_UnitTestCase {
 	public function test_update_distributed_post_meta() {
 		$post_id = $this->factory->post->create();
 
+		// Assert that an empty value is allowed.
+		$result = update_post_meta( $post_id, Outgoing_Post::DISTRIBUTED_POST_META, [] );
+		$this->assertNotFalse( $result );
+
 		// Assert that you're not allowed to update the meta with a non-network site.
 		$result = update_post_meta( $post_id, Outgoing_Post::DISTRIBUTED_POST_META, [ 'http://non-network-site.com' ] );
 		$this->assertFalse( $result );
@@ -64,6 +68,10 @@ class TestContentDistribution extends \WP_UnitTestCase {
 		// Assert that you can add a site to distribution.
 		$result = update_post_meta( $post_id, Outgoing_Post::DISTRIBUTED_POST_META, [ 'https://node.test', 'https://other-node.test' ] );
 		$this->assertNotFalse( $result );
+
+		// Assert that an empty value is not allowed if the post is distributed.
+		$result = update_post_meta( $post_id, Outgoing_Post::DISTRIBUTED_POST_META, [] );
+		$this->assertFalse( $result );
 	}
 
 	/**
