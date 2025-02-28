@@ -189,7 +189,7 @@ class Content_Distribution {
 		}
 
 		// Manage removing existing distributions.
-		$diff = array_diff( empty( $current_value ) ? [] : $current_value, $meta_value );
+		$diff = array_values( array_diff( empty( $current_value ) ? [] : $current_value, $meta_value ) );
 		if ( ! empty( $diff ) ) {
 			if ( 1 < count( $diff ) ) {
 				return false;

@@ -94,6 +94,16 @@ class TestOutgoingPost extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Test remove distribution.
+	 */
+	public function test_remove_distribution() {
+		$this->outgoing_post->set_distribution( [ $this->network[1]['url'] ] );
+		$result = $this->outgoing_post->remove_distribution( $this->network[1]['url'] );
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertFalse( in_array( $this->network[1]['url'], $this->outgoing_post->get_distribution(), true ) );
+	}
+
+	/**
 	 * Test get post distribution.
 	 */
 	public function test_get_distribution() {
