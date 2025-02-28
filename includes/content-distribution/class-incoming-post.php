@@ -227,7 +227,7 @@ class Incoming_Post {
 	 *
 	 * @return array The stored payload.
 	 */
-	protected function get_post_payload() {
+	public function get_post_payload() {
 		if ( ! $this->ID ) {
 			return [];
 		}

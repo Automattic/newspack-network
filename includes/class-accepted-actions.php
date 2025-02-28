@@ -42,6 +42,7 @@ class Accepted_Actions {
 		'newspack_network_membership_plan_updated' => 'Membership_Plan_Updated',
 		'network_post_updated'                     => 'Network_Post_Updated',
 		'network_post_deleted'                     => 'Network_Post_Deleted',
+		'network_incoming_post_deleted'            => 'Network_Incoming_Post_Deleted',
 		'newspack_network_distributor_migrate_incoming_posts' => 'Distributor_Migrate_Incoming_Posts',
 	];
 
@@ -66,6 +67,7 @@ class Accepted_Actions {
 		'newspack_network_membership_plan_updated',
 		'network_post_updated',
 		'network_post_deleted',
+		'network_incoming_post_deleted',
 		'newspack_network_distributor_migrate_incoming_posts',
 	];
 }
