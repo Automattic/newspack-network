@@ -142,7 +142,7 @@ class API {
 		Data_Events::dispatch( 'network_post_updated', $payload );
 
 		// Store payload hash to prevent unnecessary updates.
-		update_post_meta( $post->ID, self::PAYLOAD_HASH_META, $outgoing_post->get_payload_hash( $payload ) );
+		update_post_meta( $post_id, Content_Distribution_Class::PAYLOAD_HASH_META, $outgoing_post->get_payload_hash( $payload ) );
 
 		return rest_ensure_response( $distribution );
 	}
