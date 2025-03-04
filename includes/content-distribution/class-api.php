@@ -7,6 +7,7 @@
 
 namespace Newspack_Network\Content_Distribution;
 
+use Newspack\Data_Events;
 use InvalidArgumentException;
 use Newspack_Network\Content_Distribution as Content_Distribution_Class;
 use WP_Error;
@@ -108,6 +109,10 @@ class API {
 	 * @return WP_REST_Response|WP_Error The REST response or error.
 	 */
 	public static function distribute( $request ) {
+		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
+			return new WP_Error( 'newspack_network_content_distribution_error', __( 'Data Events class not found.', 'newspack-network' ), [ 'status' => 400 ] );
+		}
+
 		$post_id          = $request->get_param( 'post_id' );
 		$urls             = $request->get_param( 'urls' );
 		$status_on_create = $request->get_param( 'status_on_create' );
@@ -118,13 +123,26 @@ class API {
 			return new WP_Error( 'newspack_network_content_distribution_error', $e->getMessage(), [ 'status' => 400 ] );
 		}
 
+		$current_distribution = $outgoing_post->get_distribution();
+
+		$new_urls = array_diff( $urls, $current_distribution );
+
+		// If distributing to new destinations, the post must be published.
+		if ( ! empty( $new_urls ) && 'publish' !== get_post_status( $post_id ) ) {
+			return new WP_Error( 'newspack_network_content_distribution_error', __( 'Post must be published to distribute.', 'newspack-network' ), [ 'status' => 400 ] );
+		}
+
 		$distribution = $outgoing_post->set_distribution( $urls );
 
 		if ( is_wp_error( $distribution ) ) {
 			return new WP_Error( 'newspack_network_content_distribution_error', $distribution->get_error_message(), [ 'status' => 400 ] );
 		}
 
-		Content_Distribution_Class::distribute_post( $outgoing_post, $status_on_create );
+		$payload = $outgoing_post->get_payload( $status_on_create );
+		Data_Events::dispatch( 'network_post_updated', $payload );
+
+		// Store payload hash to prevent unnecessary updates.
+		update_post_meta( $post_id, Content_Distribution_Class::PAYLOAD_HASH_META, $outgoing_post->get_payload_hash( $payload ) );
 
 		return rest_ensure_response( $distribution );
 	}

@@ -8,7 +8,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import { useEffect, useState } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { Button, __experimentalConfirmDialog as ConfirmDialog } from '@wordpress/components';
-import { globe } from '@wordpress/icons';
+import { broadcast } from '../../icons';
 import { registerPlugin } from '@wordpress/plugins';
 
 /**
@@ -17,7 +17,8 @@ import { registerPlugin } from '@wordpress/plugins';
 import './style.scss';
 import ContentDistributionPanel from "../content-distribution-panel";
 
-const originalUrl = newspack_network_incoming_post.originalUrl;
+const originalSiteUrl = newspack_network_incoming_post.originalSiteUrl;
+const originalPostEditUrl = newspack_network_incoming_post.originalPostEditUrl;
 const unlinked = newspack_network_incoming_post.unlinked;
 
 function IncomingPost() {
@@ -60,8 +61,8 @@ function IncomingPost() {
 		createNotice(
 			'warning',
 			isUnLinked
-				? sprintf( __( 'Originally distributed from %s.', 'newspack-network' ), originalUrl )
-				: sprintf( __( 'Distributed from %s.', 'newspack-network' ), originalUrl ),
+				? sprintf( __( 'Originally distributed from %s.', 'newspack-network' ), originalSiteUrl )
+				: sprintf( __( 'Distributed from %s.', 'newspack-network' ), originalSiteUrl ),
 
 			{
 				id: 'newspack-network-incoming-post-notice',
@@ -140,9 +141,9 @@ function IncomingPost() {
 						<Button
 							variant="secondary"
 							target="_blank"
-							href={ originalUrl }
+							href={ originalPostEditUrl }
 						>
-							{ __( 'View origin post', 'newspack-network' ) }
+							{ __( 'Edit origin post', 'newspack-network' ) }
 						</Button>
 						<Button
 							variant={ isUnLinked ? 'primary' : 'secondary' }
@@ -178,5 +179,5 @@ function IncomingPost() {
 
 registerPlugin( 'newspack-network-incoming-post', {
 	render: IncomingPost,
-	icon: globe,
+	icon: broadcast,
 } );

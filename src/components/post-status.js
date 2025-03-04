@@ -10,7 +10,7 @@ import {
 import { __, sprintf } from '@wordpress/i18n';
 import { useState, useMemo } from '@wordpress/element';
 import { __experimentalInspectorPopoverHeader as InspectorPopoverHeader } from '@wordpress/block-editor';
-import { drafts, published } from '../icons';
+import { drafts, published, pending } from '../icons';
 
 /**
  * Internal dependencies
@@ -19,6 +19,7 @@ import PostPanelRow from './post-panel-row';
 
 const postStatusesInfo = {
 	draft: { label: __( 'Draft' ), icon: drafts },
+	pending: { label: __( 'Pending' ), icon: pending },
 	publish: { label: __( 'Published' ), icon: published },
 };
 
@@ -27,6 +28,11 @@ const STATUS_OPTIONS = [
 		label: __( 'Draft' ),
 		value: 'draft',
 		description: __( 'Not ready to publish.' ),
+	},
+	{
+		label: __( 'Pending' ),
+		value: 'pending',
+		description: __( 'Waiting for review before publishing.' ),
 	},
 	{
 		label: __( 'Published' ),

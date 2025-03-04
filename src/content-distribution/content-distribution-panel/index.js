@@ -4,7 +4,7 @@
 import { __ } from '@wordpress/i18n';
 import { PluginSidebar } from '@wordpress/editor';
 import { Flex, Panel, PanelBody } from '@wordpress/components';
-import { globe } from '@wordpress/icons';
+import { broadcast } from '../../icons';
 
 /**
  * Internal dependencies.
@@ -15,7 +15,7 @@ const ContentDistributionPanel = ({ header, body, footer, buttons }) => {
 	return (
 		<PluginSidebar
 			name="newspack-network-content-distribution-panel"
-			icon={ globe }
+			icon={ broadcast }
 			title={ __( 'Distribute', 'newspack-network' ) }
 			className="newspack-network-content-distribution-panel"
 		>

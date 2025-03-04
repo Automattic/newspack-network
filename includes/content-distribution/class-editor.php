@@ -109,8 +109,9 @@ class Editor {
 			'newspack-network-incoming-post',
 			'newspack_network_incoming_post',
 			[
-				'originalUrl' => $incoming->get_original_site_url(),
-				'unlinked'    => ! $incoming->is_linked(),
+				'originalSiteUrl'     => $incoming->get_original_site_url(),
+				'originalPostEditUrl' => $incoming->get_original_post_edit_url(),
+				'unlinked'            => ! $incoming->is_linked(),
 			]
 		);
 	}
@@ -143,6 +144,7 @@ class Editor {
 			'newspack-network-outgoing-post',
 			'newspack_network_outgoing_post',
 			[
+				'default_status'   => Admin::get_default_distribution_status(),
 				'network_sites'    => Network::get_networked_urls(),
 				'distributed_meta' => Outgoing_Post::DISTRIBUTED_POST_META,
 				'post_type_label'  => get_post_type_labels( get_post_type_object( $post->post_type ) )->singular_name,
@@ -165,7 +167,7 @@ class Editor {
 		$columns['content_distribution'] = sprintf(
 			'<span title="%1$s">%2$s <span class="screen-reader-text">%1$s</span></span>',
 			esc_attr__( 'Content Distribution', 'newspack-network' ),
-			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" style="margin: -2px 0 -6px;"><path d="M12 3.3c-4.8 0-8.8 3.9-8.8 8.8 0 4.8 3.9 8.8 8.8 8.8 4.8 0 8.8-3.9 8.8-8.8s-4-8.8-8.8-8.8zm6.5 5.5h-2.6C15.4 7.3 14.8 6 14 5c2 .6 3.6 2 4.5 3.8zm.7 3.2c0 .6-.1 1.2-.2 1.8h-2.9c.1-.6.1-1.2.1-1.8s-.1-1.2-.1-1.8H19c.2.6.2 1.2.2 1.8zM12 18.7c-1-.7-1.8-1.9-2.3-3.5h4.6c-.5 1.6-1.3 2.9-2.3 3.5zm-2.6-4.9c-.1-.6-.1-1.1-.1-1.8 0-.6.1-1.2.1-1.8h5.2c.1.6.1 1.1.1 1.8s-.1 1.2-.1 1.8H9.4zM4.8 12c0-.6.1-1.2.2-1.8h2.9c-.1.6-.1 1.2-.1 1.8 0 .6.1 1.2.1 1.8H5c-.2-.6-.2-1.2-.2-1.8zM12 5.3c1 .7 1.8 1.9 2.3 3.5H9.7c.5-1.6 1.3-2.9 2.3-3.5zM10 5c-.8 1-1.4 2.3-1.8 3.8H5.5C6.4 7 8 5.6 10 5zM5.5 15.3h2.6c.4 1.5 1 2.8 1.8 3.7-1.8-.6-3.5-2-4.4-3.7zM14 19c.8-1 1.4-2.2 1.8-3.7h2.6C17.6 17 16 18.4 14 19z"></path></svg>'
+			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" style="margin: -2px 0 -6px;"><path d="M11.2 13h1.5v7h-1.5v-7ZM7.4 5.6l.5-.5L6.8 4l-.5.5c-3.1 3.1-3.1 8.2 0 11.3l.5.5 1.1-1.1-.5-.5c-2.5-2.5-2.5-6.7 0-9.2Zm2.7 1.6L9 6.1l-.5.5c-2 2-2 5.1 0 7.1l.5.5 1.1-1.1-.5-.5c-1.4-1.4-1.4-3.6 0-4.9l.5-.5Zm1.9 2c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1ZM17.1 4 16 5.1l.5.5c2.5 2.5 2.5 6.7 0 9.2l-.5.5 1.1 1.1.5-.5c3.1-3.1 3.1-8.2 0-11.3l-.5-.5Zm-1.6 2.7-.5-.5-1.1 1.1.5.5c1.4 1.4 1.4 3.6 0 4.9l-.5.5 1.1 1.1.5-.5c2-2 2-5.1 0-7.1Z" fill="#406ebc"></path></svg>'
 		);
 		return $columns;
 	}
@@ -264,7 +266,7 @@ class Editor {
 				display: inline-block;
 			}
 			.wp-list-table .column-content_distribution a svg {
-				fill: #2271b1;
+				fill: currentcolor;
 			}
 		</style>
 		<?php

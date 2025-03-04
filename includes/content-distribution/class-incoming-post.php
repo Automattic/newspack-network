@@ -279,6 +279,18 @@ class Incoming_Post {
 	}
 
 	/**
+	 * Get the original post edit URL.
+	 *
+	 * @return string The post original edit URL. Empty string if not found.
+	 */
+	public function get_original_post_edit_url() {
+		if ( empty( $this->payload['site_url'] ) ) {
+			return '';
+		}
+		return sprintf( '%s/wp-admin/post.php?post=%d&action=edit', $this->payload['site_url'], $this->payload['post_id'] );
+	}
+
+	/**
 	 * Find the post from the payload's network post ID.
 	 *
 	 * @return WP_Post|null The post or null if not found.
