@@ -1,3 +1,21 @@
+# [2.7.0](https://github.com/Automattic/newspack-network/compare/v2.6.1...v2.7.0) (2025-03-04)
+
+
+### Bug Fixes
+
+* build on release ([#219](https://github.com/Automattic/newspack-network/issues/219)) ([396cb61](https://github.com/Automattic/newspack-network/commit/396cb6113c85074d3b8a9fa14d822b95906665d1))
+* **content-distribution:** always distribute on API request ([#224](https://github.com/Automattic/newspack-network/issues/224)) ([ea53b11](https://github.com/Automattic/newspack-network/commit/ea53b11c5391b81ba36af6587f511dba3ac64018))
+* **content-distribution:** change link to edit origin post ([#215](https://github.com/Automattic/newspack-network/issues/215)) ([ed70561](https://github.com/Automattic/newspack-network/commit/ed70561ee40a3bd58d6eedf4de161193d921d2f2))
+* **content-distribution:** ignore unchanged values when shortcircuiting meta ([#222](https://github.com/Automattic/newspack-network/issues/222)) ([ed1182a](https://github.com/Automattic/newspack-network/commit/ed1182aaecd01487a5d3f77fef9ba106038b4558))
+* **content-distribution:** link to post on incoming ([#211](https://github.com/Automattic/newspack-network/issues/211)) ([638fa8a](https://github.com/Automattic/newspack-network/commit/638fa8ac26a81453bbd6ea1f3b16aeb7c75cb9bc))
+* **content-distribution:** sync non-publish posts ([#213](https://github.com/Automattic/newspack-network/issues/213)) ([ba3cd6a](https://github.com/Automattic/newspack-network/commit/ba3cd6ab2362474a1afc60eef135f9ed8bc5b4ad))
+* **content-distribution:** update icon to broadcast ([#214](https://github.com/Automattic/newspack-network/issues/214)) ([df0e740](https://github.com/Automattic/newspack-network/commit/df0e740a0030b3941332bbbdb5a674bb50ddbf41))
+
+
+### Features
+
+* **content-distribution:** default distribution status ([#216](https://github.com/Automattic/newspack-network/issues/216)) ([df19856](https://github.com/Automattic/newspack-network/commit/df19856f946d0ed062ffb39008e733dc38a826c6))
+
 ## [2.6.1](https://github.com/Automattic/newspack-network/compare/v2.6.0...v2.6.1) (2025-02-26)
 
 
