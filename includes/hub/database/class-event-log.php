@@ -50,17 +50,19 @@ class Event_Log {
 		$db_version = absint( get_option( self::get_current_option_name(), 0 ) );
 		update_option( self::get_current_option_name(), self::DB_VERSION );
 		if ( $db_version < self::DB_VERSION ) {
-			self::create_db();
+			self::update_db();
 			update_option( self::get_current_option_name(), self::DB_VERSION );
 		}
 	}
 
 	/**
-	 * Creates the database
+	 * Updates the database.
+	 *
+	 * This method uses dbDelta to create or update the database table.
 	 *
 	 * @return void
 	 */
-	protected static function create_db() {
+	protected static function update_db() {
 		Debugger::log( 'Creating or updating the database table' );
 		global $wpdb;
 		$table_name      = self::get_table_name();
