@@ -48,9 +48,9 @@ class Event_Log {
 	 */
 	protected static function maybe_update_db() {
 		$db_version = absint( get_option( self::get_current_option_name(), 0 ) );
+		update_option( self::get_current_option_name(), self::DB_VERSION );
 		if ( $db_version < self::DB_VERSION ) {
 			self::update_db();
-			update_option( self::get_current_option_name(), self::DB_VERSION );
 		}
 	}
 
