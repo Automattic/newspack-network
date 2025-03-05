@@ -19,7 +19,7 @@ class Event_Log {
 	 *
 	 * @var int
 	 */
-	const DB_VERSION = 1;
+	const DB_VERSION = 2;
 
 	/**
 	 * Returns the table name
@@ -47,32 +47,38 @@ class Event_Log {
 	 * @return void
 	 */
 	protected static function maybe_update_db() {
-		$db_version = get_option( self::get_current_option_name(), 0 );
+		$db_version = absint( get_option( self::get_current_option_name(), 0 ) );
 		update_option( self::get_current_option_name(), self::DB_VERSION );
-		if ( 0 === $db_version ) {
-			self::create_db();
+		if ( $db_version < self::DB_VERSION ) {
+			self::update_db();
 		}
 	}
 
 	/**
-	 * Creates the database
+	 * Updates the database.
+	 *
+	 * This method uses dbDelta to create or update the database table.
 	 *
 	 * @return void
 	 */
-	protected static function create_db() {
-		Debugger::log( 'Creating database' );
+	protected static function update_db() {
+		Debugger::log( 'Creating or updating the database table' );
 		global $wpdb;
 		$table_name      = self::get_table_name();
 		$charset_collate = $wpdb->get_charset_collate();
-		$sql             = "CREATE TABLE IF NOT EXISTS $table_name (
-            id int(11) NOT NULL AUTO_INCREMENT,
-            action_name varchar(100) NOT NULL,
-            node_id int(11) NOT NULL,
-            email varchar(100) NULL,
-            data text NOT NULL,
-            timestamp int(11) NOT NULL,
-            PRIMARY KEY  (id)
-        ) $charset_collate;";
-		$wpdb->query( $sql ); //phpcs:ignore
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+		$sql = "CREATE TABLE $table_name (
+			id int(11) NOT NULL AUTO_INCREMENT,
+			action_name varchar(100) NOT NULL,
+			node_id int(11) NOT NULL,
+			email varchar(100) NULL,
+			data longtext NOT NULL,
+			timestamp int(11) NOT NULL,
+			PRIMARY KEY  (id)
+		) $charset_collate;";
+
+		dbDelta( $sql );
 	}
 }
