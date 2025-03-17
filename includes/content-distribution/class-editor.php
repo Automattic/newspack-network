@@ -163,7 +163,10 @@ class Editor {
 	 * @return array
 	 */
 	public static function add_distribution_column( $columns, $post_type = '' ) {
-		if ( ! $post_type || ! in_array( $post_type, Content_Distribution_Class::get_distributed_post_types(), true ) ) {
+		if ( ! $post_type ) {
+			$post_type = get_current_screen()->post_type;
+		}
+		if ( ! in_array( $post_type, Content_Distribution_Class::get_distributed_post_types(), true ) ) {
 			return $columns;
 		}
 		$columns['content_distribution'] = sprintf(
