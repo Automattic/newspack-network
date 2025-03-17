@@ -113,12 +113,20 @@ function IncomingPost() {
 			toggleUnlinkedState( unlinked )
 				.then( () => {
 					setIsUnLinkedToggling( false );
-					createNotice( 'info', __( 'Post has been unlinked', 'newspack-network' ), {
-						type: 'snackbar',
-						isDismissible: true,
-						autoDismiss: true,
-						autoDismissTimeout: 3000,
-					} );
+					createNotice(
+						'info',
+						sprintf(
+							// translators: %s: post type
+							__( '%s has been unlinked', 'newspack-network' ),
+							newspack_network_incoming_post.postTypeLabel
+						),
+						{
+							type: 'snackbar',
+							isDismissible: true,
+							autoDismiss: true,
+							autoDismissTimeout: 3000,
+						}
+					);
 				} );
 		}
 	};
@@ -127,13 +135,20 @@ function IncomingPost() {
 		<>
 			<ContentDistributionPanel
 				header={
-					isUnLinked ? __(
-							'This post has been unlinked from its origin. Edits to the origin post will not update this version.',
-							'newspack-network'
+					isUnLinked ? sprintf(
+							__(
+								'This %1$s has been unlinked from its origin. Edits to the origin %1$s will not update this version.',
+								'newspack-network'
+							),
+							newspack_network_incoming_post.postTypeLabel.toLowerCase()
 						)
-						: __(
-							'This post is linked to its origin. Edits to the origin post will update this version.',
+						: sprintf(
+							// translators: %s: post type
+							__(
+							'This %1$s is linked to its origin. Edits to the origin %1$s will update this version.',
 							'newspack-network'
+							),
+							newspack_network_incoming_post.postTypeLabel.toLowerCase()
 						)
 				}
 				buttons={
@@ -143,7 +158,11 @@ function IncomingPost() {
 							target="_blank"
 							href={ originalPostEditUrl }
 						>
-							{ __( 'Edit origin post', 'newspack-network' ) }
+							{ sprintf(
+								// translators: %s: post type
+								__( 'Edit origin %s', 'newspack-network' ),
+								newspack_network_incoming_post.postTypeLabel.toLowerCase()
+	 						) }
 						</Button>
 						<Button
 							variant={ isUnLinked ? 'primary' : 'secondary' }
@@ -153,7 +172,25 @@ function IncomingPost() {
 								setShowConfirmDialog( true );
 							} }
 						>
-							{ isUnLinkedToggling ? (isUnLinked ? __( 'Relinking...', 'newspack-network' ) : __( 'Unlinking...', 'newspack-network' )) : (!isUnLinked ? __( 'Unlink from origin post', 'newspack-network' ) : __( 'Relink to origin post', 'newspack-network' )) }
+							{
+								isUnLinkedToggling ? (
+									isUnLinked ?
+										__( 'Relinking...', 'newspack-network' ) :
+										__( 'Unlinking...', 'newspack-network' )
+								) : (
+									! isUnLinked ?
+										sprintf(
+											// translators: %s: post type
+											__( 'Unlink from origin %s', 'newspack-network' ),
+											newspack_network_incoming_post.postTypeLabel.toLowerCase()
+										) :
+										sprintf(
+											// translators: %s: post type
+											__( 'Relink to origin %s', 'newspack-network' ),
+											newspack_network_incoming_post.postTypeLabel.toLowerCase()
+										)
+								)
+							}
 						</Button>
 					</>
 				}
@@ -169,8 +206,16 @@ function IncomingPost() {
 				size="small"
 			>
 				{ isUnLinked ?
-					__( 'Are you sure you want to relink this post to its origin? Any changes you\'ve made will be lost.', 'newspack-network' ) :
-					__( 'Are you sure you want to unlink this post from its origin?', 'newspack-network' )
+					sprintf(
+						// translators: %s: post type
+						__( 'Are you sure you want to relink this %s to its origin? Any changes you\'ve made will be lost.', 'newspack-network' ),
+						newspack_network_incoming_post.postTypeLabel.toLowerCase()
+					) :
+					sprintf(
+						// translators: %s: post type
+						__( 'Are you sure you want to unlink this %s from its origin?', 'newspack-network' ),
+						newspack_network_incoming_post.postTypeLabel.toLowerCase()
+					)
 				}
 			</ConfirmDialog>
 		</>
