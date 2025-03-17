@@ -112,6 +112,7 @@ class Editor {
 				'originalSiteUrl'     => $incoming->get_original_site_url(),
 				'originalPostEditUrl' => $incoming->get_original_post_edit_url(),
 				'unlinked'            => ! $incoming->is_linked(),
+				'postTypeLabel'       => get_post_type_labels( get_post_type_object( $post->post_type ) )->singular_name,
 			]
 		);
 	}
