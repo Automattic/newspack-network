@@ -24,6 +24,7 @@ class Editor {
 		add_filter( 'manage_posts_columns', [ __CLASS__, 'add_distribution_column' ], 10, 2 );
 		add_filter( 'manage_pages_columns', [ __CLASS__, 'add_distribution_column' ], 10, 2 );
 		add_action( 'manage_posts_custom_column', [ __CLASS__, 'render_distribution_column' ], 10, 2 );
+		add_action( 'manage_pages_custom_column', [ __CLASS__, 'render_distribution_column' ], 10, 2 );
 		add_action( 'admin_footer', [ __CLASS__, 'add_posts_column_styles' ] );
 	}
 
