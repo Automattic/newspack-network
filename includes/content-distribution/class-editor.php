@@ -22,6 +22,7 @@ class Editor {
 		add_action( 'init', [ __CLASS__, 'register_meta' ] );
 		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets' ] );
 		add_filter( 'manage_posts_columns', [ __CLASS__, 'add_distribution_column' ], 10, 2 );
+		add_filter( 'manage_pages_columns', [ __CLASS__, 'add_distribution_column' ], 10, 2 );
 		add_action( 'manage_posts_custom_column', [ __CLASS__, 'render_distribution_column' ], 10, 2 );
 		add_action( 'admin_footer', [ __CLASS__, 'add_posts_column_styles' ] );
 	}
@@ -161,8 +162,8 @@ class Editor {
 	 *
 	 * @return array
 	 */
-	public static function add_distribution_column( $columns, $post_type ) {
-		if ( ! in_array( $post_type, Content_Distribution_Class::get_distributed_post_types(), true ) ) {
+	public static function add_distribution_column( $columns, $post_type = '' ) {
+		if ( ! $post_type || ! in_array( $post_type, Content_Distribution_Class::get_distributed_post_types(), true ) ) {
 			return $columns;
 		}
 		$columns['content_distribution'] = sprintf(
