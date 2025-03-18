@@ -123,10 +123,6 @@ class Outgoing_Post {
 	 * @return true|WP_Error True on success, WP_Error on failure.
 	 */
 	public static function validate_distribution( $urls ) {
-		if ( empty( $urls ) ) {
-			return new WP_Error( 'no_site_urls', __( 'No site URLs provided.', 'newspack-network' ) );
-		}
-
 		if ( in_array( get_bloginfo( 'url' ), $urls, true ) ) {
 			return new WP_Error( 'no_own_site', __( 'Cannot distribute to own site.', 'newspack-network' ) );
 		}
@@ -154,6 +150,10 @@ class Outgoing_Post {
 	 * @return array|WP_Error Config array on success, WP_Error on failure.
 	 */
 	public function set_distribution( $site_urls ) {
+		if ( empty( $site_urls ) ) {
+			return new WP_Error( 'no_site_urls', __( 'No site URLs provided.', 'newspack-network' ) );
+		}
+
 		$error = self::validate_distribution( $site_urls );
 		if ( is_wp_error( $error ) ) {
 			return $error;
@@ -169,6 +169,38 @@ class Outgoing_Post {
 		$distribution = array_unique( array_merge( $distribution, $site_urls ) );
 
 		$updated = update_post_meta( $this->post->ID, self::DISTRIBUTED_POST_META, $distribution );
+
+		if ( ! $updated ) {
+			return new WP_Error( 'update_failed', __( 'Failed to update post distribution.', 'newspack-network' ) );
+		}
+
+		return $distribution;
+	}
+
+	/**
+	 * Remove a site URL from the distribution configuration for a given post.
+	 *
+	 * @param string $site_url The site URL to remove.
+	 *
+	 * @return array|WP_Error Config array on success, WP_Error on failure.
+	 */
+	public function remove_distribution( $site_url ) {
+		$distribution = get_post_meta( $this->post->ID, self::DISTRIBUTED_POST_META, true );
+		if ( ! is_array( $distribution ) ) {
+			$distribution = [];
+		}
+
+		$index = array_search( $site_url, $distribution, true );
+		if ( false === $index ) {
+			return new WP_Error( 'site_not_found', __( 'Site URL not found in post distribution.', 'newspack-network' ) );
+		}
+
+		unset( $distribution[ $index ] );
+
+		// Add a meta to allow bypassing the short circuit validation.
+		update_post_meta( $this->post->ID, 'newspack_network_remove_distribution', $site_url );
+
+		$updated = update_post_meta( $this->post->ID, self::DISTRIBUTED_POST_META, array_values( $distribution ) );
 
 		if ( ! $updated ) {
 			return new WP_Error( 'update_failed', __( 'Failed to update post distribution.', 'newspack-network' ) );

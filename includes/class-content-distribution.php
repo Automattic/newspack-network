@@ -55,7 +55,8 @@ class Content_Distribution {
 		add_action( 'updated_post_meta', [ __CLASS__, 'handle_postmeta_update' ], 10, 3 );
 		add_action( 'added_post_meta', [ __CLASS__, 'handle_postmeta_update' ], 10, 3 );
 		add_action( 'deleted_post_meta', [ __CLASS__, 'handle_postmeta_update' ], 10, 3 );
-		add_action( 'before_delete_post', [ __CLASS__, 'handle_post_deleted' ] );
+		add_action( 'before_delete_post', [ __CLASS__, 'handle_outgoing_post_deleted' ] );
+		add_action( 'before_delete_post', [ __CLASS__, 'handle_incoming_post_deleted' ] );
 		add_action( 'newspack_network_incoming_post_inserted', [ __CLASS__, 'handle_incoming_post_inserted' ], 10, 3 );
 
 		Admin::init();
@@ -79,6 +80,7 @@ class Content_Distribution {
 		Data_Events::register_action( 'network_post_updated' );
 		Data_Events::register_action( 'network_post_deleted' );
 		Data_Events::register_action( 'network_incoming_post_inserted' );
+		Data_Events::register_action( 'network_incoming_post_deleted' );
 	}
 
 	/**
@@ -172,6 +174,10 @@ class Content_Distribution {
 			return $check;
 		}
 
+		if ( ! is_array( $meta_value ) ) {
+			return false;
+		}
+
 		// Ensure the post type can be distributed.
 		$post_types = self::get_distributed_post_types();
 		if ( ! in_array( get_post_type( $object_id ), $post_types, true ) ) {
@@ -182,9 +188,20 @@ class Content_Distribution {
 			return false;
 		}
 
-		// Prevent removing existing distributions.
-		if ( ! empty( array_diff( empty( $current_value ) ? [] : $current_value, $meta_value ) ) ) {
-			return false;
+		// Manage removing existing distributions.
+		$diff = array_values( array_diff( empty( $current_value ) ? [] : $current_value, $meta_value ) );
+		if ( ! empty( $diff ) ) {
+			if ( 1 < count( $diff ) ) {
+				return false;
+			}
+
+			// Ensure there's an intention to remove the distribution.
+			$removing = get_post_meta( $object_id, 'newspack_network_remove_distribution', true );
+			delete_post_meta( $object_id, 'newspack_network_remove_distribution' ); // Remove deletion meta after reading.
+
+			if ( ! $removing || $removing !== $diff[0] ) {
+				return false;
+			}
 		}
 
 		return $check;
@@ -248,7 +265,7 @@ class Content_Distribution {
 	 *
 	 * @return void
 	 */
-	public static function handle_post_deleted( $post_id ) {
+	public static function handle_outgoing_post_deleted( $post_id ) {
 		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
 			return;
 		}
@@ -288,6 +305,42 @@ class Content_Distribution {
 	}
 
 	/**
+	 * Handle incoming post deletion.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return void
+	 */
+	public static function handle_incoming_post_deleted( $post_id ) {
+		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
+			return;
+		}
+		if ( ! self::is_post_incoming( $post_id ) ) {
+			return;
+		}
+		$incoming_post = new Incoming_Post( $post_id );
+		$payload       = $incoming_post->get_post_payload();
+		if ( empty( $payload ) ) {
+			return;
+		}
+		$data = [
+			'network_post_id' => $payload['network_post_id'],
+			'outgoing'        => [
+				'site_url' => $payload['site_url'],
+				'post_id'  => $payload['post_id'],
+				'post_url' => $payload['post_url'],
+			],
+			'incoming'        => [
+				'site_url'  => get_bloginfo( 'url' ),
+				'post_id'   => $post_id,
+				'post_url'  => get_permalink( $post_id ),
+				'is_linked' => $incoming_post->is_linked(),
+			],
+		];
+		Data_Events::dispatch( 'network_incoming_post_deleted', $data );
+	}
+
+	/**
 	 * Get the post types that are allowed to be distributed across the network.
 	 *
 	 * @return array Array of post types.
@@ -298,7 +351,7 @@ class Content_Distribution {
 		 *
 		 * @param array $post_types Array of post types.
 		 */
-		return apply_filters( 'newspack_network_distributed_post_types', [ 'post' ] );
+		return apply_filters( 'newspack_network_distributed_post_types', [ 'post', 'page' ] );
 	}
 
 	/**
