@@ -1,3 +1,17 @@
+# [2.8.0](https://github.com/Automattic/newspack-network/compare/v2.7.0...v2.8.0) (2025-03-18)
+
+
+### Bug Fixes
+
+* **content-distribution:** pages table column ([#230](https://github.com/Automattic/newspack-network/issues/230)) ([fe5fa5c](https://github.com/Automattic/newspack-network/commit/fe5fa5c55efc7edf92556152bea537a388b32604))
+
+
+### Features
+
+* **content-distribution:** remove distribution on incoming post deletion ([#225](https://github.com/Automattic/newspack-network/issues/225)) ([24a421a](https://github.com/Automattic/newspack-network/commit/24a421a65ee8e7ab724943005c583b60b951d6b8))
+* **content-distribution:** support page post type ([#228](https://github.com/Automattic/newspack-network/issues/228)) ([1d21b4d](https://github.com/Automattic/newspack-network/commit/1d21b4d8a76a5fc775d0a0ff112fb989d15638f1))
+* **event-log:** migrate `data` db column to `longtext` ([#227](https://github.com/Automattic/newspack-network/issues/227)) ([ef2353b](https://github.com/Automattic/newspack-network/commit/ef2353be324ce5c2d889739a44b92880ef54c1d7))
+
 # [2.7.0](https://github.com/Automattic/newspack-network/compare/v2.6.1...v2.7.0) (2025-03-04)
 
 
