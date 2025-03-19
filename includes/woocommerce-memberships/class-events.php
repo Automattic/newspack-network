@@ -45,21 +45,23 @@ class Events {
 			return;
 		}
 
-		Data_Events::register_listener( 'wc_memberships_user_membership_status_changed', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_granted' ] );
-		Data_Events::register_listener( 'wc_memberships_user_membership_deleted', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_deleted' ] );
-		Data_Events::register_listener( 'wc_memberships_user_membership_saved', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_revoked' ] );
+		Data_Events::register_listener( 'wc_memberships_user_membership_status_changed', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_status_changed' ] );
+		Data_Events::register_listener( 'wc_memberships_user_membership_saved', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_saved' ] );
 		Data_Events::register_listener( 'newspack_network_save_membership_plan', 'newspack_network_membership_plan_updated', [ __CLASS__, 'membership_plan_updated' ] );
 	}
 
 	/**
-	 * Triggers a data event when the membership is cancelled
+	 * Transforms the data of the wc_memberships_user_membership_status_changed to trigger the newspack_network_woo_membership_updated data event
+	 *
+	 * Fires only when the membership status changes to a non-active status to avoid multiple events for the same membership.
+	 * The occasions when a membership is set to active or updates is handled by the wc_memberships_user_membership_saved hook.
 	 *
 	 * @param WC_Memberships_User_Membership $user_membership The User Membership object.
 	 * @param string                         $old_status old status, without the `wcm-` prefix.
 	 * @param string                         $new_status new status, without the `wcm-` prefix.
 	 * @return array
 	 */
-	public static function membership_granted( $user_membership, $old_status, $new_status ) {
+	public static function membership_status_changed( $user_membership, $old_status, $new_status ) {
 
 		if ( self::$pause_events ) {
 			return;
@@ -89,21 +91,12 @@ class Events {
 			'plan_network_id' => $plan_network_id,
 			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $new_status,
+			'end_date'        => $user_membership->get_end_date(),
 		];
 	}
 
 	/**
-	 * Remove lists that require a membership plan when the membership is cancelled
-	 *
-	 * @param WC_Memberships_User_Membership $user_membership The User Membership object.
-	 * @return array
-	 */
-	public static function membership_deleted( $user_membership ) {
-		return self::membership_revoked( $user_membership, '', 'deleted' );
-	}
-
-	/**
-	 * Adds user to premium lists when a membership is granted
+	 * Transforms the data of the wc_memberships_user_membership_saved to trigger the newspack_network_woo_membership_updated data event
 	 *
 	 * @param \WC_Memberships_Membership_Plan $plan the plan that user was granted access to.
 	 * @param array                           $args {
@@ -115,12 +108,7 @@ class Events {
 	 * }
 	 * @return array
 	 */
-	public static function membership_revoked( $plan, $args ) {
-
-		if ( self::$pause_events ) {
-			return;
-		}
-
+	public static function membership_saved( $plan, $args ) {
 		// When creating the membership via admin panel, this hook is called once before the membership is actually created.
 		if ( ! $plan instanceof WC_Memberships_Membership_Plan ) {
 			return;
@@ -157,6 +145,7 @@ class Events {
 			'plan_network_id' => $plan_network_id,
 			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $user_membership->get_status(),
+			'end_date'        => $user_membership->get_end_date(),
 		];
 	}
 

@@ -119,6 +119,7 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			update_post_meta( $user_membership->get_id(), Memberships_Admin::SITE_URL_META_KEY, $this->get_site() );
 		}
 		$user_membership->update_status( $status );
+		$user_membership->set_end_date( $this->get_end_date() ?? '' );
 		$user_membership->add_note(
 			sprintf(
 				// translators: %s is the site URL.
@@ -155,5 +156,14 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 	 */
 	public function get_membership_id() {
 		return $this->data->membership_id ?? null;
+	}
+
+	/**
+	 * Get the original end date of the membership
+	 *
+	 * @return ?string
+	 */
+	public function get_end_date() {
+		return $this->data->end_date ?? null;
 	}
 }
