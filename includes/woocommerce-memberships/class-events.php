@@ -109,6 +109,11 @@ class Events {
 	 * @return array
 	 */
 	public static function membership_saved( $plan, $args ) {
+
+		if ( self::$pause_events ) {
+			return;
+		}
+
 		// When creating the membership via admin panel, this hook is called once before the membership is actually created.
 		if ( ! $plan instanceof WC_Memberships_Membership_Plan ) {
 			return;
