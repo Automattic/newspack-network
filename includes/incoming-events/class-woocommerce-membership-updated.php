@@ -98,7 +98,12 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 
 		$status     = $this->get_new_status();
 		$is_managed = get_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
-		if ( in_array( $status, [ 'cancelled', 'expired' ], true ) && $is_managed ) {
+
+		if ( '__deleted' === $status ) {
+			wp_delete_post( $user_membership->get_id(), true );
+			Debugger::log( 'User membership deleted' );
+			return;
+		} elseif ( in_array( $status, [ 'cancelled', 'expired' ], true ) && $is_managed ) {
 			// If the membership is being cancelled or expired, and the membership is managed, we remove the managed meta fields.
 			// This is to allow the membership to be re-initiated from another site in the network.
 			delete_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY );

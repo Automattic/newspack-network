@@ -47,6 +47,7 @@ class Events {
 
 		Data_Events::register_listener( 'wc_memberships_user_membership_status_changed', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_status_changed' ] );
 		Data_Events::register_listener( 'wc_memberships_user_membership_saved', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_saved' ] );
+		Data_Events::register_listener( 'wc_memberships_user_membership_deleted', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_deleted' ] );
 		Data_Events::register_listener( 'newspack_network_save_membership_plan', 'newspack_network_membership_plan_updated', [ __CLASS__, 'membership_plan_updated' ] );
 	}
 
@@ -92,6 +93,38 @@ class Events {
 			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $new_status,
 			'end_date'        => $user_membership->get_end_date(),
+		];
+	}
+
+	/**
+	 * Remove lists that require a membership plan when the membership is cancelled
+	 *
+	 * @param WC_Memberships_User_Membership $user_membership The User Membership object.
+	 * @return array
+	 */
+	public static function membership_deleted( $user_membership ) {
+		if ( self::$pause_events ) {
+			return;
+		}
+
+		$user = $user_membership->get_user();
+		if ( ! $user ) {
+			return;
+		}
+		$user_email = $user->user_email;
+		$plan_id    = $user_membership->get_plan()->get_id();
+
+		$plan_network_id = get_post_meta( $plan_id, Admin::NETWORK_ID_META_KEY, true );
+		if ( ! $plan_network_id ) {
+			return;
+		}
+
+		return [
+			'email'           => $user_email,
+			'user_id'         => $user->ID,
+			'plan_network_id' => $plan_network_id,
+			'membership_id'   => $user_membership->get_id(),
+			'new_status'      => '__deleted',
 		];
 	}
 
