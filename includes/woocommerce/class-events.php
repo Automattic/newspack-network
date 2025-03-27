@@ -97,7 +97,7 @@ class Events {
 		$result['start_date'] = $item->get_date( 'start_date' );
 		$result['trial_end_date'] = $item->get_date( 'trial_end_date' );
 		$result['next_payment_date'] = $item->get_date( 'next_payment_date' );
-		$result['last_payment_date'] = $item->get_date( 'last_payment_date' );
+		$result['last_payment_date'] = $item->get_date( 'last_order_date_created' );
 		$result['end_date'] = $item->get_date( 'end_date' );
 		$result['products'] = [];
 

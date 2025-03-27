@@ -127,8 +127,9 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 		$user_membership->set_end_date( $this->get_end_date() ?? '' );
 		$user_membership->add_note(
 			sprintf(
-				// translators: %s is the site URL.
-				__( 'Membership status updated via Newspack Network. Status propagated from %s', 'newspack-network' ),
+				// translators: 1: membership status, 2: site URL.
+				__( 'Membership status updated to %1$s via Newspack Network. Propagated from %2$s.', 'newspack-network' ),
+				$status,
 				$this->get_site()
 			)
 		);
