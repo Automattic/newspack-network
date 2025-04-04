@@ -108,16 +108,17 @@ abstract class Membership_Plans {
 		if ( $plans_cache && isset( $plans_cache['plans'] ) ) {
 			return $plans_cache;
 		}
-		$by_network_pass_id = [];
-		$membership_plans = [];
 
-		$local_membership_plans = self::get_local_membership_plans();
-		foreach ( $local_membership_plans as $local_plan ) {
-			if ( $local_plan['network_pass_id'] ) {
-				$by_network_pass_id[ $local_plan['network_pass_id'] ][ $local_plan['site_url'] ] = $local_plan['active_members_emails'];
+		$by_network_pass_id = [];
+
+		$membership_plans = self::get_local_membership_plans();
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+			foreach ( $membership_plans as $local_plan ) {
+				if ( $local_plan['network_pass_id'] && isset( $local_plan['active_members_emails'] ) ) {
+					$by_network_pass_id[ $local_plan['network_pass_id'] ][ $local_plan['site_url'] ] = $local_plan['active_members_emails'];
+				}
 			}
 		}
-		$membership_plans = array_merge( $local_membership_plans, $membership_plans );
 
 		$nodes = \Newspack_Network\Hub\Nodes::get_all_nodes();
 		foreach ( $nodes as $node ) {
