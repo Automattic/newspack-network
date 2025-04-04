@@ -52,6 +52,42 @@ class Network_Audit {
 		if ( ! Site_Role::is_hub() ) {
 			WP_CLI::error( 'This command can only be run on the Hub site.' );
 		}
+
+		// Gather the network-synchronized membership plans.
+		$membership_plans = \Newspack_Network\Hub\Admin\Membership_Plans::get_local_membership_plans();
+		$nodes = \Newspack_Network\Hub\Nodes::get_all_nodes();
+		foreach ( $nodes as $node ) {
+			$node_plans = \Newspack_Network\Hub\Admin\Membership_Plans::fetch_collection_from_api( $node, 'wc/v2/memberships/plans', 'membership-plans' );
+			if ( $node_plans === null ) {
+				continue;
+			}
+			foreach ( $node_plans as $plan ) {
+				$network_pass_id = null;
+				foreach ( $plan->meta_data as $meta ) {
+					if ( $meta->key === \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY ) {
+						$network_pass_id = $meta->value;
+					}
+				}
+				$membership_plans[] = [
+					'id'                         => $plan->id,
+					'site_url'                   => $node->get_url(),
+					'name'                       => $plan->name,
+					'network_pass_id'            => $network_pass_id,
+					'active_memberships_count'   => $plan->active_memberships_count,
+					'active_subscriptions_count' => $plan->active_subscriptions_count,
+				];
+			}
+		}
+
+		$membership_plans = array_filter(
+			$membership_plans,
+			function ( $plan ) {
+				return ! empty( $plan['network_pass_id'] );
+			}
+		);
+
+		// TODO: in batches, look up the status of each membership
+
 		WP_CLI::success( 'Audit complete.' );
 		WP_CLI::line( '' );
 	}
