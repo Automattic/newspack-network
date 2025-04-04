@@ -26,24 +26,25 @@ class Membership_Plans_Table extends \WP_List_Table {
 		];
 		$columns['site_url'] = __( 'Site URL', 'newspack-network' );
 		$columns['network_pass_id'] = __( 'Network ID', 'newspack-network' );
-		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
-			$columns['active_memberships_count'] = __( 'Active Memberships', 'newspack-network' );
-			$columns['network_pass_discrepancies'] = __( 'Membership Discrepancies', 'newspack-network' );
+		$columns['active_memberships_count'] = __( 'Active Memberships', 'newspack-network' );
+		$active_subscriptions_sum = array_reduce(
+			$this->items,
+			function( $carry, $item ) {
+				return $carry + ( is_numeric( $item['active_subscriptions_count'] ) ? $item['active_subscriptions_count'] : 0 );
+			},
+			0
+		);
+		$subs_info = sprintf(
+			' <span class="dashicons dashicons-info-outline" title="%s"></span>',
+			__( 'Active Subscriptions tied to this membership plan', 'newspack-network' )
+		);
+		// translators: %d is the sum of active subscriptions.
+		$columns['active_subscriptions_count'] = sprintf( __( 'Active Subscriptions (%d)', 'newspack-network' ), $active_subscriptions_sum ) . $subs_info;
 
-			$active_subscriptions_sum = array_reduce(
-				$this->items,
-				function( $carry, $item ) {
-					return $carry + ( is_numeric( $item['active_subscriptions_count'] ) ? $item['active_subscriptions_count'] : 0 );
-				},
-				0
-			);
-			$subs_info = sprintf(
-				' <span class="dashicons dashicons-info-outline" title="%s"></span>',
-				__( 'Active Subscriptions tied to this membership plan', 'newspack-network' )
-			);
-			// translators: %d is the sum of active subscriptions.
-			$columns['active_subscriptions_count'] = sprintf( __( 'Active Subscriptions (%d)', 'newspack-network' ), $active_subscriptions_sum ) . $subs_info;
+		if ( \Newspack_Network\Admin::use_experimental_auditing_features() ) {
+			$columns['network_pass_discrepancies'] = __( 'Membership Discrepancies', 'newspack-network' );
 		}
+
 		return $columns;
 	}
 

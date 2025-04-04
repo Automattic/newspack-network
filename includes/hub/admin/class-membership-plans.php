@@ -212,13 +212,13 @@ abstract class Membership_Plans {
 				'network_pass_id'          => $network_pass_id,
 				'active_memberships_count' => $plan->get_memberships_count( 'active' ),
 			];
+			if ( $network_pass_id ) {
+				$plan_data['active_subscriptions_count'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_plan_related_active_subscriptions( $plan );
+			} else {
+				$plan_data['active_subscriptions_count'] = __( 'Only displayed for plans with a Network ID.', 'newspack-network' );
+			}
 			if ( Network_Admin::use_experimental_auditing_features() ) {
 				$plan_data['active_members_emails'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_active_members_emails( $plan );
-				if ( $network_pass_id ) {
-					$plan_data['active_subscriptions_count'] = \Newspack_Network\Woocommerce_Memberships\Admin::get_plan_related_active_subscriptions( $plan );
-				} else {
-					$plan_data['active_subscriptions_count'] = __( 'Only displayed for plans with a Network ID.', 'newspack-network' );
-				}
 			}
 			$membership_plans[] = $plan_data;
 		}
