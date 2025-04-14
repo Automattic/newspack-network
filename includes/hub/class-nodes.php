@@ -143,6 +143,9 @@ class Nodes {
 			'show_in_menu'         => Network_Admin::PAGE_SLUG,
 			'can_export'           => false,
 			'capability_type'      => 'page',
+			'capabilities'         => [
+				'edit_posts' => \Newspack_Network\Admin::REQUIRED_CAPABILITY,
+			],
 			'show_in_rest'         => false,
 			'delete_with_user'     => false,
 			'register_meta_box_cb' => [ __CLASS__, 'add_metabox' ],
@@ -344,19 +347,19 @@ class Nodes {
 	 * Highlight the correct submenu item.
 	 *
 	 * @param string $submenu_file The current submenu file.
-	 * 
+	 *
 	 * @return string
 	 */
 	public static function submenu_file( $submenu_file ) {
 		global $pagenow;
 
 		// Highlight "Nodes" submenu on Add New Node screen.
-		if ( $submenu_file === Network_Admin::PAGE_SLUG 
-			&& $pagenow === 'post-new.php' 
+		if ( $submenu_file === Network_Admin::PAGE_SLUG
+			&& $pagenow === 'post-new.php'
 			&& self::POST_TYPE_SLUG === filter_input( INPUT_GET, 'post_type', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) ) {
 			return 'edit.php?post_type=newspack_hub_nodes';
 		}
-		
+
 		return $submenu_file;
 	}
 }

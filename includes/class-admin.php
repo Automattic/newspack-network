@@ -24,6 +24,11 @@ class Admin {
 	const LINK_ACTION_NAME = 'newspack-network-link-site';
 
 	/**
+	 * Capability required to administer here.
+	 */
+	const REQUIRED_CAPABILITY = 'newspack_network_admin';
+
+	/**
 	 * Runs the initialization.
 	 */
 	public static function init() {
@@ -120,7 +125,7 @@ class Admin {
 		$page_suffix = add_menu_page(
 			__( 'Newspack Network', 'newspack-network' ),
 			__( 'Newspack Network', 'newspack-network' ),
-			'manage_options',
+			self::REQUIRED_CAPABILITY,
 			self::PAGE_SLUG,
 			array( __CLASS__, 'render_page' ),
 			$icon,
@@ -145,7 +150,7 @@ class Admin {
 			self::PAGE_SLUG,
 			$title,
 			$title,
-			'manage_options',
+			self::REQUIRED_CAPABILITY,
 			$slug,
 			$callback
 		);

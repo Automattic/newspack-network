@@ -81,7 +81,9 @@ class Orders {
 			'can_export'       => false,
 			'capability_type'  => 'post',
 			'capabilities'     => [
-				'create_posts' => 'not_a_real_capability', // Set to a fake capability to remove "add new" button.
+				'create_posts'      => 'not_a_real_capability', // Set to a fake capability to remove "add new" button.
+				'edit_posts'        => \Newspack_Network\Admin::REQUIRED_CAPABILITY,
+				'edit_others_posts' => \Newspack_Network\Admin::REQUIRED_CAPABILITY,
 			],
 			'show_in_rest'     => false,
 			'delete_with_user' => false,

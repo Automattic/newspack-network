@@ -487,7 +487,7 @@ class Settings {
 			return;
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( \Newspack_Network\Admin::REQUIRED_CAPABILITY ) ) {
 			return;
 		}
 
@@ -580,7 +580,7 @@ class Settings {
 			</div>
 		<?php
 	}
-	
+
 	/**
 	 * Adds the nodes and their bookmarks to the Admin Bar menu
 	 *
