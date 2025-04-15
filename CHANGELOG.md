@@ -1,3 +1,16 @@
+# [2.9.0](https://github.com/Automattic/newspack-network/compare/v2.8.0...v2.9.0) (2025-04-14)
+
+
+### Bug Fixes
+
+* **event-log:** copy to clipboard ([e3f97c4](https://github.com/Automattic/newspack-network/commit/e3f97c49fa97a5093c4898757c5b96261b296903))
+* **woocommerce:** tweaks for membership and subscription events ([#234](https://github.com/Automattic/newspack-network/issues/234)) ([74c717e](https://github.com/Automattic/newspack-network/commit/74c717e399a9d200958daa4f78fb329adcc0b849))
+
+
+### Features
+
+* sync membership end date ([#232](https://github.com/Automattic/newspack-network/issues/232)) ([f2b578b](https://github.com/Automattic/newspack-network/commit/f2b578ba44655a563ec0aa35e3beaab71df16e89))
+
 # [2.8.0](https://github.com/Automattic/newspack-network/compare/v2.7.0...v2.8.0) (2025-03-18)
 
 
