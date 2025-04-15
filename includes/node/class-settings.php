@@ -487,7 +487,7 @@ class Settings {
 			return;
 		}
 
-		if ( ! current_user_can( \Newspack_Network\Admin::get_admin_cap() ) ) {
+		if ( ! current_user_can( Admin::get_admin_cap() ) ) {
 			return;
 		}
 
