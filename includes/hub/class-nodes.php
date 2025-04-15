@@ -144,7 +144,7 @@ class Nodes {
 			'can_export'           => false,
 			'capability_type'      => 'page',
 			'capabilities'         => [
-				'edit_posts' => \Newspack_Network\Admin::REQUIRED_CAPABILITY,
+				'edit_posts' => \Newspack_Network\Admin::get_admin_cap(),
 			],
 			'show_in_rest'         => false,
 			'delete_with_user'     => false,

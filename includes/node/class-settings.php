@@ -487,7 +487,7 @@ class Settings {
 			return;
 		}
 
-		if ( ! current_user_can( \Newspack_Network\Admin::REQUIRED_CAPABILITY ) ) {
+		if ( ! current_user_can( \Newspack_Network\Admin::get_admin_cap() ) ) {
 			return;
 		}
 

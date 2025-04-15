@@ -24,9 +24,9 @@ class Admin {
 	const LINK_ACTION_NAME = 'newspack-network-link-site';
 
 	/**
-	 * Capability required to administer here.
+	 * Capability required to administer here (unless Newspack Plugin's capability methods are unavailable).
 	 */
-	const REQUIRED_CAPABILITY = 'newspack_network_admin';
+	const CAPABILITY = 'newspack_network_admin';
 
 	/**
 	 * Runs the initialization.
@@ -35,6 +35,30 @@ class Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
+		add_filter( 'newspack_capabilities_map', [ __CLASS__, 'newspack_capabilities_map' ] );
+		add_filter( 'newspack_capabilities_in_cme_plugin', [ __CLASS__, 'newspack_capabilities_in_cme_plugin' ] );
+	}
+
+	/**
+	 * Get the capability required to administrate.
+	 * If Newspack Plugin capability mapping is available, use the granular capability.
+	 * Otherwise, use the generic 'manage_options' capability.
+	 */
+	public static function get_admin_cap() {
+		if ( method_exists( '\Newspack\Capabilities', 'map_capabilities' ) ) {
+			return self::CAPABILITY;
+		}
+		return 'manage_options';
+	}
+
+	/**
+	 * Map this wizard capability from 'manage_options' capability.
+	 *
+	 * @param array $capabilities_map Mapping of capabilities.
+	 */
+	public static function newspack_capabilities_map( $capabilities_map ) {
+		$capabilities_map[ self::CAPABILITY ] = 'manage_options';
+		return $capabilities_map;
 	}
 
 	/**
@@ -56,7 +80,6 @@ class Admin {
 	 * @return void
 	 */
 	public static function register_settings() {
-
 		add_settings_section(
 			self::SETTINGS_SECTION,
 			esc_html__( 'Newspack Network Settings', 'newspack-network' ),
@@ -125,7 +148,7 @@ class Admin {
 		$page_suffix = add_menu_page(
 			__( 'Newspack Network', 'newspack-network' ),
 			__( 'Newspack Network', 'newspack-network' ),
-			self::REQUIRED_CAPABILITY,
+			self::get_admin_cap(),
 			self::PAGE_SLUG,
 			array( __CLASS__, 'render_page' ),
 			$icon,
@@ -150,7 +173,7 @@ class Admin {
 			self::PAGE_SLUG,
 			$title,
 			$title,
-			self::REQUIRED_CAPABILITY,
+			self::get_admin_cap(),
 			$slug,
 			$callback
 		);
@@ -202,5 +225,15 @@ class Admin {
 	 */
 	public static function use_experimental_auditing_features() {
 		return defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES' ) ? NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES : false;
+	}
+
+	/**
+	 * Register this capability in Newspack capabilities list in the capability-manager-enhanced plugin.
+	 *
+	 * @param array $capabilities Mapping of capabilities.
+	 */
+	public static function newspack_capabilities_in_cme_plugin( $capabilities ) {
+		$capabilities[] = self::CAPABILITY;
+		return $capabilities;
 	}
 }
