@@ -478,6 +478,13 @@ class Incoming_Post {
 			foreach ( $terms as $term_data ) {
 				$term = get_term_by( 'name', $term_data['name'], $taxonomy, ARRAY_A );
 				if ( ! $term ) {
+
+					// If the taxonomy is in the list of taxonomies that should only
+					// have terms that already exist, skip the term creation.
+					if ( in_array( $taxonomy, Content_Distribution_Class::get_existing_terms_only_taxonomies(), true ) ) {
+						continue;
+					}
+
 					$term = wp_insert_term( $term_data['name'], $taxonomy );
 					if ( is_wp_error( $term ) ) {
 						self::log( 'Failed to insert term ' . $term_data['name'] . ' for taxonomy ' . $taxonomy . ' with message: ' . $term->get_error_message() );
