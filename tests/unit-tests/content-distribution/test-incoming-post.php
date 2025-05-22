@@ -566,4 +566,51 @@ class TestIncomingPost extends \WP_UnitTestCase {
 		$this->expectExceptionMessage( 'Partial payload requires an existing post.' );
 		new Incoming_Post( $payload );
 	}
+
+	/**
+	 * Test existing terms only taxonomies.
+	 */
+	public function test_existing_terms_only_taxonomies() {
+		$payload = $this->get_sample_payload();
+		$taxonomy = 'existing_terms_only_tax';
+
+		// Register a taxonomy that should only use existing terms.
+		register_taxonomy( $taxonomy, 'post', [ 'public' => true ] );
+
+		// Add the taxonomy to the existing terms only list.
+		add_filter(
+			'newspack_network_content_distribution_existing_terms_only_taxonomies',
+			function( $taxonomies ) use ( $taxonomy ) {
+				$taxonomies[] = $taxonomy;
+				return $taxonomies;
+			}
+		);
+
+		// Add a non-existent term to the payload.
+		$payload['post_data']['taxonomy'][ $taxonomy ] = [
+			[
+				'name' => 'Non-existent Term',
+				'slug' => 'non-existent-term',
+			],
+		];
+
+		// Insert the linked post.
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the post does not have the term since it doesn't exist.
+		$terms = wp_get_post_terms( $post_id, $taxonomy );
+		$this->assertEmpty( $terms );
+
+		// Now create the term and try again.
+		$term = wp_insert_term( 'Non-existent Term', $taxonomy );
+		$this->assertFalse( is_wp_error( $term ) );
+
+		// Insert the linked post again.
+		$this->incoming_post->insert( $payload );
+
+		// Assert that the post now has the term since it exists.
+		$terms = wp_get_post_terms( $post_id, $taxonomy );
+		$this->assertNotEmpty( $terms );
+		$this->assertSame( 'Non-existent Term', $terms[0]->name );
+	}
 }
