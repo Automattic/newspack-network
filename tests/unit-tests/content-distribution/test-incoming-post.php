@@ -613,4 +613,32 @@ class TestIncomingPost extends \WP_UnitTestCase {
 		$this->assertNotEmpty( $terms );
 		$this->assertSame( 'Non-existent Term', $terms[0]->name );
 	}
+
+	/**
+	 * Test updating the post modified date.
+	 */
+	public function test_update_post_modified_date() {
+
+		$payload_old_dates = $this->get_sample_payload();
+
+		$payload_old_dates['post_data']['modified_gmt'] = '2020-01-01 00:00:00';
+		$payload_old_dates['post_data']['date_gmt'] = '2020-01-01 00:00:00';
+
+		$incoming_post = new Incoming_Post( $payload_old_dates );
+
+		$post_id = $incoming_post->insert();
+
+		$this->assertSame( '2020-01-01 00:00:00', get_post_field( 'post_modified_gmt', $post_id ) );
+		$this->assertSame( '2020-01-01 00:00:00', get_post_field( 'post_date_gmt', $post_id ) );
+
+		// Modify the post payload to simulate an update.
+		$payload_old_dates['post_data']['title'] = 'New Title';
+		$payload_old_dates['post_data']['modified_gmt'] = '2020-10-01 00:00:00';
+
+		// Insert the updated linked post.
+		$post_id = $this->incoming_post->insert( $payload_old_dates );
+
+		$this->assertSame( 'New Title', get_the_title( $post_id ) );
+		$this->assertSame( '2020-10-01 00:00:00', get_post_field( 'post_modified_gmt', $post_id ) );
+	}
 }
