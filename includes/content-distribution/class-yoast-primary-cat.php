@@ -61,6 +61,11 @@ class Yoast_Primary_Cat {
 	 * @param array $payload The payload.
 	 */
 	public static function after_incoming_post_inserted( $post_id, $is_linked, $payload ) {
+
+		if ( ! class_exists( 'WPSEO_Primary_Term' ) ) {
+			return;
+		}
+
 		if ( ! $is_linked ) {
 			return;
 		}
