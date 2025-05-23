@@ -17,6 +17,7 @@ use Newspack_Network\Content_Distribution\Distributor_Migrator;
 use Newspack_Network\Content_Distribution\Editor;
 use Newspack_Network\Content_Distribution\Incoming_Post;
 use Newspack_Network\Content_Distribution\Outgoing_Post;
+use Newspack_Network\Content_Distribution\Yoast_Primary_Cat;
 use WP_Post;
 
 /**
@@ -66,6 +67,7 @@ class Content_Distribution {
 		Canonical_Url::init();
 		Distributor_Migrator::init();
 		Cap_Authors::init();
+		Yoast_Primary_Cat::init();
 	}
 
 	/**
