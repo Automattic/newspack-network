@@ -416,6 +416,24 @@ class Content_Distribution {
 	}
 
 	/**
+	 * Returns a list of taxonomies that should be distributed only if the terms already exist
+	 * in the destination site. Terms from these taxonomies will not be created if they don't exist.
+	 *
+	 * @return string[] Array of taxonomy slugs that should be distributed only if terms exist
+	 */
+	public static function get_existing_terms_only_taxonomies() {
+		$existing_terms_only_taxonomies = [
+			'brand', // Newspack Multibranded Sites 'brand' taxonomy.
+		];
+		/**
+		 * Filter the taxonomies that should be distributed only if terms already exist.
+		 *
+		 * @param array $taxonomies Array of taxonomy slugs.
+		 */
+		return apply_filters( 'newspack_network_content_distribution_existing_terms_only_taxonomies', $existing_terms_only_taxonomies );
+	}
+
+	/**
 	 * Whether a given post is distributed.
 	 *
 	 * @param WP_Post|int $post The post object or ID.
