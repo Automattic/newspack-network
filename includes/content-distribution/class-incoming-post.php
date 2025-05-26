@@ -691,6 +691,9 @@ class Incoming_Post {
 
 			// Handle taxonomy terms.
 			$this->update_taxonomy_terms();
+
+			// Handle the post modified date.
+			$this->update_post_modified_date();
 		}
 
 		update_post_meta( $this->ID, self::PAYLOAD_META, $this->payload );
@@ -706,5 +709,37 @@ class Incoming_Post {
 		do_action( 'newspack_network_incoming_post_inserted', $this->ID, $this->is_linked(), $this->payload );
 
 		return $this->ID;
+	}
+
+	/**
+	 * Update the post modified date.
+	 *
+	 * Need to update directly into the database after the post is inserted/updated
+	 * to override the automatic date update.
+	 *
+	 * @return void
+	 */
+	protected function update_post_modified_date() {
+		$post_data = $this->payload['post_data'];
+		if ( ! empty( $post_data['modified_gmt'] ) ) {
+			$post_modified_gmt = $post_data['modified_gmt'];
+
+			// calculate the local time of the post modified date.
+			$post_modified = get_date_from_gmt( $post_modified_gmt );
+
+			// update the post modified date.
+			global $wpdb;
+			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->posts,
+				[
+					'post_modified'     => $post_modified,
+					'post_modified_gmt' => $post_modified_gmt,
+				],
+				[ 'ID' => $this->ID ]
+			);
+
+			// Clear the post cache.
+			wp_cache_delete( $this->ID, 'posts' );
+		}
 	}
 }
