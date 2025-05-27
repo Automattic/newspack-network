@@ -10,6 +10,7 @@ namespace Newspack_Network\Content_Distribution;
 use Newspack\Data_Events;
 use InvalidArgumentException;
 use Newspack_Network\Content_Distribution as Content_Distribution_Class;
+use Newspack_Network\Utils;
 use WP_Error;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -45,7 +46,7 @@ class API {
 					],
 					'status_on_create' => [
 						'type'    => 'string',
-						'enum'    => [ 'draft', 'publish' ],
+						'enum'    => [ 'draft', 'pending', 'publish' ],
 						'default' => 'draft',
 					],
 				],
@@ -71,6 +72,66 @@ class API {
 					return current_user_can( Admin::CAPABILITY );
 				},
 			]
+		);
+
+		register_rest_route(
+			'newspack-network/v1',
+			'/content-distribution/pull/(?P<post_id>\d+)',
+			[
+				'methods'             => 'POST',
+				'callback'            => [ __CLASS__, 'pull_post' ],
+				'args'                => [
+					'post_id'          => [
+						'type' => 'integer',
+					],
+					'url'              => [
+						'type' => 'string',
+					],
+					'status_on_create' => [
+						'type'    => 'string',
+						'enum'    => [ 'draft', 'pending', 'publish' ],
+						'default' => 'draft',
+					],
+				],
+				'permission_callback' => function () {
+					return current_user_can( Admin::CAPABILITY );
+				},
+			]
+		);
+	}
+
+	/**
+	 * Pull a post and set up distribution to the requester.
+	 *
+	 * This request will not dispatch a post update. It's up to the requester
+	 * to create the post on their site.
+	 *
+	 * @param \WP_REST_Request $request The REST request object.
+	 *
+	 * @return WP_REST_Response|WP_Error The REST response or error.
+	 */
+	public static function pull_post( $request ): WP_REST_Response|WP_Error {
+		$post_id  = $request->get_param( 'post_id' );
+		$url      = $request->get_param( 'url' );
+		$status_on_create = $request->get_param( 'status_on_create' );
+
+		if ( ! Utils\Network::is_networked_url( $url ) ) {
+			return new WP_Error( 'site_not_networked', 'The destination site is not part of the network.', [ 'status' => 400 ] );
+		}
+
+		try {
+			$outgoing_post = new Outgoing_Post( $post_id );
+		} catch ( InvalidArgumentException $e ) {
+			return new WP_Error( 'invalid_post_id', $e->getMessage(), [ 'status' => 400 ] );
+		}
+
+		$distribution = $outgoing_post->set_distribution( [ $url ] );
+		if ( is_wp_error( $distribution ) ) {
+			return $distribution;
+		}
+
+		return rest_ensure_response(
+			$outgoing_post->get_payload( $status_on_create )
 		);
 	}
 
