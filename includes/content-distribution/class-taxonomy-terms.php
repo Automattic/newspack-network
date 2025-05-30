@@ -77,8 +77,6 @@ class Taxonomy_Terms {
 	 * @return array|WP_Error The term IDs on success, WP_Error on failure.
 	 */
 	public static function get_or_create_term_ids( $terms, $taxonomy ) {
-		$ignored_taxonomies = Content_Distribution_Class::get_ignored_taxonomies();
-
 		$term_ids = [];
 
 		foreach ( $terms as $term_data ) {
