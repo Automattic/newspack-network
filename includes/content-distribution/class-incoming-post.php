@@ -465,7 +465,7 @@ class Incoming_Post {
 	 * @return void
 	 */
 	protected function update_taxonomy_terms() {
-		$ignored_taxonomies = Content_Distribution_Class::get_ignored_taxonomies();
+		$ignored_taxonomies = Taxonomy_Terms::get_ignored_taxonomies();
 		$data               = $this->payload['post_data']['taxonomy'];
 		foreach ( $data as $taxonomy => $terms ) {
 			if ( in_array( $taxonomy, $ignored_taxonomies, true ) ) {
@@ -474,27 +474,15 @@ class Incoming_Post {
 			if ( ! taxonomy_exists( $taxonomy ) ) {
 				continue;
 			}
-			$term_ids = [];
-			foreach ( $terms as $term_data ) {
-				$term = get_term_by( 'name', $term_data['name'], $taxonomy, ARRAY_A );
-				if ( ! $term ) {
+			$term_ids = Taxonomy_Terms::get_or_create_term_ids( $terms, $taxonomy );
 
-					// If the taxonomy is in the list of taxonomies that should only
-					// have terms that already exist, skip the term creation.
-					if ( in_array( $taxonomy, Content_Distribution_Class::get_existing_terms_only_taxonomies(), true ) ) {
-						continue;
-					}
-
-					$term = wp_insert_term( $term_data['name'], $taxonomy );
-					if ( is_wp_error( $term ) ) {
-						self::log( 'Failed to insert term ' . $term_data['name'] . ' for taxonomy ' . $taxonomy . ' with message: ' . $term->get_error_message() );
-						continue;
-					}
-					$term = get_term_by( 'id', $term['term_id'], $taxonomy, ARRAY_A );
-				}
-				$term_ids[] = $term['term_id'];
+			if ( is_wp_error( $term_ids ) ) {
+				self::log( 'Failed to get or create term IDs for taxonomy ' . $taxonomy . ' with message: ' . $term_ids->get_error_message() );
+				continue;
 			}
-			wp_set_object_terms( $this->ID, $term_ids, $taxonomy );
+			if ( $term_ids ) {
+				wp_set_object_terms( $this->ID, $term_ids, $taxonomy );
+			}
 		}
 	}
 
