@@ -465,7 +465,7 @@ class Incoming_Post {
 	 * @return void
 	 */
 	protected function update_taxonomy_terms() {
-		$ignored_taxonomies = Content_Distribution_Class::get_ignored_taxonomies();
+		$ignored_taxonomies = Taxonomy_Terms::get_ignored_taxonomies();
 		$data               = $this->payload['post_data']['taxonomy'];
 		foreach ( $data as $taxonomy => $terms ) {
 			if ( in_array( $taxonomy, $ignored_taxonomies, true ) ) {

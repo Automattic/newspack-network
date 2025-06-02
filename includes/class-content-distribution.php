@@ -400,42 +400,6 @@ class Content_Distribution {
 	}
 
 	/**
-	 * Get taxonomies that should not be distributed.
-	 *
-	 * @return string[] The ignored taxonomies.
-	 */
-	public static function get_ignored_taxonomies() {
-		$ignored_taxonomies = [
-			'author', // Co-Authors Plus 'author' taxonomy should be ignored as it requires custom handling.
-		];
-
-		/**
-		 * Filters the ignored taxonomies that should not be distributed.
-		 *
-		 * @param string[] $ignored_taxonomies The ignored taxonomies.
-		 */
-		return apply_filters( 'newspack_network_content_distribution_ignored_taxonomies', $ignored_taxonomies );
-	}
-
-	/**
-	 * Returns a list of taxonomies that should be distributed only if the terms already exist
-	 * in the destination site. Terms from these taxonomies will not be created if they don't exist.
-	 *
-	 * @return string[] Array of taxonomy slugs that should be distributed only if terms exist
-	 */
-	public static function get_existing_terms_only_taxonomies() {
-		$existing_terms_only_taxonomies = [
-			'brand', // Newspack Multibranded Sites 'brand' taxonomy.
-		];
-		/**
-		 * Filter the taxonomies that should be distributed only if terms already exist.
-		 *
-		 * @param array $taxonomies Array of taxonomy slugs.
-		 */
-		return apply_filters( 'newspack_network_content_distribution_existing_terms_only_taxonomies', $existing_terms_only_taxonomies );
-	}
-
-	/**
 	 * Whether a given post is distributed.
 	 *
 	 * @param WP_Post|int $post The post object or ID.

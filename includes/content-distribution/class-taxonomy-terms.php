@@ -17,13 +17,49 @@ class Taxonomy_Terms {
 	const SEPARATOR = '|--|';
 
 	/**
+	 * Get taxonomies that should not be distributed.
+	 *
+	 * @return string[] The ignored taxonomies.
+	 */
+	public static function get_ignored_taxonomies() {
+		$ignored_taxonomies = [
+			'author', // Co-Authors Plus 'author' taxonomy should be ignored as it requires custom handling.
+		];
+
+		/**
+		 * Filters the ignored taxonomies that should not be distributed.
+		 *
+		 * @param string[] $ignored_taxonomies The ignored taxonomies.
+		 */
+		return apply_filters( 'newspack_network_content_distribution_ignored_taxonomies', $ignored_taxonomies );
+	}
+
+	/**
+	 * Returns a list of taxonomies that should be distributed only if the terms already exist
+	 * in the destination site. Terms from these taxonomies will not be created if they don't exist.
+	 *
+	 * @return string[] Array of taxonomy slugs that should be distributed only if terms exist
+	 */
+	public static function get_existing_terms_only_taxonomies() {
+		$existing_terms_only_taxonomies = [
+			'brand', // Newspack Multibranded Sites 'brand' taxonomy.
+		];
+		/**
+		 * Filter the taxonomies that should be distributed only if terms already exist.
+		 *
+		 * @param array $taxonomies Array of taxonomy slugs.
+		 */
+		return apply_filters( 'newspack_network_content_distribution_existing_terms_only_taxonomies', $existing_terms_only_taxonomies );
+	}
+
+	/**
 	 * Get post taxonomy terms for distribution.
 	 *
 	 * @param \WP_Post $post The post object.
 	 * @return array The taxonomy term data.
 	 */
 	public static function get_post_taxonomy_terms( \WP_Post $post ) {
-		$ignored_taxonomies = Content_Distribution_Class::get_ignored_taxonomies();
+		$ignored_taxonomies = self::get_ignored_taxonomies();
 		$taxonomies         = get_object_taxonomies( $post->post_type, 'objects' );
 		$data                = [];
 		foreach ( $taxonomies as $taxonomy ) {
@@ -126,7 +162,7 @@ class Taxonomy_Terms {
 
 				// If the taxonomy is in the list of taxonomies that should only
 				// have terms that already exist, skip the term creation.
-				if ( in_array( $taxonomy, Content_Distribution_Class::get_existing_terms_only_taxonomies(), true ) ) {
+				if ( in_array( $taxonomy, self::get_existing_terms_only_taxonomies(), true ) ) {
 					$term_id = false;
 					break;
 				}
