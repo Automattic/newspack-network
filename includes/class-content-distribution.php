@@ -17,6 +17,7 @@ use Newspack_Network\Content_Distribution\Distributor_Migrator;
 use Newspack_Network\Content_Distribution\Editor;
 use Newspack_Network\Content_Distribution\Incoming_Post;
 use Newspack_Network\Content_Distribution\Outgoing_Post;
+use Newspack_Network\Content_Distribution\Yoast_Primary_Cat;
 use WP_Post;
 
 /**
@@ -66,6 +67,7 @@ class Content_Distribution {
 		Canonical_Url::init();
 		Distributor_Migrator::init();
 		Cap_Authors::init();
+		Yoast_Primary_Cat::init();
 	}
 
 	/**
@@ -395,24 +397,6 @@ class Content_Distribution {
 				Incoming_Post::ATTACHMENT_META,
 			]
 		);
-	}
-
-	/**
-	 * Get taxonomies that should not be distributed.
-	 *
-	 * @return string[] The ignored taxonomies.
-	 */
-	public static function get_ignored_taxonomies() {
-		$ignored_taxonomies = [
-			'author', // Co-Authors Plus 'author' taxonomy should be ignored as it requires custom handling.
-		];
-
-		/**
-		 * Filters the ignored taxonomies that should not be distributed.
-		 *
-		 * @param string[] $ignored_taxonomies The ignored taxonomies.
-		 */
-		return apply_filters( 'newspack_network_content_distribution_ignored_taxonomies', $ignored_taxonomies );
 	}
 
 	/**

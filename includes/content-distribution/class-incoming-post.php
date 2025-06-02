@@ -465,7 +465,7 @@ class Incoming_Post {
 	 * @return void
 	 */
 	protected function update_taxonomy_terms() {
-		$ignored_taxonomies = Content_Distribution_Class::get_ignored_taxonomies();
+		$ignored_taxonomies = Taxonomy_Terms::get_ignored_taxonomies();
 		$data               = $this->payload['post_data']['taxonomy'];
 		foreach ( $data as $taxonomy => $terms ) {
 			if ( in_array( $taxonomy, $ignored_taxonomies, true ) ) {
@@ -474,20 +474,15 @@ class Incoming_Post {
 			if ( ! taxonomy_exists( $taxonomy ) ) {
 				continue;
 			}
-			$term_ids = [];
-			foreach ( $terms as $term_data ) {
-				$term = get_term_by( 'name', $term_data['name'], $taxonomy, ARRAY_A );
-				if ( ! $term ) {
-					$term = wp_insert_term( $term_data['name'], $taxonomy );
-					if ( is_wp_error( $term ) ) {
-						self::log( 'Failed to insert term ' . $term_data['name'] . ' for taxonomy ' . $taxonomy . ' with message: ' . $term->get_error_message() );
-						continue;
-					}
-					$term = get_term_by( 'id', $term['term_id'], $taxonomy, ARRAY_A );
-				}
-				$term_ids[] = $term['term_id'];
+			$term_ids = Taxonomy_Terms::get_or_create_term_ids( $terms, $taxonomy );
+
+			if ( is_wp_error( $term_ids ) ) {
+				self::log( 'Failed to get or create term IDs for taxonomy ' . $taxonomy . ' with message: ' . $term_ids->get_error_message() );
+				continue;
 			}
-			wp_set_object_terms( $this->ID, $term_ids, $taxonomy );
+			if ( $term_ids ) {
+				wp_set_object_terms( $this->ID, $term_ids, $taxonomy );
+			}
 		}
 	}
 
@@ -684,6 +679,9 @@ class Incoming_Post {
 
 			// Handle taxonomy terms.
 			$this->update_taxonomy_terms();
+
+			// Handle the post modified date.
+			$this->update_post_modified_date();
 		}
 
 		update_post_meta( $this->ID, self::PAYLOAD_META, $this->payload );
@@ -699,5 +697,37 @@ class Incoming_Post {
 		do_action( 'newspack_network_incoming_post_inserted', $this->ID, $this->is_linked(), $this->payload );
 
 		return $this->ID;
+	}
+
+	/**
+	 * Update the post modified date.
+	 *
+	 * Need to update directly into the database after the post is inserted/updated
+	 * to override the automatic date update.
+	 *
+	 * @return void
+	 */
+	protected function update_post_modified_date() {
+		$post_data = $this->payload['post_data'];
+		if ( ! empty( $post_data['modified_gmt'] ) ) {
+			$post_modified_gmt = $post_data['modified_gmt'];
+
+			// calculate the local time of the post modified date.
+			$post_modified = get_date_from_gmt( $post_modified_gmt );
+
+			// update the post modified date.
+			global $wpdb;
+			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->posts,
+				[
+					'post_modified'     => $post_modified,
+					'post_modified_gmt' => $post_modified_gmt,
+				],
+				[ 'ID' => $this->ID ]
+			);
+
+			// Clear the post cache.
+			wp_cache_delete( $this->ID, 'posts' );
+		}
 	}
 }
