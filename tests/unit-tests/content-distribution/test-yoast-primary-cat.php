@@ -21,7 +21,7 @@ class TestYoastPrimaryCat extends \WP_UnitTestCase {
 	/**
 	 * Test category slug used in the test. It's part of the sample payload.
 	 */
-	const TEST_CATEGORY_SLUG = 'category-2';
+	const TEST_CATEGORY_NAME = 'category-2';
 
 	/**
 	 * Test the outgoing post.
@@ -29,7 +29,7 @@ class TestYoastPrimaryCat extends \WP_UnitTestCase {
 	public function test_outgoing_post() {
 		$post_id = self::factory()->post->create();
 
-		$category_id = self::factory()->category->create( [ 'slug' => self::TEST_CATEGORY_SLUG ] );
+		$category_id = self::factory()->category->create( [ 'name' => self::TEST_CATEGORY_NAME ] );
 
 		$primary_term = new \WPSEO_Primary_Term( 'category', $post_id );
 		$primary_term->set_primary_term( $category_id );
@@ -38,10 +38,10 @@ class TestYoastPrimaryCat extends \WP_UnitTestCase {
 
 		$outgoing_meta = $outgoing_post->get_payload()['post_data']['post_meta'];
 
-		$meta_name = Yoast_Primary_Cat::PRIMARY_CAT_SLUG_META_NAME;
+		$meta_name = Yoast_Primary_Cat::PRIMARY_CAT_NAME_META_NAME;
 
 		$this->assertArrayHasKey( $meta_name, $outgoing_meta );
-		$this->assertEquals( self::TEST_CATEGORY_SLUG, $outgoing_meta[ $meta_name ][0], 'The primary category slug should be part of the outgoing post meta' );
+		$this->assertEquals( self::TEST_CATEGORY_NAME, $outgoing_meta[ $meta_name ][0], 'The primary category name should be part of the outgoing post meta' );
 	}
 
 	/**
@@ -54,9 +54,9 @@ class TestYoastPrimaryCat extends \WP_UnitTestCase {
 		update_option( 'siteurl', 'https://node2.test' );
 		update_option( 'home', 'https://node2.test' );
 
-		$meta_name = Yoast_Primary_Cat::PRIMARY_CAT_SLUG_META_NAME;
+		$meta_name = Yoast_Primary_Cat::PRIMARY_CAT_NAME_META_NAME;
 
-		$payload['post_data']['post_meta'][ $meta_name ] = [ self::TEST_CATEGORY_SLUG ];
+		$payload['post_data']['post_meta'][ $meta_name ] = [ self::TEST_CATEGORY_NAME ];
 
 		$incoming_post = new Incoming_Post( $payload );
 
@@ -67,6 +67,6 @@ class TestYoastPrimaryCat extends \WP_UnitTestCase {
 
 		$primary_term_category = get_term( $primary_term_id, 'category' );
 
-		$this->assertEquals( self::TEST_CATEGORY_SLUG, $primary_term_category->slug, 'The primary category should be correctly set in the created post' );
+		$this->assertEquals( self::TEST_CATEGORY_NAME, $primary_term_category->name, 'The primary category should be correctly set in the created post' );
 	}
 }

@@ -372,31 +372,7 @@ class Outgoing_Post {
 	 * @return array The taxonomy term data.
 	 */
 	protected function get_post_taxonomy_terms() {
-		$ignored_taxonomies = Content_Distribution_Class::get_ignored_taxonomies();
-		$taxonomies         = get_object_taxonomies( $this->post->post_type, 'objects' );
-		$data                = [];
-		foreach ( $taxonomies as $taxonomy ) {
-			if ( in_array( $taxonomy->name, $ignored_taxonomies, true ) ) {
-				continue;
-			}
-			if ( ! $taxonomy->public ) {
-				continue;
-			}
-			$terms = get_the_terms( $this->post->ID, $taxonomy->name );
-			if ( ! $terms ) {
-				continue;
-			}
-			$data[ $taxonomy->name ] = array_map(
-				function( $term ) {
-					return [
-						'name' => $term->name,
-						'slug' => $term->slug,
-					];
-				},
-				$terms
-			);
-		}
-		return $data;
+		return Taxonomy_Terms::get_post_taxonomy_terms( $this->post );
 	}
 
 	/**

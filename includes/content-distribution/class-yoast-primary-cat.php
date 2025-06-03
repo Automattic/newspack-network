@@ -17,7 +17,7 @@ class Yoast_Primary_Cat {
 	 *
 	 * @var string
 	 */
-	const PRIMARY_CAT_SLUG_META_NAME = '_newspack_network_primary_cat_slug';
+	const PRIMARY_CAT_NAME_META_NAME = '_newspack_network_primary_cat_name';
 
 	/**
 	 * Initialize the class.
@@ -46,7 +46,7 @@ class Yoast_Primary_Cat {
 		if ( $category_id ) {
 			$category = get_term( $category_id );
 			if ( $category instanceof \WP_Term ) {
-				$meta[ self::PRIMARY_CAT_SLUG_META_NAME ] = [ $category->slug ];
+				$meta[ self::PRIMARY_CAT_NAME_META_NAME ] = [ Taxonomy_Terms::recursively_get_term_name( $category ) ];
 			}
 		}
 
@@ -70,18 +70,17 @@ class Yoast_Primary_Cat {
 			return;
 		}
 
-		$primary_cat_slug = get_post_meta( $post_id, self::PRIMARY_CAT_SLUG_META_NAME, true );
-		if ( ! $primary_cat_slug ) {
+		$primary_cat_name = get_post_meta( $post_id, self::PRIMARY_CAT_NAME_META_NAME, true );
+		if ( ! $primary_cat_name ) {
 			return;
 		}
 
-		// get term by slug.
-		$term = get_term_by( 'slug', $primary_cat_slug, 'category' );
-		if ( ! $term ) {
+		$term_id = Taxonomy_Terms::recursively_get_and_create_term_id( $primary_cat_name, 'category' );
+		if ( is_wp_error( $term_id ) ) {
 			return;
 		}
 
 		$primary_term = new \WPSEO_Primary_Term( 'category', $post_id );
-		$primary_term->set_primary_term( $term->term_id );
+		$primary_term->set_primary_term( $term_id );
 	}
 }

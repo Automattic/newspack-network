@@ -1,3 +1,12 @@
+# [2.10.0](https://github.com/Automattic/newspack-network/compare/v2.9.0...v2.10.0) (2025-06-02)
+
+
+### Features
+
+* add option to not create new terms on content distrib ([#238](https://github.com/Automattic/newspack-network/issues/238)) ([0c4772a](https://github.com/Automattic/newspack-network/commit/0c4772a4a8b8987b899f199e17d24530dba91276))
+* add support to yoast primary cat in content distribution ([#241](https://github.com/Automattic/newspack-network/issues/241)) ([be614cf](https://github.com/Automattic/newspack-network/commit/be614cfda1006797b9b812fe5ac650d0f90e97a6))
+* sync post modified date on post ditribution ([#240](https://github.com/Automattic/newspack-network/issues/240)) ([eb123ce](https://github.com/Automattic/newspack-network/commit/eb123ce9992a4feea16f307bc4cdebae9eb83291))
+
 # [2.9.0](https://github.com/Automattic/newspack-network/compare/v2.8.0...v2.9.0) (2025-04-14)
 
 
