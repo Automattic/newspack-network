@@ -20,7 +20,7 @@ class Story_Budget {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
+		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ], 9 );
 		add_filter( 'rest_allowed_cors_headers', [ __CLASS__, 'add_cors_headers' ] );
 		add_filter( 'newspack_story_budget_fields', [ __CLASS__, 'add_fields' ] );
 		add_filter( 'newspack_story_budget_story_metadata', [ __CLASS__, 'add_story_metadata' ], 10, 2 );
@@ -34,7 +34,7 @@ class Story_Budget {
 		wp_enqueue_script(
 			'newspack-story-budget-network',
 			plugins_url( '../dist/story-budget.js', __FILE__ ),
-			[ 'newspack-story-budget-app' ],
+			[ 'wp-data-controls', 'wp-core-data', 'wp-components', 'wp-hooks' ],
 			filemtime( __DIR__ . '/dist/story-budget.js' ),
 			true
 		);
@@ -43,8 +43,7 @@ class Story_Budget {
 			'newspack-story-budget-network',
 			'newspackStoryBudgetNetwork',
 			[
-				'siteUrl'        => get_site_url(),
-				'sites'          => array_map(
+				'sites' => array_map(
 					function( $site ) {
 						return [
 							'url'  => $site['value'],

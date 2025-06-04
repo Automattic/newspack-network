@@ -1,3 +1,4 @@
+/* global newspackStoryBudgetNetwork */
 /**
  * WordPress dependencies.
  */
@@ -10,6 +11,13 @@ import { addFilter } from '@wordpress/hooks';
  * Internal dependencies.
  */
 import PullStory from './components/pull-story';
+
+// Set the list of availables sites
+addFilter(
+	'newspack-story-budget.sites',
+	'newspack-network/story-budget',
+	() => newspackStoryBudgetNetwork.sites
+)
 
 // Add "Pull" to the Story Budget actions.
 addFilter(
