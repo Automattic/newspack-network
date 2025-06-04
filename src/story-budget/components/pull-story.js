@@ -79,15 +79,15 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 
 	const statusOnPublishOptions = [
 		{
-			label: __( 'Draft', 'newspack-story-budget' ),
+			label: __( 'Draft', 'newspack-network' ),
 			value: 'draft',
 		},
 		{
-			label: __( 'Pending', 'newspack-story-budget' ),
+			label: __( 'Pending', 'newspack-network' ),
 			value: 'pending',
 		},
 		{
-			label: __( 'Published', 'newspack-story-budget' ),
+			label: __( 'Published', 'newspack-network' ),
 			value: 'publish',
 		},
 	];
@@ -97,10 +97,10 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 			<VStack spacing={ 4 }>
 				<Heading level={ 3 } ref={ headingRef }>
 					{ isBulk
-						? __( 'Pull Stories', 'newspack-story-budget' )
+						? __( 'Pull Stories', 'newspack-network' )
 						: sprintf(
 								// translators: %s is the story title.
-								__( 'Pull “%s”', 'newspack-story-budget' ),
+								__( 'Pull “%s”', 'newspack-network' ),
 								items[ 0 ].name
 							) }
 				</Heading>
@@ -116,7 +116,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 						<p>
 							{ __(
 								'The following stories will be pulled:',
-								'newspack-story-budget'
+								'newspack-network'
 							) }
 						</p>
 						<ul>
@@ -128,7 +128,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 				) }
 
 				<SelectControl
-					label={ __( 'Status on publish', 'newspack-story-budget' ) }
+					label={ __( 'Status on publish', 'newspack-network' ) }
 					value={ statusOnPublish }
 					options={ statusOnPublishOptions }
 					onChange={ setStatusOnPublish }
@@ -144,12 +144,12 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 						type="submit"
 					>
 						{ items.length === 1
-							? __( 'Pull story', 'newspack-story-budget' )
+							? __( 'Pull story', 'newspack-network' )
 							: sprintf(
 									// translators: %d is the number of stories.
 									__(
 										'Pull %d stories',
-										'newspack-story-budget'
+										'newspack-network'
 									),
 									items.length
 								) }
@@ -159,7 +159,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 						onClick={ closeModal }
 						disabled={ isLoading }
 					>
-						{ __( 'Cancel', 'newspack-story-budget' ) }
+						{ __( 'Cancel', 'newspack-network' ) }
 					</Button>
 				</HStack>
 			</VStack>
