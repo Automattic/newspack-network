@@ -113,7 +113,7 @@ class Story_Budget {
 			}
 		}
 
-		$field = Fields::get_field( 'network_sites' );
+		$field = \Newspack_Story_Budget\Fields::get_field( 'network_sites' );
 		return \get_post_meta( $post_id, $field->get_post_meta_name(), false );
 	}
 
