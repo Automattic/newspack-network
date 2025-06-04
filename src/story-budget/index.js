@@ -28,7 +28,10 @@ addFilter(
 		{
 			id: 'pull',
 			label: __( 'Pull Story', 'newspack-network' ),
-			isEligible: item => item.metadata && ! item.metadata?.is_pulled,
+			isEligible: item =>
+				item.metadata &&
+				item.metadata?.can_pull &&
+				! item.metadata?.is_pulled,
 			isPrimary: true,
 			supportsBulk: true,
 			icon: <Icon icon={ cloudDownload } />,

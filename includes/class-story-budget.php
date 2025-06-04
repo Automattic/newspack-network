@@ -164,15 +164,16 @@ class Story_Budget {
 			return $metadata;
 		}
 
+		$metadata['can_pull']  = true;
 		$metadata['is_pulled'] = false;
-
-		$outgoing_post = Content_Distribution::get_distributed_post( $story_id );
-		if ( ! $outgoing_post ) {
-			return $metadata;
-		}
 
 		$request_site_url = filter_input( INPUT_SERVER, 'HTTP_X_NETWORK_SITE_URL', FILTER_VALIDATE_URL );
 		if ( ! $request_site_url ) {
+			$metadata['can_pull'] = false;
+			return $metadata;
+		}
+		$outgoing_post = Content_Distribution::get_distributed_post( $story_id );
+		if ( ! $outgoing_post ) {
 			return $metadata;
 		}
 
