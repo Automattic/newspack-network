@@ -324,7 +324,7 @@ class Story_Budget {
 		}
 
 		// Disable editing of network sites if the post is incoming.
-		$fields_props[ self::SITES_FIELD_SLUG ]['can_edit'] = false;
+		$fields_props[ self::SITES_FIELD_SLUG ]['is_editable'] = false;
 
 		return $fields_props;
 	}
@@ -356,7 +356,7 @@ class Story_Budget {
 			if ( ! isset( $fields_props[ $field_slug ] ) ) {
 				$fields_props[ $field_slug ] = [];
 			}
-			$fields_props[ $field_slug ]['can_edit'] = false;
+			$fields_props[ $field_slug ]['is_editable'] = false;
 		}
 
 		return $fields_props;
