@@ -142,20 +142,24 @@ class Story_Budget {
 			'type'               => 'text',
 			'options'            => $sites_list,
 			'default_order'      => 18,
-			'get_value_callback' => [ __CLASS__, 'get_field_value' ],
+			'get_value_callback' => [ __CLASS__, 'get_sites_field_value' ],
 		];
 
 		return $fields;
 	}
 
 	/**
-	 * Get the value of the field. If the post has been distributed, read the value from the distributed post, otherwise read it from the post meta.
+	 * Get the value of the sites field.
+	 *
+	 * If the post has been distributed, read the value from the distributed post,
+	 * if the post is incoming, read the value from the payload, otherwise read it
+	 * from the post meta.
 	 *
 	 * @param int $post_id The post ID.
 	 *
 	 * @return array The value of the field.
 	 */
-	public static function get_field_value( $post_id ) {
+	public static function get_sites_field_value( $post_id ) {
 		// If the post has been distributed, read the value from the distributed post.
 		$distributed_post = Content_Distribution::get_distributed_post( $post_id );
 		if ( $distributed_post ) {
