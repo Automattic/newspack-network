@@ -36,7 +36,7 @@ class Story_Budget {
 			'newspack-story-budget-network',
 			plugins_url( '../dist/story-budget.js', __FILE__ ),
 			[ 'wp-data-controls', 'wp-core-data', 'wp-components', 'wp-hooks' ],
-			filemtime( __DIR__ . '/dist/story-budget.js' ),
+			filemtime( __DIR__ . '/../dist/story-budget.js' ),
 			true
 		);
 
