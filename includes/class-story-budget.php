@@ -40,7 +40,7 @@ class Story_Budget {
 		add_filter( 'rest_allowed_cors_headers', [ __CLASS__, 'add_cors_headers' ] );
 		add_filter( 'newspack_network_content_distribution_ignored_post_meta_keys', [ __CLASS__, 'filter_ignored_post_meta_keys' ] );
 
-		add_filter( 'newspack_story_budget_fields', [ __CLASS__, 'add_fields' ] );
+		add_filter( 'newspack_story_budget_fields', [ __CLASS__, 'add_sites_field' ] );
 		add_filter( 'newspack_story_budget_story_metadata', [ __CLASS__, 'add_story_remote_metadata' ], 10, 2 );
 		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_outgoing_post_network_sites_props' ], 10, 2 );
 		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_incoming_post_network_sites_props' ], 10, 2 );
@@ -119,12 +119,12 @@ class Story_Budget {
 	}
 
 	/**
-	 * Add fields to the Newspack Story Budget.
+	 * Add the sites field to Story Budget.
 	 *
 	 * @param array $fields The fields to add.
 	 * @return array The fields to add.
 	 */
-	public static function add_fields( $fields ) {
+	public static function add_sites_field( $fields ) {
 		$sites_list = self::get_sites_list();
 		if ( empty( $sites_list ) ) {
 			return $fields;
