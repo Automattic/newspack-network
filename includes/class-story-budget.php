@@ -276,7 +276,7 @@ class Story_Budget {
 	}
 
 	/**
-	 * Add network sites field props to the Newspack Story Budget for outgoing posts.
+	 * Add field props to the sites field for outgoing posts.
 	 *
 	 * @param array $fields_props The fields props to add.
 	 * @param int   $story_id     The story ID.
@@ -308,7 +308,7 @@ class Story_Budget {
 	}
 
 	/**
-	 * Add network sites field props to the Newspack Story Budget for incoming posts.
+	 * Add field props to the sites field for incoming posts.
 	 *
 	 * @param array $fields_props The fields props to add.
 	 * @param int   $story_id     The story ID.
@@ -330,7 +330,7 @@ class Story_Budget {
 	}
 
 	/**
-	 * Add synced fields props to the Newspack Story Budget.
+	 * Add fields props for synced fields.
 	 *
 	 * @param array $fields_props The fields props to add.
 	 * @param int   $story_id     The story ID.
