@@ -48,35 +48,6 @@ class Story_Budget {
 	}
 
 	/**
-	 * Filter the ignored post meta keys.
-	 *
-	 * @param array $ignored_keys The ignored post meta keys.
-	 *
-	 * @return array The ignored post meta keys.
-	 */
-	public static function filter_ignored_post_meta_keys( $ignored_keys ) {
-		// Bail if Newspack Story Budget is not active.
-		if ( ! class_exists( 'Newspack_Story_Budget\Fields' ) ) {
-			return $ignored_keys;
-		}
-
-		$fields = Fields::get_all_fields();
-		$ignored_fields = array_map(
-			function( $field ) {
-				$slug = $field->get_slug();
-				if ( ! in_array( $slug, self::$synced_fields, true ) ) {
-					return $field->get_post_meta_name();
-				}
-				return null;
-			},
-			$fields
-		);
-		$ignored_fields = array_filter( $ignored_fields );
-
-		return array_merge( $ignored_keys, $ignored_fields );
-	}
-
-	/**
 	 * Enqueue assets.
 	 */
 	public static function enqueue_assets() {
@@ -115,6 +86,36 @@ class Story_Budget {
 	public static function add_cors_headers( $headers ) {
 		$headers[] = 'X-Network-Site-Url';
 		return $headers;
+	}
+
+	/**
+	 * Filter the ignored post meta keys to include Story Budget fields that are
+	 * not intentionally synced.
+	 *
+	 * @param array $ignored_keys The ignored post meta keys.
+	 *
+	 * @return array The ignored post meta keys.
+	 */
+	public static function filter_ignored_post_meta_keys( $ignored_keys ) {
+		// Bail if Newspack Story Budget is not active.
+		if ( ! class_exists( 'Newspack_Story_Budget\Fields' ) ) {
+			return $ignored_keys;
+		}
+
+		$fields = Fields::get_all_fields();
+		$ignored_fields = array_map(
+			function( $field ) {
+				$slug = $field->get_slug();
+				if ( ! in_array( $slug, self::$synced_fields, true ) ) {
+					return $field->get_post_meta_name();
+				}
+				return null;
+			},
+			$fields
+		);
+		$ignored_fields = array_filter( $ignored_fields );
+
+		return array_merge( $ignored_keys, $ignored_fields );
 	}
 
 	/**
