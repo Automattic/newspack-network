@@ -12,20 +12,84 @@ use Newspack_Network\Hub\Nodes;
 use Newspack_Network\Node\Settings as Node_Settings;
 use Newspack_Network\Content_Distribution;
 use Newspack_Network\Content_Distribution\Outgoing_Post;
+use Newspack_Network\Content_Distribution\Incoming_Post;
+
+use Newspack_Story_Budget\Fields;
+use Newspack_Story_Budget\Fields\Editable_Field;
 
 /**
  * Story Budget Integration Class.
  */
 class Story_Budget {
+	const SITES_FIELD_SLUG = 'network_sites';
+
+	/**
+	 * Story Budget fields that are synced on distribution.
+	 *
+	 * @var array
+	 */
+	private static $synced_fields = [
+		'status',
+	];
+
 	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ], 9 );
 		add_filter( 'rest_allowed_cors_headers', [ __CLASS__, 'add_cors_headers' ] );
+		add_filter( 'newspack_network_content_distribution_ignored_post_meta_keys', [ __CLASS__, 'filter_ignored_post_meta_keys' ] );
+
 		add_filter( 'newspack_story_budget_fields', [ __CLASS__, 'add_fields' ] );
 		add_filter( 'newspack_story_budget_story_metadata', [ __CLASS__, 'add_story_remote_metadata' ], 10, 2 );
-		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_fields_props' ], 10, 2 );
+		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_outgoing_post_network_sites_props' ], 10, 2 );
+		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_incoming_post_network_sites_props' ], 10, 2 );
+		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_synced_fields_props' ], 10, 2 );
+	}
+
+	/**
+	 * Filter the ignored post meta keys.
+	 *
+	 * @param array $ignored_keys The ignored post meta keys.
+	 *
+	 * @return array The ignored post meta keys.
+	 */
+	public static function filter_ignored_post_meta_keys( $ignored_keys ) {
+		// Bail if Newspack Story Budget is not active.
+		if ( ! class_exists( 'Newspack_Story_Budget\Fields' ) ) {
+			return $ignored_keys;
+		}
+
+		$fields = Fields::get_all_fields();
+		$ignored_fields = array_map(
+			function( $field ) {
+				$slug = $field->get_slug();
+				if ( ! in_array( $slug, self::$synced_fields, true ) ) {
+					return $field->get_post_meta_name();
+				}
+				return null;
+			},
+			$fields
+		);
+		$ignored_fields = array_filter( $ignored_fields );
+
+		return array_merge( $ignored_keys, $ignored_fields );
+	}
+
+	/**
+	 * Filter whether the user can edit a field.
+	 *
+	 * @param bool           $user_can_edit Whether the user can edit the field.
+	 * @param Editable_Field $field         The field.
+	 * @param int            $user_id       The user ID.
+	 *
+	 * @return bool Whether the user can edit the field.
+	 */
+	public static function filter_user_can_edit_field( $user_can_edit, $field, $user_id ) {
+		if ( in_array( $field->get_slug(), self::$synced_fields, true ) ) {
+			return false;
+		}
+		return $user_can_edit;
 	}
 
 	/**
@@ -89,7 +153,7 @@ class Story_Budget {
 			'is_filterable'      => 'always',
 			'name'               => __( 'Sites', 'newspack-story-budget' ),
 			'show_in_table'      => true,
-			'slug'               => 'network_sites',
+			'slug'               => self::SITES_FIELD_SLUG,
 			'type'               => 'text',
 			'options'            => $sites_list,
 			'default_order'      => 18,
@@ -113,7 +177,31 @@ class Story_Budget {
 			return $distributed_post->get_distribution();
 		}
 
-		$field = \Newspack_Story_Budget\Fields::get_field( 'network_sites' );
+		// If the post is incoming, read the value from the payload.
+		if ( Content_Distribution::is_post_incoming( $post_id ) ) {
+			try {
+				$incoming_post = new Incoming_Post( $post_id );
+				$original_site_url = $incoming_post->get_original_site_url();
+				$payload = $incoming_post->get_post_payload();
+				$sites = array_filter(
+					$payload['sites'],
+					function( $url ) {
+						return $url !== get_site_url();
+					}
+				);
+				return array_unique(
+					array_merge(
+						[ $original_site_url ],
+						$sites
+					)
+				);
+			} catch ( \Exception $e ) {
+				return [];
+			}
+		}
+
+		// Otherwise, read the value from the post meta.
+		$field = \Newspack_Story_Budget\Fields::get_field( self::SITES_FIELD_SLUG );
 		return \get_post_meta( $post_id, $field->get_post_meta_name(), false );
 	}
 
@@ -188,14 +276,14 @@ class Story_Budget {
 	}
 
 	/**
-	 * Add fields props to the Newspack Story Budget.
+	 * Add network sites field props to the Newspack Story Budget for outgoing posts.
 	 *
 	 * @param array $fields_props The fields props to add.
 	 * @param int   $story_id     The story ID.
 	 *
 	 * @return array The fields props to add.
 	 */
-	public static function add_fields_props( $fields_props, $story_id ) {
+	public static function add_outgoing_post_network_sites_props( $fields_props, $story_id ) {
 		$outgoing_post = Content_Distribution::get_distributed_post( $story_id );
 		if ( ! $outgoing_post ) {
 			return $fields_props;
@@ -211,9 +299,65 @@ class Story_Budget {
 			}
 		}
 
-		$fields_props['network_sites'] = [
-			'options' => $options,
-		];
+		if ( ! isset( $fields_props[ self::SITES_FIELD_SLUG ] ) ) {
+			$fields_props[ self::SITES_FIELD_SLUG ] = [];
+		}
+		$fields_props[ self::SITES_FIELD_SLUG ]['options'] = $options;
+
+		return $fields_props;
+	}
+
+	/**
+	 * Add network sites field props to the Newspack Story Budget for incoming posts.
+	 *
+	 * @param array $fields_props The fields props to add.
+	 * @param int   $story_id     The story ID.
+	 *
+	 * @return array The fields props to add.
+	 */
+	public static function add_incoming_post_network_sites_props( $fields_props, $story_id ) {
+		if ( ! Content_Distribution::is_post_incoming( $story_id ) ) {
+			return $fields_props;
+		}
+		if ( ! isset( $fields_props[ self::SITES_FIELD_SLUG ] ) ) {
+			$fields_props[ self::SITES_FIELD_SLUG ] = [];
+		}
+
+		// Disable editing of network sites if the post is incoming.
+		$fields_props[ self::SITES_FIELD_SLUG ]['can_edit'] = false;
+
+		return $fields_props;
+	}
+
+	/**
+	 * Add synced fields props to the Newspack Story Budget.
+	 *
+	 * @param array $fields_props The fields props to add.
+	 * @param int   $story_id     The story ID.
+	 *
+	 * @return array The fields props to add.
+	 */
+	public static function add_synced_fields_props( $fields_props, $story_id ) {
+		if ( ! Content_Distribution::is_post_incoming( $story_id ) ) {
+			return $fields_props;
+		}
+
+		try {
+			$incoming_post = new Incoming_Post( $story_id );
+		} catch ( \Exception $e ) {
+			return $fields_props;
+		}
+		if ( ! $incoming_post->is_linked() ) {
+			return $fields_props;
+		}
+
+		// Disable editing of synced fields.
+		foreach ( self::$synced_fields as $field_slug ) {
+			if ( ! isset( $fields_props[ $field_slug ] ) ) {
+				$fields_props[ $field_slug ] = [];
+			}
+			$fields_props[ $field_slug ]['can_edit'] = false;
+		}
 
 		return $fields_props;
 	}
