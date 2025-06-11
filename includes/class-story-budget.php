@@ -77,22 +77,6 @@ class Story_Budget {
 	}
 
 	/**
-	 * Filter whether the user can edit a field.
-	 *
-	 * @param bool           $user_can_edit Whether the user can edit the field.
-	 * @param Editable_Field $field         The field.
-	 * @param int            $user_id       The user ID.
-	 *
-	 * @return bool Whether the user can edit the field.
-	 */
-	public static function filter_user_can_edit_field( $user_can_edit, $field, $user_id ) {
-		if ( in_array( $field->get_slug(), self::$synced_fields, true ) ) {
-			return false;
-		}
-		return $user_can_edit;
-	}
-
-	/**
 	 * Enqueue assets.
 	 */
 	public static function enqueue_assets() {
