@@ -58,7 +58,7 @@ class Initializer {
 		Membership_Dedupe::init();
 
 		Woocommerce\Events::init();
-
+		Woocommerce_Subscriptions\My_Account::init();
 		Woocommerce_Memberships\Admin::init();
 		Woocommerce_Memberships\Events::init();
 		Woocommerce_Memberships\Subscriptions_Integration::init();
