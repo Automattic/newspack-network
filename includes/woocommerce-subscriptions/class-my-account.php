@@ -63,7 +63,16 @@ class My_Account {
 	 * @return array The menu items.
 	 */
 	public static function add_menu_item( $items ) {
+
+		$user = wp_get_current_user();
+		$network_subscriptions = get_user_meta( $user->ID, Subscription_Changed::USER_SUBSCRIPTIONS_META_KEY, true );
+
+		if ( empty( $network_subscriptions ) ) {
+			return $items;
+		}
+
 		$items[ self::MENU_ENDPOINT ] = __( 'Network Subscriptions', 'newspack-network' );
+
 		return $items;
 	}
 
