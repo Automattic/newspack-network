@@ -668,7 +668,6 @@ class Incoming_Post {
 
 			// Handle `status_on_publish` meta.
 			if ( $post_data['post_status'] !== 'publish' && $is_new_post ) {
-				error_log( 'Storing status_on_publish meta for new post.' );
 				// Store the publish status for new posts.
 				update_post_meta(
 					$post_id,
