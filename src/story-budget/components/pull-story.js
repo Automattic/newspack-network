@@ -1,6 +1,6 @@
 /* eslint @wordpress/no-unsafe-wp-apis: 0 */
 /**
- * External dependencies.
+ * WordPress dependencies.
  */
 import {
 	__experimentalHStack as HStack,
@@ -11,14 +11,14 @@ import {
 	Button,
 } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
-import { useState, useRef } from '@wordpress/element';
+import { useState, useRef, useEffect } from '@wordpress/element';
 import { useDispatch } from '@wordpress/data';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Internal dependencies.
  */
-import { useEffect } from 'react';
+import LocalBudgetsControl from './local-budgets-control';
 
 export default function PullStory( { items, closeModal, onActionPerformed } ) {
 	const isBulk = items.length > 1;
@@ -26,6 +26,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 	const [ statusOnPublish, setStatusOnPublish ] = useState( 'draft' );
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ errors, setErrors ] = useState( [] );
+	const [ budget, setBudget ] = useState( '' );
 
 	const { fetchStory } = useDispatch( 'newspack-story-budget' );
 
@@ -40,21 +41,27 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 		}
 	}, [ errors ] );
 
-	const pullStory = async ( storyId ) => {
+	const pullStory = async storyId => {
 		const payload = await apiFetch( {
 			isStoryBudget: true,
 			fullPath: `newspack-network/v1/content-distribution/pull/${ storyId }`,
 			method: 'POST',
 			data: { status_on_create: statusOnPublish },
 		} );
-		await apiFetch( {
+		const res = await apiFetch( {
 			path: 'newspack-network/v1/content-distribution/insert',
 			method: 'POST',
 			data: { payload },
 		} );
+		// Set the budget for the story.
+		await apiFetch( {
+			path: `newspack-story-budget/v1/stories/${ res.post_id }/budgets`,
+			method: 'POST',
+			data: { value: [ budget ] },
+		} );
 		// Refetch story so distribution side-effects are reflected in the UI.
 		fetchStory( storyId );
-	}
+	};
 
 	const handleSubmit = ev => {
 		ev.preventDefault();
@@ -68,13 +75,13 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 			.then( () => {
 				closeModal();
 				onActionPerformed?.( items );
-			})
+			} )
 			.catch( error => {
 				setErrors( [ ...errors, error.message ] );
-			})
+			} )
 			.finally( () => {
 				setIsLoading( false );
-			});
+			} );
 	};
 
 	const statusOnPublishOptions = [
@@ -102,7 +109,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 								// translators: %s is the story title.
 								__( 'Pull “%s”', 'newspack-network' ),
 								items[ 0 ].name
-							) }
+						  ) }
 				</Heading>
 
 				{ errors.length > 0 && (
@@ -127,11 +134,20 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 					</div>
 				) }
 
+				<LocalBudgetsControl
+					value={ budget }
+					onChange={ setBudget }
+					disabled={ isLoading }
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+				/>
+
 				<SelectControl
 					label={ __( 'Status on publish', 'newspack-network' ) }
 					value={ statusOnPublish }
 					options={ statusOnPublishOptions }
 					onChange={ setStatusOnPublish }
+					disabled={ isLoading }
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 				/>
@@ -139,7 +155,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 				<HStack expanded direction="row-reverse" justify="end">
 					<Button
 						variant="primary"
-						disabled={ isLoading }
+						disabled={ isLoading || ! budget }
 						isBusy={ isLoading }
 						type="submit"
 					>
@@ -147,12 +163,9 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 							? __( 'Pull story', 'newspack-network' )
 							: sprintf(
 									// translators: %d is the number of stories.
-									__(
-										'Pull %d stories',
-										'newspack-network'
-									),
+									__( 'Pull %d stories', 'newspack-network' ),
 									items.length
-								) }
+							  ) }
 					</Button>
 					<Button
 						variant="tertiary"
