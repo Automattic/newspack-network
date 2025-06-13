@@ -46,7 +46,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 			isStoryBudget: true,
 			fullPath: `newspack-network/v1/content-distribution/pull/${ storyId }`,
 			method: 'POST',
-			data: { status_on_create: statusOnPublish },
+			data: { status_on_publish: statusOnPublish },
 		} );
 		const res = await apiFetch( {
 			path: 'newspack-network/v1/content-distribution/insert',

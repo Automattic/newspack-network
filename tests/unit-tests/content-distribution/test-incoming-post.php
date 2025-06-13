@@ -477,12 +477,12 @@ class TestIncomingPost extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Test status on create.
+	 * Test status on publish.
 	 */
-	public function test_status_on_create() {
+	public function test_status_on_publish() {
 		$payload = $this->get_sample_payload();
 
-		$payload['status_on_create'] = 'publish';
+		$payload['status_on_publish'] = 'publish';
 
 		$post_id = $this->incoming_post->insert( $payload );
 
