@@ -481,7 +481,10 @@ class Incoming_Post {
 				continue;
 			}
 			if ( $term_ids ) {
-				wp_set_object_terms( $this->ID, $term_ids, $taxonomy );
+				$result = wp_set_object_terms( $this->ID, $term_ids, $taxonomy );
+				if ( is_wp_error( $result ) ) {
+					self::log( 'Failed to set terms for taxonomy ' . $taxonomy . ' with message: ' . $result->get_error_message() );
+				}
 			}
 		}
 	}
