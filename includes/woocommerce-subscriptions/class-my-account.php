@@ -71,7 +71,21 @@ class My_Account {
 			return $items;
 		}
 
-		$items[ self::MENU_ENDPOINT ] = __( 'Network Subscriptions', 'newspack-network' );
+		// Check if user has any subscrioption on this site.
+		$has_local_subscriptions = false;
+		$menu_position = 1;
+		if ( function_exists( 'wcs_get_users_subscriptions' ) ) {
+			$this_site_subscriptions = wcs_get_users_subscriptions( $user->ID );
+			if ( ! empty( $this_site_subscriptions ) ) {
+				$has_local_subscriptions = true;
+			}
+		}
+
+		$menu_entry = $has_local_subscriptions ? __( 'Other Subscriptions', 'newspack-network' ) : __( 'Subscriptions', 'newspack-network' );
+
+		$items = array_slice( $items, 0, $menu_position, true ) +
+			[ self::MENU_ENDPOINT => $menu_entry ] +
+			array_slice( $items, $menu_position, null, true );
 
 		return $items;
 	}
