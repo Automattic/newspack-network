@@ -29,7 +29,8 @@ class Story_Budget {
 	 * @var array
 	 */
 	private static $synced_fields = [
-		'status',
+		'name',   // Story name.
+		'status', // Story status.
 	];
 
 	/**
@@ -39,6 +40,7 @@ class Story_Budget {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ], 9 );
 		add_filter( 'rest_allowed_cors_headers', [ __CLASS__, 'add_cors_headers' ] );
 		add_filter( 'newspack_network_content_distribution_ignored_post_meta_keys', [ __CLASS__, 'filter_ignored_post_meta_keys' ] );
+		add_filter( 'newspack_network_content_distribution_always_distributed_taxonomies', [ __CLASS__, 'filter_always_distributed_taxonomies' ] );
 
 		add_filter( 'newspack_story_budget_fields', [ __CLASS__, 'add_sites_field' ] );
 		add_filter( 'newspack_story_budget_story_metadata', [ __CLASS__, 'add_story_remote_metadata' ], 10, 2 );
@@ -115,7 +117,21 @@ class Story_Budget {
 		);
 		$ignored_fields = array_filter( $ignored_fields );
 
+		$ignored_fields[] = '_np_story_budget__modified';
+
 		return array_merge( $ignored_keys, $ignored_fields );
+	}
+
+	/**
+	 * Filter the always distributed taxonomies to include Story Budget taxonomies.
+	 *
+	 * @param array $always_distributed_taxonomies The always distributed taxonomies.
+	 *
+	 * @return array The always distributed taxonomies.
+	 */
+	public static function filter_always_distributed_taxonomies( $always_distributed_taxonomies ) {
+		$always_distributed_taxonomies[] = 'newspack_story_status';
+		return $always_distributed_taxonomies;
 	}
 
 	/**
