@@ -31,6 +31,21 @@ class My_Account {
 		add_filter( 'woocommerce_get_query_vars', [ __CLASS__, 'add_query_var' ] );
 		add_action( 'woocommerce_account_np-network-subscriptions_endpoint', [ __CLASS__, 'endpoint_content' ] );
 		add_action( 'init', [ __CLASS__, 'flush_rewrite_rules' ] );
+
+		// enqueue a css file to hide the "Subscriptions" menu item.
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_css' ] );
+	}
+
+	/**
+	 * Enqueue a CSS file to hide the "Subscriptions" menu item.
+	 */
+	public static function enqueue_css() {
+		// Only if visiting the My Account page.
+		if ( ! is_account_page() ) {
+			return;
+		}
+
+		wp_enqueue_style( 'newspack-network-subscriptions-my-account', plugins_url( '/my-account.css', __FILE__ ), [], filemtime( NEWSPACK_NETWORK_PLUGIN_DIR . 'includes/woocommerce-subscriptions/my-account.css' ) );
 	}
 
 	/**
@@ -104,7 +119,7 @@ class My_Account {
 		$my_account_prefix_pattern = get_permalink( get_option( 'woocommerce_myaccount_page_id' ) );
 
 		?>
-		<div class="newspack-ui">
+		<div id="newspack-network-subscriptions" class="newspack-ui">
 			<p>
 				<?php esc_html_e( 'Here you can view and manage the subscriptions you have purchased in other sites in our network.', 'newspack-network' ); ?>
 			</p>
@@ -112,7 +127,7 @@ class My_Account {
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Subscription', 'newspack-network' ); ?></th>
-						<th><?php esc_html_e( 'Status', 'newspack-network' ); ?></th>
+						<th class="newspack-network-subscriptions-status"><?php esc_html_e( 'Status', 'newspack-network' ); ?></th>
 						<th></th>
 					</tr>
 				</thead>
@@ -132,8 +147,8 @@ class My_Account {
 							?>
 							<tr>
 								<?php // translators: %1$s is the subscription name, %2$s is the site label where the subscription was purchased. ?>
-								<td><?php echo esc_html( sprintf( __( '%1$s (%2$s) purchased on %3$s', 'newspack-network' ), $sub_product_name, '#' . $sub_id, $site_label ) ); ?></td>
-								<td><?php echo esc_html( $sub_status ); ?></td>
+								<td><?php echo esc_html( sprintf( __( '%1$s (%2$s) on %3$s', 'newspack-network' ), $sub_product_name, '#' . $sub_id, $site_label ) ); ?></td>
+								<td class="newspack-network-subscriptions-status"><?php echo esc_html( $sub_status ); ?></td>
 								<td>
 									<a href="<?php echo esc_url( $sub_product_url ); ?>" class="newspack-ui__button newspack-ui__button--primary newspack-ui__button--wide">
 										<?php esc_html_e( 'Manage', 'newspack-network' ); ?>
