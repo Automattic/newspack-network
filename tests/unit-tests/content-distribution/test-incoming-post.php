@@ -499,6 +499,28 @@ class TestIncomingPost extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Test distributing "pending" status post.
+	 */
+	public function test_pending_distribution() {
+		$payload = $this->get_sample_payload();
+
+		$payload['post_data']['post_status'] = 'pending';
+		$payload['status_on_publish'] = 'publish';
+
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the post is pending.
+		$this->assertSame( 'pending', get_post_status( $post_id ) );
+
+		// Insert 'publish' status.
+		$payload['post_data']['post_status'] = 'publish';
+		$this->incoming_post->insert( $payload );
+
+		// Assert that the post is published.
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+	}
+
+	/**
 	 * Test that "status on publish" only applies once.
 	 */
 	public function test_status_on_publish_only_applies_once() {

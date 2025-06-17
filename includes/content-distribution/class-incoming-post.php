@@ -620,8 +620,6 @@ class Incoming_Post {
 					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
 					if ( $status_on_publish ) {
 						$postarr['post_status'] = $status_on_publish;
-					} else {
-						$postarr['post_status'] = $this->post->post_status;
 					}
 				}
 			} else {

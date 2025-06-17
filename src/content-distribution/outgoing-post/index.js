@@ -219,7 +219,7 @@ function OutgoingPost() {
 				<>
 					<PostStatus
 						label={ isUnpublished ? __( 'Status on publish', 'newspack-network' ) : null }
-						description={ isUnpublished ? __( "Which status to set the post when it's published. Until then, it's always set to draft.", 'newspack-network' ) : null }
+						description={ isUnpublished ? __( "Which status to set the post when it's published.", 'newspack-network' ) : null }
 						status={ statusOnPublish }
 						onChange={ setStatusOnPublish }
 						disabled={ isDisabled }
