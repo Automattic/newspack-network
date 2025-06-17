@@ -167,9 +167,8 @@ class Story_Budget {
 	/**
 	 * Get the value of the sites field.
 	 *
-	 * If the post has been distributed, read the value from the distributed post,
-	 * if the post is incoming, read the value from the payload, otherwise read it
-	 * from the post meta.
+	 * If the post has been distributed, read the value from the distributed post.
+	 * If the post is incoming, read the value from the stored payload.
 	 *
 	 * @param int $post_id The post ID.
 	 *
