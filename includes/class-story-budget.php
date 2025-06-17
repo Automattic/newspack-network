@@ -148,7 +148,7 @@ class Story_Budget {
 
 		$fields[] = [
 			'description'        => __( 'The websites this story will be published on.', 'newspack-story-budget' ),
-			'is_editable'        => true,
+			'is_editable'        => false,
 			'is_sortable'        => false,
 			'is_multiple'        => true,
 			'is_filterable'      => 'always',
@@ -167,9 +167,8 @@ class Story_Budget {
 	/**
 	 * Get the value of the sites field.
 	 *
-	 * If the post has been distributed, read the value from the distributed post,
-	 * if the post is incoming, read the value from the payload, otherwise read it
-	 * from the post meta.
+	 * If the post has been distributed, read the value from the distributed post.
+	 * If the post is incoming, read the value from the stored payload.
 	 *
 	 * @param int $post_id The post ID.
 	 *
@@ -205,9 +204,8 @@ class Story_Budget {
 			}
 		}
 
-		// Otherwise, read the value from the post meta.
-		$field = \Newspack_Story_Budget\Fields::get_field( self::SITES_FIELD_SLUG );
-		return \get_post_meta( $post_id, $field->get_post_meta_name(), false );
+		// Default is empty array.
+		return [];
 	}
 
 	/**
