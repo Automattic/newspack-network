@@ -134,7 +134,7 @@ function OutgoingPost() {
 				<>
 					{ isAutoDraft && (
 						<>
-							<Notice status="warning" isDismissible={ false } style={ { marginBottom: '10px' } }>
+							<Notice status="warning" isDismissible={ false }>
 								{ __( 'Save the post at least once before distributing it.', 'newspack-network' ) }
 							</Notice>
 							<hr />
