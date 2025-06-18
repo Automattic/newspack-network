@@ -63,7 +63,7 @@ class CLI {
 					],
 					[
 						'type'        => 'assoc',
-						'name'        => 'status_on_create',
+						'name'        => 'status_on_publish',
 						'description' => __( 'The post status when creating the post. Default is to distribute as draft.' ),
 						'optional'    => true,
 					],
@@ -149,7 +149,7 @@ class CLI {
 				WP_CLI::error( $sites->get_error_message() );
 			}
 
-			Content_Distribution_Class::distribute_post( $outgoing_post, $assoc_args['status_on_create'] ?? 'draft' );
+			Content_Distribution_Class::distribute_post( $outgoing_post, $assoc_args['status_on_publish'] ?? 'draft' );
 			WP_CLI::success( sprintf( 'Post with ID %d is distributed to %d sites: %s', $post_id, count( $sites ), implode( ', ', $sites ) ) );
 
 		} catch ( \Exception $e ) {

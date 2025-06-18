@@ -259,7 +259,7 @@ class Outgoing_Post {
 		if ( empty( $payload ) ) {
 			$payload = $this->get_payload();
 		}
-		unset( $payload['status_on_create'] );
+		unset( $payload['status_on_publish'] );
 		unset( $payload['post_data']['date_gmt'] );
 		unset( $payload['post_data']['modified_gmt'] );
 		return md5( wp_json_encode( $payload ) );
@@ -268,21 +268,21 @@ class Outgoing_Post {
 	/**
 	 * Get the post payload for distribution.
 	 *
-	 * @param string $status_on_create The post status when creating the post.
+	 * @param string $status_on_publish The post status when creating the post.
 	 *
 	 * @return array|WP_Error The post payload or WP_Error if the post is invalid.
 	 */
-	public function get_payload( $status_on_create = 'draft' ) {
+	public function get_payload( $status_on_publish = 'draft' ) {
 		$post_author = self::get_outgoing_wp_user_author( $this->post->post_author );
 
 		$payload = [
-			'site_url'         => get_bloginfo( 'url' ),
-			'post_id'          => $this->post->ID,
-			'post_url'         => get_permalink( $this->post->ID ),
-			'network_post_id'  => $this->get_network_post_id(),
-			'sites'            => $this->get_distribution(),
-			'status_on_create' => $status_on_create,
-			'post_data'        => [
+			'site_url'          => get_bloginfo( 'url' ),
+			'post_id'           => $this->post->ID,
+			'post_url'          => get_permalink( $this->post->ID ),
+			'network_post_id'   => $this->get_network_post_id(),
+			'sites'             => $this->get_distribution(),
+			'status_on_publish' => $status_on_publish,
+			'post_data'         => [
 				'title'          => html_entity_decode( get_the_title( $this->post->ID ), ENT_QUOTES, get_bloginfo( 'charset' ) ),
 				'author'         => is_wp_error( $post_author ) ? [] : $post_author,
 				'post_status'    => $this->post->post_status,

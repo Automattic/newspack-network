@@ -256,7 +256,7 @@ class Admin {
 
 		printf(
 			'<br/><small>%1$s</small><br/><small>%2$s</small>',
-			esc_html__( 'Select the default status for posts distributed to other sites in the network.', 'newspack-network' ),
+			esc_html__( 'Select the default status to be used upon publishing distributed posts.', 'newspack-network' ),
 			esc_html__( 'Note: Editors will still be able to modify the status upon distribution of a post.', 'newspack-network' )
 		);
 	}

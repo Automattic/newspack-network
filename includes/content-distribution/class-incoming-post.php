@@ -40,6 +40,11 @@ class Incoming_Post {
 	const ATTACHMENT_META = 'newspack_network_linked_attachment';
 
 	/**
+	 * Post meta key for `status_on_publish`.
+	 */
+	const STATUS_ON_PUBLISH_META = '_newspack_network_status_on_publish';
+
+	/**
 	 * The post ID.
 	 *
 	 * @var int
@@ -596,18 +601,28 @@ class Incoming_Post {
 			'ping_status'    => $post_data['ping_status'],
 		];
 
-		// If there's no post ID, set the status to the default status on create.
-		if ( ! $this->ID ) {
-			$postarr['post_status'] = $this->payload['status_on_create'];
-		} else {
-			$postarr['post_status'] = $this->post->post_status;
-		}
+		$is_new_post = ! $this->ID;
 
 		// Insert the post if it's linked or a new post.
-		if ( ! $this->ID || $this->is_linked() ) {
+		if ( $is_new_post || $this->is_linked() ) {
 
-			// If the post is moving to non-publish statuses, always update the status.
-			if ( in_array( $post_data['post_status'], [ 'draft', 'trash', 'pending', 'private' ] ) ) {
+			/**
+			 * Post status handling.
+			 *
+			 * If post is being published, use the incoming or stored
+			 * `status_on_publish` if available. Otherwise, use the post status from
+			 * the payload.
+			 */
+			if ( $post_data['post_status'] === 'publish' ) {
+				if ( $is_new_post ) {
+					$postarr['post_status'] = $this->payload['status_on_publish'];
+				} else {
+					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
+					if ( $status_on_publish ) {
+						$postarr['post_status'] = $status_on_publish;
+					}
+				}
+			} else {
 				$postarr['post_status'] = $post_data['post_status'];
 			}
 
@@ -650,6 +665,20 @@ class Incoming_Post {
 				self::log( 'Failed to insert post.' );
 
 				return new WP_Error( 'insert_error', __( 'Error inserting post.', 'newspack-network' ) );
+			}
+
+			// Handle `status_on_publish` meta.
+			if ( $post_data['post_status'] !== 'publish' && $is_new_post ) {
+				// Store the publish status for new posts.
+				update_post_meta(
+					$post_id,
+					self::STATUS_ON_PUBLISH_META,
+					$this->payload['status_on_publish']
+				);
+			} elseif ( $post_data['post_status'] === 'publish' && ! $is_new_post ) {
+				// Clean up the meta for published posts so it's not re-published after
+				// being unpublished.
+				delete_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META );
 			}
 
 			// Update the object.

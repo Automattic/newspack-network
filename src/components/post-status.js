@@ -41,7 +41,7 @@ const STATUS_OPTIONS = [
 	},
 ];
 
-export default function PostStatus( { status, onChange, disabled } ) {
+export default function PostStatus( { label, description, status, onChange, disabled } ) {
 	const [ popoverAnchor, setPopoverAnchor ] = useState( null );
 	// Memoize popoverProps to avoid returning a new object every time.
 	const popoverProps = useMemo(
@@ -49,8 +49,8 @@ export default function PostStatus( { status, onChange, disabled } ) {
 			// Anchor the popover to the middle of the entire row so that it doesn't
 			// move around when the label changes.
 			anchor: popoverAnchor,
-			'aria-label': __( 'Status & visibility' ),
-			headerTitle: __( 'Status & visibility' ),
+			'aria-label': label ? label : __( 'Status & visibility' ),
+			headerTitle: label ? label : __( 'Status & visibility' ),
 			placement: 'left-start',
 			offset: 36,
 			shift: true,
@@ -59,7 +59,7 @@ export default function PostStatus( { status, onChange, disabled } ) {
 	);
 
 	return (
-		<PostPanelRow label={ __( 'Status' ) } ref={ setPopoverAnchor }>
+		<PostPanelRow label={ __( 'Status' ) } description={ description } ref={ setPopoverAnchor }>
 			<Dropdown
 				className="editor-post-status"
 				contentClassName="editor-change-status__content"
@@ -86,9 +86,10 @@ export default function PostStatus( { status, onChange, disabled } ) {
 				renderContent={ ( { onClose } ) => (
 					<>
 						<InspectorPopoverHeader
-							title={ __( 'Status & visibility' ) }
+							title={ label ? label : __( 'Status & visibility' ) }
 							onClose={ onClose }
 						/>
+						{ description && <p>{ description }</p> }
 						<form>
 							<VStack spacing={ 4 }>
 								<RadioControl
