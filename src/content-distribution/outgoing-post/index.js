@@ -7,7 +7,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { sprintf, __, _n } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { CheckboxControl, TextControl, Button } from '@wordpress/components';
+import { CheckboxControl, TextControl, Button, Notice } from '@wordpress/components';
 import { broadcast } from '../../icons';
 import { registerPlugin } from '@wordpress/plugins';
 
@@ -83,7 +83,9 @@ function OutgoingPost() {
 
 	const isUnpublished = postStatus !== 'publish';
 
-	const isDisabled = isSavingPost || isDistributing || isCleanNewPost;
+	const isAutoDraft = postStatus === 'auto-draft';
+
+	const isDisabled = isSavingPost || isDistributing || isCleanNewPost || isAutoDraft;
 
 	const getFormattedSite = site => {
 		const url = new URL( site );
@@ -130,6 +132,14 @@ function OutgoingPost() {
 		<ContentDistributionPanel
 			header={ (
 				<>
+					{ isAutoDraft && (
+						<>
+							<Notice status="warning" isDismissible={ false } style={ { marginBottom: '10px' } }>
+								{ __( 'Save the post at least once before distributing it.', 'newspack-network' ) }
+							</Notice>
+							<hr />
+						</>
+					) }
 					{ ! distribution.length ? (
 						<p>
 							{ networkSites.length === 1 ?
