@@ -160,6 +160,12 @@ class API {
 		$urls             = $request->get_param( 'urls' );
 		$status_on_publish = $request->get_param( 'status_on_publish' );
 
+		// Prevent auto-drafts from being distributed.
+		$post = get_post( $post_id );
+		if ( 'auto-draft' === $post->post_status ) {
+			return new WP_Error( 'newspack_network_content_distribution_error', __( 'Post is currently an auto-draft. Save before distributing it.', 'newspack-network' ), [ 'status' => 400 ] );
+		}
+
 		try {
 			$outgoing_post = new Outgoing_Post( $post_id );
 		} catch ( InvalidArgumentException $e ) {
