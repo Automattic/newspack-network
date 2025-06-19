@@ -24,13 +24,13 @@ function get_sample_payload( $origin = '', $destination = '' ) {
 	}
 
 	return [
-		'site_url'         => $origin,
-		'post_id'          => 1,
-		'post_url'         => $origin . '/2021/01/slug',
-		'network_post_id'  => '1234567890abcdef1234567890abcdef',
-		'sites'            => [ $destination ],
-		'status_on_create' => 'draft',
-		'post_data'        => [
+		'site_url'          => $origin,
+		'post_id'           => 1,
+		'post_url'          => $origin . '/2021/01/slug',
+		'network_post_id'   => '1234567890abcdef1234567890abcdef',
+		'sites'             => [ $destination ],
+		'status_on_publish' => 'draft',
+		'post_data'         => [
 			'title'          => 'Title',
 			'author'         => [],
 			'post_status'    => 'publish',

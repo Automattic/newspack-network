@@ -43,5 +43,8 @@
 	"bugs": {
 		"url": "https://github.com/Automattic/newspack-network/issues"
 	},
-	"homepage": "https://github.com/Automattic/newspack-network#readme"
+	"homepage": "https://github.com/Automattic/newspack-network#readme",
+	"dependencies": {
+		"@wordpress/icons": "^10.25.0"
+	}
 }
