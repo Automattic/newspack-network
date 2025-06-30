@@ -7,7 +7,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { sprintf, __, _n } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { CheckboxControl, TextControl, Button } from '@wordpress/components';
+import { CheckboxControl, TextControl, Button, Notice } from '@wordpress/components';
 import { broadcast } from '../../icons';
 import { registerPlugin } from '@wordpress/plugins';
 
@@ -27,7 +27,7 @@ function OutgoingPost() {
 	const [ isDistributing, setIsDistributing ] = useState( false );
 	const [ distribution, setDistribution ] = useState( [] );
 	const [ siteSelection, setSiteSelection ] = useState( [] );
-	const [ statusOnCreate, setStatusOnCreate ] = useState( defaultStatus );
+	const [ statusOnPublish, setStatusOnPublish ] = useState( defaultStatus );
 
 	const { postId, postStatus, savedUrls, hasChangedContent, isSavingPost, isCleanNewPost } = useSelect( select => {
 		const {
@@ -83,7 +83,9 @@ function OutgoingPost() {
 
 	const isUnpublished = postStatus !== 'publish';
 
-	const isDisabled = isUnpublished || isSavingPost || isDistributing || isCleanNewPost;
+	const isAutoDraft = postStatus === 'auto-draft';
+
+	const isDisabled = isSavingPost || isDistributing || isCleanNewPost || isAutoDraft;
 
 	const getFormattedSite = site => {
 		const url = new URL( site );
@@ -97,7 +99,7 @@ function OutgoingPost() {
 			method: 'POST',
 			data: {
 				urls: siteSelection,
-				'status_on_create': statusOnCreate,
+				'status_on_publish': statusOnPublish,
 			},
 		} ).then( urls => {
 			setDistribution( urls );
@@ -130,11 +132,17 @@ function OutgoingPost() {
 		<ContentDistributionPanel
 			header={ (
 				<>
+					{ isAutoDraft && (
+						<>
+							<Notice status="warning" isDismissible={ false }>
+								{ __( 'Save the post at least once before distributing it.', 'newspack-network' ) }
+							</Notice>
+							<hr />
+						</>
+					) }
 					{ ! distribution.length ? (
 						<p>
-							{ isUnpublished ? (
-								sprintf( __( 'This %s has not been published yet. Please publish the %s before distributing it to any network sites.', 'newspack-network' ), postTypeLabel.toLowerCase(), postTypeLabel.toLowerCase() )
-							) : networkSites.length === 1 ?
+							{ networkSites.length === 1 ?
 								sprintf( __( 'This %s has not been distributed to your network site yet.', 'newspack-network' ), postTypeLabel.toLowerCase() ) :
 								sprintf( __( 'This %s has not been distributed to any network sites yet.', 'newspack-network' ), postTypeLabel.toLowerCase() )
 							}
@@ -219,7 +227,13 @@ function OutgoingPost() {
 			) }
 			buttons={ (
 				<>
-					<PostStatus status={ statusOnCreate } onChange={ setStatusOnCreate } disabled={ isDisabled } />
+					<PostStatus
+						label={ isUnpublished ? __( 'Status on publish', 'newspack-network' ) : null }
+						description={ isUnpublished ? __( "Which status to set the post when it's published.", 'newspack-network' ) : null }
+						status={ statusOnPublish }
+						onChange={ setStatusOnPublish }
+						disabled={ isDisabled }
+					/>
 					<Button
 						isBusy={ isDistributing }
 						variant="primary"

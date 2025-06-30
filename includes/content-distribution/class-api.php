@@ -38,14 +38,14 @@ class API {
 				'methods'             => 'POST',
 				'callback'            => [ __CLASS__, 'distribute' ],
 				'args'                => [
-					'urls'             => [
+					'urls'              => [
 						'type'     => 'array',
 						'required' => true,
 						'items'    => [
 							'type' => 'string',
 						],
 					],
-					'status_on_create' => [
+					'status_on_publish' => [
 						'type'    => 'string',
 						'enum'    => [ 'draft', 'pending', 'publish' ],
 						'default' => 'draft',
@@ -82,11 +82,11 @@ class API {
 				'methods'             => 'POST',
 				'callback'            => [ __CLASS__, 'pull_post' ],
 				'args'                => [
-					'url'              => [
+					'url'               => [
 						'type'     => 'string',
 						'required' => false, // If not provided, it'll look for the X-Network-Site-URL header.
 					],
-					'status_on_create' => [
+					'status_on_publish' => [
 						'type'    => 'string',
 						'enum'    => [ 'draft', 'pending', 'publish' ],
 						'default' => 'draft',
@@ -158,21 +158,18 @@ class API {
 
 		$post_id          = $request->get_param( 'post_id' );
 		$urls             = $request->get_param( 'urls' );
-		$status_on_create = $request->get_param( 'status_on_create' );
+		$status_on_publish = $request->get_param( 'status_on_publish' );
+
+		// Prevent auto-drafts from being distributed.
+		$post = get_post( $post_id );
+		if ( 'auto-draft' === $post->post_status ) {
+			return new WP_Error( 'newspack_network_content_distribution_error', __( 'Post is currently an auto-draft. Save before distributing it.', 'newspack-network' ), [ 'status' => 400 ] );
+		}
 
 		try {
 			$outgoing_post = new Outgoing_Post( $post_id );
 		} catch ( InvalidArgumentException $e ) {
 			return new WP_Error( 'newspack_network_content_distribution_error', $e->getMessage(), [ 'status' => 400 ] );
-		}
-
-		$current_distribution = $outgoing_post->get_distribution();
-
-		$new_urls = array_diff( $urls, $current_distribution );
-
-		// If distributing to new destinations, the post must be published.
-		if ( ! empty( $new_urls ) && 'publish' !== get_post_status( $post_id ) ) {
-			return new WP_Error( 'newspack_network_content_distribution_error', __( 'Post must be published to distribute.', 'newspack-network' ), [ 'status' => 400 ] );
 		}
 
 		$distribution = $outgoing_post->set_distribution( $urls );
@@ -181,7 +178,7 @@ class API {
 			return new WP_Error( 'newspack_network_content_distribution_error', $distribution->get_error_message(), [ 'status' => 400 ] );
 		}
 
-		$payload = $outgoing_post->get_payload( $status_on_create );
+		$payload = $outgoing_post->get_payload( $status_on_publish );
 		Data_Events::dispatch( 'network_post_updated', $payload );
 
 		// Store payload hash to prevent unnecessary updates.
@@ -203,7 +200,7 @@ class API {
 	public static function pull_post( $request ): WP_REST_Response|WP_Error {
 		$post_id  = $request->get_param( 'post_id' );
 		$url      = $request->get_param( 'url' );
-		$status_on_create = $request->get_param( 'status_on_create' );
+		$status_on_publish = $request->get_param( 'status_on_publish' );
 
 		if ( ! $url ) {
 			$url = filter_input( INPUT_SERVER, 'HTTP_X_NETWORK_SITE_URL', FILTER_VALIDATE_URL );
@@ -228,7 +225,7 @@ class API {
 		}
 
 		return rest_ensure_response(
-			$outgoing_post->get_payload( $status_on_create )
+			$outgoing_post->get_payload( $status_on_publish )
 		);
 	}
 
