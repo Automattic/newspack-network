@@ -51,6 +51,7 @@ class Initializer {
 		Distributor_Customizations::init();
 		Esp_Metadata_Sync::init();
 		Content_Distribution::init();
+		Story_Budget::init();
 
 		Synchronize_All::init();
 		Data_Backfill::init();

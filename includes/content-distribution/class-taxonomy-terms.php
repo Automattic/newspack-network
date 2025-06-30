@@ -35,6 +35,25 @@ class Taxonomy_Terms {
 	}
 
 	/**
+	 * Get taxonomies that should always be distributed.
+	 *
+	 * @return string[] The always distributed taxonomies.
+	 */
+	public static function get_always_distributed_taxonomies() {
+		$always_distributed_taxonomies = [
+			'category', // WordPress core 'category' taxonomy.
+			'post_tag', // WordPress core 'post_tag' taxonomy.
+		];
+
+		/**
+		 * Filters the taxonomies that should always be distributed.
+		 *
+		 * @param string[] $always_distributed_taxonomies The always distributed taxonomies.
+		 */
+		return apply_filters( 'newspack_network_content_distribution_always_distributed_taxonomies', $always_distributed_taxonomies );
+	}
+
+	/**
 	 * Returns a list of taxonomies that should be distributed only if the terms already exist
 	 * in the destination site. Terms from these taxonomies will not be created if they don't exist.
 	 *
@@ -66,7 +85,7 @@ class Taxonomy_Terms {
 			if ( in_array( $taxonomy->name, $ignored_taxonomies, true ) ) {
 				continue;
 			}
-			if ( ! $taxonomy->public ) {
+			if ( ! $taxonomy->public && ! in_array( $taxonomy->name, self::get_always_distributed_taxonomies(), true ) ) {
 				continue;
 			}
 			$terms = get_the_terms( $post->ID, $taxonomy->name );

@@ -477,12 +477,93 @@ class TestIncomingPost extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Test status on create.
+	 * Test distributing draft post.
 	 */
-	public function test_status_on_create() {
+	public function test_draft_distribution() {
 		$payload = $this->get_sample_payload();
 
-		$payload['status_on_create'] = 'publish';
+		$payload['post_data']['post_status'] = 'draft';
+		$payload['status_on_publish'] = 'pending';
+
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the post is draft.
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+
+		// Insert 'publish' status.
+		$payload['post_data']['post_status'] = 'publish';
+		$this->incoming_post->insert( $payload );
+
+		// Assert that the post is published.
+		$this->assertSame( 'pending', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Test distributing "pending" status post.
+	 */
+	public function test_pending_distribution() {
+		$payload = $this->get_sample_payload();
+
+		$payload['post_data']['post_status'] = 'pending';
+		$payload['status_on_publish'] = 'publish';
+
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the post is pending.
+		$this->assertSame( 'pending', get_post_status( $post_id ) );
+
+		// Insert 'publish' status.
+		$payload['post_data']['post_status'] = 'publish';
+		$this->incoming_post->insert( $payload );
+
+		// Assert that the post is published.
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Test that "status on publish" only applies once.
+	 */
+	public function test_status_on_publish_only_applies_once() {
+		$payload = $this->get_sample_payload();
+
+		$payload['post_data']['post_status'] = 'draft';
+		$payload['status_on_publish'] = 'publish';
+
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the "status on publish" is stored in the post meta.
+		$this->assertSame( 'publish', get_post_meta( $post_id, Incoming_Post::STATUS_ON_PUBLISH_META, true ) );
+
+		// Insert 'publish' status.
+		$payload['post_data']['post_status'] = 'publish';
+		$this->incoming_post->insert( $payload );
+
+		// Assert that the "status on publish" meta is gone.
+		$this->assertEmpty( get_post_meta( $post_id, Incoming_Post::STATUS_ON_PUBLISH_META, true ) );
+
+		// Assert that the post is published.
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+
+		// Move post back to draft and reinsert the payload.
+		wp_update_post(
+			[
+				'ID'          => $post_id,
+				'post_status' => 'draft',
+			]
+		);
+		$this->incoming_post->insert( $payload );
+
+		// Assert that the post is still draft.
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Test status on publish.
+	 */
+	public function test_status_on_publish() {
+		$payload = $this->get_sample_payload();
+
+		$payload['status_on_publish'] = 'publish';
 
 		$post_id = $this->incoming_post->insert( $payload );
 

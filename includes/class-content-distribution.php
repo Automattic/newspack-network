@@ -53,6 +53,7 @@ class Content_Distribution {
 		add_filter( 'newspack_webhooks_request_priority', [ __CLASS__, 'webhooks_request_priority' ], 10, 2 );
 		add_filter( 'update_post_metadata', [ __CLASS__, 'maybe_short_circuit_distributed_meta' ], 10, 4 );
 		add_action( 'wp_after_insert_post', [ __CLASS__, 'handle_post_updated' ] );
+		add_action( 'set_object_terms', [ __CLASS__, 'handle_post_updated' ] );
 		add_action( 'updated_post_meta', [ __CLASS__, 'handle_postmeta_update' ], 10, 3 );
 		add_action( 'added_post_meta', [ __CLASS__, 'handle_postmeta_update' ], 10, 3 );
 		add_action( 'deleted_post_meta', [ __CLASS__, 'handle_postmeta_update' ], 10, 3 );
@@ -395,6 +396,7 @@ class Content_Distribution {
 				Incoming_Post::PAYLOAD_META,
 				Incoming_Post::UNLINKED_META,
 				Incoming_Post::ATTACHMENT_META,
+				Incoming_Post::STATUS_ON_PUBLISH_META,
 			]
 		);
 	}
@@ -449,12 +451,12 @@ class Content_Distribution {
 	/**
 	 * Trigger post distribution.
 	 *
-	 * @param WP_Post|Outgoing_Post|int $post             The post object or ID.
-	 * @param string                    $status_on_create The post status on create. Default is draft.
+	 * @param WP_Post|Outgoing_Post|int $post              The post object or ID.
+	 * @param string                    $status_on_publish The post status on publish. Default is draft.
 	 *
 	 * @return void
 	 */
-	public static function distribute_post( $post, $status_on_create = 'draft' ) {
+	public static function distribute_post( $post, $status_on_publish = 'draft' ) {
 		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
 			return;
 		}
@@ -464,7 +466,7 @@ class Content_Distribution {
 			$distributed_post = self::get_distributed_post( $post );
 		}
 		if ( $distributed_post ) {
-			$payload      = $distributed_post->get_payload( $status_on_create );
+			$payload      = $distributed_post->get_payload( $status_on_publish );
 			$payload_hash = $distributed_post->get_payload_hash( $payload );
 			$post         = $distributed_post->get_post();
 			// Skip if the payload hash is the same.
