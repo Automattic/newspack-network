@@ -1,3 +1,17 @@
+# [2.11.0](https://github.com/Automattic/newspack-network/compare/v2.10.0...v2.11.0) (2025-06-30)
+
+
+### Bug Fixes
+
+* **story-budget:** asset versioning ([#246](https://github.com/Automattic/newspack-network/issues/246)) ([1bdd274](https://github.com/Automattic/newspack-network/commit/1bdd274bd31342c924d46b10b6db508f566bcc09))
+
+
+### Features
+
+* **content-distribution:** distribute non-publish content ([#250](https://github.com/Automattic/newspack-network/issues/250)) ([88e1654](https://github.com/Automattic/newspack-network/commit/88e165429f19334ea190c483427448ab541d7b63))
+* **content-distribution:** pull posts and Story Budget integration [NPPD-127] ([#243](https://github.com/Automattic/newspack-network/issues/243)) ([f48fa73](https://github.com/Automattic/newspack-network/commit/f48fa73844160fb71dd1a3a939d00df90a6e7279))
+* **story-budget:** manage field syncing and props ([#247](https://github.com/Automattic/newspack-network/issues/247)) ([c3b56a8](https://github.com/Automattic/newspack-network/commit/c3b56a84aaeb53e0adad8a24973194fc8315e34d))
+
 # [2.10.0](https://github.com/Automattic/newspack-network/compare/v2.9.0...v2.10.0) (2025-06-02)
 
 
