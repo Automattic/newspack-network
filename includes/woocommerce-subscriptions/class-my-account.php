@@ -41,7 +41,7 @@ class My_Account {
 	 */
 	public static function enqueue_css() {
 		// Only if visiting the My Account page.
-		if ( ! is_account_page() ) {
+		if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
 			return;
 		}
 
