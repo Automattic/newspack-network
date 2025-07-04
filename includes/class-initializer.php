@@ -39,6 +39,7 @@ class Initializer {
 			if ( Node\Settings::get_hub_url() ) {
 				Node\Webhook::init();
 				Node\Info_Endpoints::init();
+				Node\Integrity_Check_Endpoints::init();
 				Node\Pulling::init();
 				Rest_Authenticaton::init_node_filters();
 			}
@@ -56,6 +57,7 @@ class Initializer {
 		Synchronize_All::init();
 		Data_Backfill::init();
 		Membership_Dedupe::init();
+		CLI\Integrity_Check::init();
 
 		Woocommerce\Events::init();
 		Woocommerce_Subscriptions\My_Account::init();
