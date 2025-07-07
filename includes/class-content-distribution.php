@@ -386,6 +386,23 @@ class Content_Distribution {
 		 */
 		$ignored_keys = apply_filters( 'newspack_network_content_distribution_ignored_post_meta_keys', $ignored_keys );
 
+		// Always ignore Distributor meta.
+		$distributor_meta = [
+			'dt_full_connection',
+			'dt_original_post_id',
+			'dt_original_post_url',
+			'dt_original_site_name',
+			'dt_original_site_url',
+			'dt_original_source_id',
+			'dt_subscription_signature',
+			'dt_syndicate_time',
+			'dt_unlinked',
+			'dt_subscriptions',
+			'dt_subscription_update',
+			'dt_connection_map',
+		];
+		$ignored_keys = array_merge( $ignored_keys, $distributor_meta );
+
 		// Always ignore content distribution post meta.
 		return array_merge(
 			$ignored_keys,
