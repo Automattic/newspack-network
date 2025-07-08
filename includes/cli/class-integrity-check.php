@@ -52,7 +52,7 @@ class Integrity_Check {
 	 * : Maximum number of memberships to compare in each chunk (default: 1000).
 	 *
 	 * [--max=<count>]
-	 * : Maximum number of memberships to process (for testing).
+	 * : Maximum number of memberships to process (for testing only - do not use in production).
 	 *
 	 * ## EXAMPLES
 	 *
@@ -73,6 +73,10 @@ class Integrity_Check {
 
 		if ( ! Site_Role::is_hub() ) {
 			WP_CLI::error( 'This command can only be run on a Hub site.' );
+		}
+
+		if ( $max_records ) {
+			WP_CLI::warning( sprintf( 'Using --max=%d for testing. Do not use --max in production as it may produce false positives.', $max_records ) );
 		}
 
 		WP_CLI::line( 'Starting integrity check for network membership data...' );
@@ -123,12 +127,24 @@ class Integrity_Check {
 			$specific_discrepancies = self::find_discrepancies_chunked( $hub_data, $node, $chunk_size, $verbose, $max_records );
 
 			if ( ! empty( $specific_discrepancies ) ) {
-				WP_CLI::line( sprintf( 'Found %d specific discrepancies:', count( $specific_discrepancies ) ) );
+				// Deduplicate discrepancies by email address to prevent duplicate entries
+				$deduplicated_discrepancies = [];
+				$seen_emails = [];
+				
+				foreach ( $specific_discrepancies as $discrepancy ) {
+					$email = $discrepancy['email'];
+					if ( ! isset( $seen_emails[ $email ] ) ) {
+						$deduplicated_discrepancies[] = $discrepancy;
+						$seen_emails[ $email ] = true;
+					}
+				}
+				
+				WP_CLI::line( sprintf( 'Found %d specific discrepancies:', count( $deduplicated_discrepancies ) ) );
 				WP_CLI::line( '' );
 
 				// Prepare table data for WP-CLI table.
 				$table_data = [];
-				foreach ( $specific_discrepancies as $discrepancy ) {
+				foreach ( $deduplicated_discrepancies as $discrepancy ) {
 					$table_data[] = [
 						'email'       => $discrepancy['email'],
 						'hub_status'  => $discrepancy['hub_status'],
