@@ -212,7 +212,8 @@ class Integrity_Check_Endpoints {
 		$query = "
 			SELECT DISTINCT 
 				u.user_email,
-				p.post_status as status
+				p.post_status as status,
+				pm_network.meta_value as network_id
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
 			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
@@ -232,8 +233,9 @@ class Integrity_Check_Endpoints {
 		$membership_data = [];
 		foreach ( $results as $result ) {
 			$membership_data[] = [
-				'email'  => strtolower( $result->user_email ),
-				'status' => $result->status,
+				'email'      => strtolower( $result->user_email ),
+				'status'     => $result->status,
+				'network_id' => $result->network_id,
 			];
 		}
 
@@ -262,7 +264,8 @@ class Integrity_Check_Endpoints {
 		$query = "
 			SELECT DISTINCT 
 				u.user_email,
-				p.post_status as status
+				p.post_status as status,
+				pm_network.meta_value as network_id
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
 			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
@@ -284,8 +287,9 @@ class Integrity_Check_Endpoints {
 		$membership_data = [];
 		foreach ( $results as $result ) {
 			$membership_data[] = [
-				'email'  => strtolower( $result->user_email ),
-				'status' => $result->status,
+				'email'      => strtolower( $result->user_email ),
+				'status'     => $result->status,
+				'network_id' => $result->network_id,
 			];
 		}
 
@@ -306,7 +310,7 @@ class Integrity_Check_Endpoints {
 		// Create a string representation of the data for hashing.
 		$hash_string = '';
 		foreach ( $data as $item ) {
-			$hash_string .= $item['email'] . ':' . $item['status'] . "\n";
+			$hash_string .= $item['email'] . ':' . $item['status'] . ':' . $item['network_id'] . "\n";
 		}
 
 		return hash( 'sha256', $hash_string );

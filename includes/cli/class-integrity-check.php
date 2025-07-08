@@ -127,15 +127,15 @@ class Integrity_Check {
 			$specific_discrepancies = self::find_discrepancies_chunked( $hub_data, $node, $chunk_size, $verbose, $max_records );
 
 			if ( ! empty( $specific_discrepancies ) ) {
-				// Deduplicate discrepancies by email address to prevent duplicate entries
+				// Deduplicate discrepancies by (email, network_id) pair to prevent duplicate entries
 				$deduplicated_discrepancies = [];
-				$seen_emails = [];
+				$seen_keys = [];
 				
 				foreach ( $specific_discrepancies as $discrepancy ) {
-					$email = $discrepancy['email'];
-					if ( ! isset( $seen_emails[ $email ] ) ) {
+					$key = $discrepancy['email'] . '::' . $discrepancy['network_id'];
+					if ( ! isset( $seen_keys[ $key ] ) ) {
 						$deduplicated_discrepancies[] = $discrepancy;
-						$seen_emails[ $email ] = true;
+						$seen_keys[ $key ] = true;
 					}
 				}
 				
@@ -147,13 +147,14 @@ class Integrity_Check {
 				foreach ( $deduplicated_discrepancies as $discrepancy ) {
 					$table_data[] = [
 						'email'       => $discrepancy['email'],
+						'network_id'  => $discrepancy['network_id'],
 						'hub_status'  => $discrepancy['hub_status'],
 						'node_status' => $discrepancy['node_status'],
 					];
 				}
 
 				// Display as table using WP-CLI's table formatter.
-				WP_CLI\Utils\format_items( 'table', $table_data, [ 'email', 'hub_status', 'node_status' ] );
+				WP_CLI\Utils\format_items( 'table', $table_data, [ 'email', 'network_id', 'hub_status', 'node_status' ] );
 			}
 
 			WP_CLI::line( '' );
@@ -181,7 +182,8 @@ class Integrity_Check {
 		$query = "
 			SELECT DISTINCT
 				u.user_email,
-				p.post_status as status
+				p.post_status as status,
+				pm_network.meta_value as network_id
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
 			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
@@ -202,8 +204,9 @@ class Integrity_Check {
 		$membership_data = [];
 		foreach ( $results as $result ) {
 			$membership_data[] = [
-				'email'  => strtolower( $result->user_email ),
-				'status' => $result->status,
+				'email'      => strtolower( $result->user_email ),
+				'status'     => $result->status,
+				'network_id' => $result->network_id,
 			];
 		}
 
@@ -354,7 +357,7 @@ class Integrity_Check {
 		// Create a string representation of the data for hashing.
 		$hash_string = '';
 		foreach ( $data as $item ) {
-			$hash_string .= $item['email'] . ':' . $item['status'] . "\n";
+			$hash_string .= $item['email'] . ':' . $item['status'] . ':' . $item['network_id'] . "\n";
 		}
 
 		return hash( 'sha256', $hash_string );
@@ -446,28 +449,39 @@ class Integrity_Check {
 	private static function compare_chunk_data( $hub_chunk, $node_chunk ) {
 		$discrepancies = [];
 
-		// Create lookup arrays for faster comparison.
+		// Create lookup arrays for faster comparison using (email, network_id) as key.
 		$hub_lookup = [];
 		foreach ( $hub_chunk as $item ) {
-			$hub_lookup[ $item['email'] ] = $item['status'];
+			$key = $item['email'] . '::' . $item['network_id'];
+			$hub_lookup[ $key ] = $item;
 		}
 
 		$node_lookup = [];
 		foreach ( $node_chunk as $item ) {
-			$node_lookup[ $item['email'] ] = $item['status'];
+			$key = $item['email'] . '::' . $item['network_id'];
+			$node_lookup[ $key ] = $item;
 		}
 
 		// Find discrepancies within this chunk.
-		$all_emails = array_unique( array_merge( array_keys( $hub_lookup ), array_keys( $node_lookup ) ) );
-		sort( $all_emails );
+		$all_keys = array_unique( array_merge( array_keys( $hub_lookup ), array_keys( $node_lookup ) ) );
+		sort( $all_keys );
 
-		foreach ( $all_emails as $email ) {
-			$hub_status = $hub_lookup[ $email ] ?? 'NOT_FOUND';
-			$node_status = $node_lookup[ $email ] ?? 'NOT_FOUND';
+		foreach ( $all_keys as $key ) {
+			$hub_item = $hub_lookup[ $key ] ?? null;
+			$node_item = $node_lookup[ $key ] ?? null;
+			
+			$hub_status = $hub_item ? $hub_item['status'] : 'NOT_FOUND';
+			$node_status = $node_item ? $node_item['status'] : 'NOT_FOUND';
+			
+			// Extract email and network_id for display
+			$parts = explode( '::', $key );
+			$email = $parts[0];
+			$network_id = $parts[1];
 
 			if ( $hub_status !== $node_status ) {
 				$discrepancies[] = [
 					'email'       => $email,
+					'network_id'  => $network_id,
 					'hub_status'  => $hub_status,
 					'node_status' => $node_status,
 				];
