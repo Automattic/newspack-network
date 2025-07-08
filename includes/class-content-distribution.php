@@ -424,6 +424,7 @@ class Content_Distribution {
 				Incoming_Post::UNLINKED_META,
 				Incoming_Post::ATTACHMENT_META,
 				Incoming_Post::STATUS_ON_PUBLISH_META,
+				Distributor_Migrator::MIGRATION_DATA_META,
 			]
 		);
 	}
