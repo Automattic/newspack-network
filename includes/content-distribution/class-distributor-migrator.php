@@ -450,15 +450,16 @@ class Distributor_Migrator {
 			$migration_result = self::migrate_subscription( $subscription_id, false );
 			--self::$log_indentation;
 			if ( is_wp_error( $migration_result ) ) {
+				self::log( sprintf( 'Error migrating subscription %d (post: %d, target: %s): %s.', $subscription_id, $remote_post_id, $site_url, $migration_result->get_error_message() ) );
 				$errors->add( $migration_result->get_error_code(), $migration_result->get_error_message() );
-				continue;
+			} else {
+				$site_url = self::get_network_url( $site_url );
+				self::log( sprintf( 'Migrated subscription %d for remote post %d on %s.', $subscription_id, $remote_post_id, $site_url ) );
+				$incoming_posts[] = [
+					'site_url' => $site_url,
+					'post_id'  => $remote_post_id,
+				];
 			}
-			$site_url = self::get_network_url( $site_url );
-			self::log( sprintf( 'Migrated subscription %d for remote post %d on %s.', $subscription_id, $remote_post_id, $site_url ) );
-			$incoming_posts[] = [
-				'site_url' => $site_url,
-				'post_id'  => $remote_post_id,
-			];
 			--self::$log_indentation;
 		}
 
