@@ -354,7 +354,17 @@ class Content_Distribution {
 		 *
 		 * @param array $post_types Array of post types.
 		 */
-		return apply_filters( 'newspack_network_distributed_post_types', [ 'post', 'page' ] );
+		return apply_filters(
+			'newspack_network_distributed_post_types',
+			[
+				'post',
+				'page',
+				'newspack_lst_event',
+				'newspack_lst_generic',
+				'newspack_lst_mktplce',
+				'newspack_lst_place',
+			]
+		);
 	}
 
 	/**
