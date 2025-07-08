@@ -21,8 +21,12 @@ class Distributor_Migrator {
 
 	const MIGRATION_LOCK_TRANSIENT_NAME = 'newspack_network_distributor_migration_lock';
 
+	const MIGRATION_DATA_META = '_newspack_network_distributor_migration_data';
+
 	/**
 	 * Log indentation level.
+	 *
+	 * @var int
 	 */
 	private static $log_indentation = 0;
 
@@ -482,8 +486,10 @@ class Distributor_Migrator {
 			return $can_migrate;
 		}
 
-		$post_id     = get_post_meta( $subscription_id, 'dt_subscription_post_id', true );
-		$network_url = self::get_network_url( get_post_meta( $subscription_id, 'dt_subscription_target_url', true ) );
+		$post_id = get_post_meta( $subscription_id, 'dt_subscription_post_id', true );
+		$remote_post_id = get_post_meta( $subscription_id, 'dt_subscription_remote_post_id', true );
+		$target_url = get_post_meta( $subscription_id, 'dt_subscription_target_url', true );
+		$network_url = self::get_network_url( $target_url );
 
 		// Configure distribution.
 		try {
@@ -503,36 +509,55 @@ class Distributor_Migrator {
 
 		// Clear the subscription meta from the post.
 		$subscriptions = get_post_meta( $post_id, 'dt_subscriptions', true );
-		$subscriptions = array_diff( $subscriptions, [ $subscription_id ] );
 		if ( empty( $subscriptions ) ) {
-			delete_post_meta( $post_id, 'dt_subscriptions' );
-			self::log( sprintf( 'Deleted subscriptions for post %d.', $post_id ) );
+			self::log( sprintf( 'No subscription meta found for post %d.', $post_id ) );
 		} else {
-			update_post_meta( $post_id, 'dt_subscriptions', $subscriptions );
-			self::log( sprintf( 'Updated subscriptions for post %d.', $post_id ) );
+				$subscriptions = array_diff( $subscriptions, [ $subscription_id ] );
+			if ( empty( $subscriptions ) ) {
+				delete_post_meta( $post_id, 'dt_subscriptions' );
+				self::log( sprintf( 'Deleted subscriptions for post %d.', $post_id ) );
+			} else {
+				update_post_meta( $post_id, 'dt_subscriptions', $subscriptions );
+				self::log( sprintf( 'Updated subscriptions for post %d.', $post_id ) );
+			}
 		}
 
 		// Clear the connection map from the post.
 		$connection_map = get_post_meta( $post_id, 'dt_connection_map', true );
-		$remote_post_id = get_post_meta( $subscription_id, 'dt_subscription_remote_post_id', true );
-		if ( ! empty( $connection_map['external'] ) ) {
-			foreach ( $connection_map['external'] as $connection_id => $value ) {
-				if ( absint( $value['post_id'] ) === absint( $remote_post_id ) ) {
-					unset( $connection_map['external'][ $connection_id ] );
+		if ( empty( $connection_map ) ) {
+			self::log( sprintf( 'No connection map meta found for post %d.', $post_id ) );
+		} else {
+			if ( ! empty( $connection_map['external'] ) ) {
+				foreach ( $connection_map['external'] as $connection_id => $value ) {
+					if ( absint( $value['post_id'] ) === absint( $remote_post_id ) ) {
+						unset( $connection_map['external'][ $connection_id ] );
+					}
 				}
 			}
-		}
-		if ( empty( $connection_map['external'] ) && empty( $connection_map['internal'] ) ) {
-			delete_post_meta( $post_id, 'dt_connection_map' );
-			self::log( sprintf( 'Deleted connection map for post %d.', $post_id ) );
-		} else {
-			update_post_meta( $post_id, 'dt_connection_map', $connection_map );
-			self::log( sprintf( 'Updated connection map for post %d.', $post_id ) );
+			if ( empty( $connection_map['external'] ) && empty( $connection_map['internal'] ) ) {
+				delete_post_meta( $post_id, 'dt_connection_map' );
+				self::log( sprintf( 'Deleted connection map for post %d.', $post_id ) );
+			} else {
+				update_post_meta( $post_id, 'dt_connection_map', $connection_map );
+				self::log( sprintf( 'Updated connection map for post %d.', $post_id ) );
+			}
 		}
 
 		// Delete the subscription post.
 		wp_delete_post( $subscription_id );
 		self::log( sprintf( 'Deleted subscription %d.', $subscription_id ) );
+
+		// Add migration data to the post.
+		add_post_meta(
+			$post_id,
+			self::MIGRATION_DATA_META,
+			[
+				'timestamp'       => time(),
+				'subscription_id' => $subscription_id,
+				'remote_post_id'  => $remote_post_id,
+				'target_url'      => $target_url,
+			]
+		);
 
 		if ( $migrate_incoming_post ) {
 			self::dispatch_incoming_posts_migration(
