@@ -209,6 +209,7 @@ class Integrity_Check_Endpoints {
 
 		global $wpdb;
 
+		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 		$query = "
 			SELECT DISTINCT 
 				u.user_email,
@@ -227,8 +228,9 @@ class Integrity_Check_Endpoints {
 			$query .= $wpdb->prepare( ' LIMIT %d', $max_records );
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users,WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results( $wpdb->prepare( $query, Memberships_Admin::NETWORK_ID_META_KEY ) );
+		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 
 		$membership_data = [];
 		foreach ( $results as $result ) {
@@ -261,6 +263,7 @@ class Integrity_Check_Endpoints {
 
 		global $wpdb;
 
+		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 		$query = "
 			SELECT DISTINCT 
 				u.user_email,
@@ -281,8 +284,9 @@ class Integrity_Check_Endpoints {
 			$query .= $wpdb->prepare( ' LIMIT %d', $max_records );
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users,WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results( $wpdb->prepare( $query, Memberships_Admin::NETWORK_ID_META_KEY, $start_email, $end_email ) );
+		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 
 		$membership_data = [];
 		foreach ( $results as $result ) {

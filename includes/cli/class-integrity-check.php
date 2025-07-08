@@ -133,7 +133,7 @@ class Integrity_Check {
 
 			$specific_discrepancies = self::find_discrepancies_chunked( $hub_data, $node, $chunk_size, $verbose, $max_records );
 
-			// Process discrepancies for this node
+			// Process discrepancies for this node.
 			foreach ( $specific_discrepancies as $discrepancy ) {
 				$key = $discrepancy['email'] . '::' . $discrepancy['network_id'];
 				
@@ -149,16 +149,16 @@ class Integrity_Check {
 			}
 		}
 
-		// Display consolidated table if there are any discrepancies
+		// Display consolidated table if there are any discrepancies.
 		if ( ! empty( $all_discrepancies ) ) {
 			WP_CLI::line( '' );
 			WP_CLI::line( sprintf( 'Found %d total discrepancies:', count( $all_discrepancies ) ) );
 			WP_CLI::line( '' );
 
-			// Prepare table data with node columns
+			// Prepare table data with node columns.
 			$table_data = [];
 			foreach ( $all_discrepancies as $discrepancy ) {
-				// Fill in missing node statuses with empty string
+				// Fill in missing node statuses with empty string.
 				foreach ( $node_columns as $column ) {
 					if ( ! isset( $discrepancy[ $column ] ) && ! in_array( $column, [ 'email', 'network_id', 'hub_status' ] ) ) {
 						$discrepancy[ $column ] = '';
@@ -167,7 +167,7 @@ class Integrity_Check {
 				$table_data[] = $discrepancy;
 			}
 
-			// Display as table using WP-CLI's table formatter
+			// Display as table using WP-CLI's table formatter.
 			WP_CLI\Utils\format_items( 'table', $table_data, $node_columns );
 		}
 
@@ -484,7 +484,7 @@ class Integrity_Check {
 			$hub_status = $hub_item ? $hub_item['status'] : 'NOT_FOUND';
 			$node_status = $node_item ? $node_item['status'] : 'NOT_FOUND';
 			
-			// Extract email and network_id for display
+			// Extract email and network_id for display.
 			$parts = explode( '::', $key );
 			$email = $parts[0];
 			$network_id = $parts[1];
