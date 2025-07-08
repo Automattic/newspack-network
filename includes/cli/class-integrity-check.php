@@ -172,7 +172,7 @@ class Integrity_Check {
 			WHERE p.post_type = 'wc_user_membership'
 			AND pm_network.meta_value IS NOT NULL
 			AND pm_network.meta_value != ''
-			ORDER BY u.user_email ASC
+			ORDER BY LOWER(u.user_email) ASC
 		";
 		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 
@@ -186,7 +186,7 @@ class Integrity_Check {
 		$membership_data = [];
 		foreach ( $results as $result ) {
 			$membership_data[] = [
-				'email'  => $result->user_email,
+				'email'  => strtolower( $result->user_email ),
 				'status' => $result->status,
 			];
 		}
@@ -378,7 +378,7 @@ class Integrity_Check {
 			$hub_chunk_hash = self::generate_hash( $hub_chunk );
 
 			// Get corresponding chunk hash from node using range.
-			$node_chunk_hash = self::get_node_range_hash( $node, $range['start'], $range['end'] );
+			$node_chunk_hash = self::get_node_range_hash( $node, $range['start'], $range['end'], $max_records );
 
 			if ( $verbose ) {
 				WP_CLI::line(
@@ -407,7 +407,7 @@ class Integrity_Check {
 				WP_CLI::line( sprintf( '    ✗ Chunk %d mismatch - fetching detailed data', $chunk_index + 1 ) );
 			}
 
-			$node_chunk_data = self::get_node_range_data( $node, $range['start'], $range['end'] );
+			$node_chunk_data = self::get_node_range_data( $node, $range['start'], $range['end'], $max_records );
 			$chunk_discrepancies = self::compare_chunk_data( $hub_chunk, $node_chunk_data );
 
 			$all_discrepancies = array_merge( $all_discrepancies, $chunk_discrepancies );
@@ -511,8 +511,11 @@ class Integrity_Check {
 	 */
 	private static function filter_data_by_range( $data, $start_email, $end_email ) {
 		$filtered = [];
+		$start_email = strtolower( $start_email );
+		$end_email = strtolower( $end_email );
+		
 		foreach ( $data as $item ) {
-			$email = $item['email'];
+			$email = strtolower( $item['email'] );
 			if ( $email >= $start_email && $email <= $end_email ) {
 				$filtered[] = $item;
 			}
@@ -526,19 +529,24 @@ class Integrity_Check {
 	 * @param \Newspack_Network\Node\Node $node The node to query.
 	 * @param string                      $start_email Start email for the range.
 	 * @param string                      $end_email End email for the range.
+	 * @param int|null                    $max_records Maximum number of records to include in hash (for testing).
 	 * @return string The range hash from the node
 	 */
-	private static function get_node_range_hash( $node, $start_email, $end_email ) {
+	private static function get_node_range_hash( $node, $start_email, $end_email, $max_records = null ) {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/range-hash', $node->get_url() );
+		
+		$query_args = [
+			'start' => strtolower( $start_email ),
+			'end'   => strtolower( $end_email ),
+		];
+		
+		if ( $max_records ) {
+			$query_args['max'] = $max_records;
+		}
+
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
 		$response = wp_remote_get(
-			add_query_arg(
-				[
-					'start' => $start_email,
-					'end'   => $end_email,
-				],
-				$endpoint
-			),
+			add_query_arg( $query_args, $endpoint ),
 			[
 				'headers' => $node->get_authorization_headers( 'integrity-check' ),
 				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
@@ -561,19 +569,24 @@ class Integrity_Check {
 	 * @param \Newspack_Network\Node\Node $node The node to query.
 	 * @param string                      $start_email Start email for the range.
 	 * @param string                      $end_email End email for the range.
+	 * @param int|null                    $max_records Maximum number of records to return (for testing).
 	 * @return array The range data from the node
 	 */
-	private static function get_node_range_data( $node, $start_email, $end_email ) {
+	private static function get_node_range_data( $node, $start_email, $end_email, $max_records = null ) {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/range-data', $node->get_url() );
+		
+		$query_args = [
+			'start' => strtolower( $start_email ),
+			'end'   => strtolower( $end_email ),
+		];
+		
+		if ( $max_records ) {
+			$query_args['max'] = $max_records;
+		}
+
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
 		$response = wp_remote_get(
-			add_query_arg(
-				[
-					'start' => $start_email,
-					'end'   => $end_email,
-				],
-				$endpoint
-			),
+			add_query_arg( $query_args, $endpoint ),
 			[
 				'headers' => $node->get_authorization_headers( 'integrity-check' ),
 				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
