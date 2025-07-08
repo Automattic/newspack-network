@@ -114,7 +114,7 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test email range creation
+	 * Test email range creation with fixed alphabetical ranges
 	 */
 	public function test_create_email_ranges() {
 		$integrity_check_reflection = new ReflectionClass( Integrity_Check::class );
@@ -128,17 +128,22 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 			[ 'email' => 'd@test.com' ],
 		];
 
+		// Test with target chunk size of 2 - should consolidate ranges.
 		$created_ranges = $create_email_ranges_method->invoke( null, $email_range_test_data, 2 );
 		$this->assertCount( 2, $created_ranges );
 		
-		// First range.
-		$this->assertEquals( 'a@test.com', $created_ranges[0]['start'] );
-		$this->assertEquals( 'b@test.com', $created_ranges[0]['end'] );
+		// Fixed ranges are consolidated when fewer chunks are needed.
+		$this->assertEquals( '0', $created_ranges[0]['start'] );
+		$this->assertEquals( 'k', $created_ranges[0]['end'] );
 		
-		// Second range.
-		$this->assertEquals( 'c@test.com', $created_ranges[1]['start'] );
-		// The end boundary depends on whether this is the last chunk.
-		$this->assertTrue( $created_ranges[1]['end'] === 'd@test.com' || $created_ranges[1]['end'] === 'zzzzz' );
+		$this->assertEquals( 'l', $created_ranges[1]['start'] );
+		$this->assertEquals( 'zzzzz', $created_ranges[1]['end'] );
+		
+		// Test with larger chunk size - should use default fixed ranges.
+		$large_ranges = $create_email_ranges_method->invoke( null, $email_range_test_data, 1000 );
+		$this->assertCount( 1, $large_ranges );
+		$this->assertEquals( '0', $large_ranges[0]['start'] );
+		$this->assertEquals( 'zzzzz', $large_ranges[0]['end'] );
 	}
 
 

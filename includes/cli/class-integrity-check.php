@@ -440,11 +440,11 @@ class Integrity_Check {
 	}
 
 	/**
-	 * Create email ranges based on actual data distribution
+	 * Create fixed email ranges for consistent chunking
 	 *
-	 * Creates content-based ranges instead of positional chunks to solve the shifting problem.
-	 * Each range covers a specific email address span (e.g., 'a@domain.com' to 'm@domain.com').
-	 * When emails are added/removed, only the affected range needs re-checking, not all chunks.
+	 * Creates fixed alphabetical ranges that are consistent across hub and nodes
+	 * regardless of data distribution differences. This prevents boundary mismatches
+	 * that occur when hub and nodes have different membership counts.
 	 *
 	 * @param array $hub_data Hub membership data (sorted by email).
 	 * @param int   $target_chunk_size Target number of emails per chunk.
@@ -455,32 +455,93 @@ class Integrity_Check {
 			return [];
 		}
 
+		// Use fixed alphabetical ranges instead of data-dependent ranges.
+		// This ensures consistent boundaries regardless of data distribution.
+		$fixed_ranges = [
+			[
+				'start' => '0',
+				'end'   => 'c',
+			],
+			[
+				'start' => 'd',
+				'end'   => 'g',
+			],
+			[
+				'start' => 'h',
+				'end'   => 'k',
+			],
+			[
+				'start' => 'l',
+				'end'   => 'o',
+			],
+			[
+				'start' => 'p',
+				'end'   => 's',
+			],
+			[
+				'start' => 't',
+				'end'   => 'zzzzz',
+			],
+		];
+
+		// Calculate target ranges based on data size and target chunk size.
 		$total_emails = count( $hub_data );
-		$num_chunks = max( 1, ceil( $total_emails / $target_chunk_size ) );
-		$actual_chunk_size = ceil( $total_emails / $num_chunks );
-
-		$ranges = [];
-		for ( $i = 0; $i < $num_chunks; $i++ ) {
-			$start_index = $i * $actual_chunk_size;
-			$end_index = min( ( $i + 1 ) * $actual_chunk_size - 1, $total_emails - 1 );
-
-			$start_email = $hub_data[ $start_index ]['email'];
+		$target_ranges = max( 1, ceil( $total_emails / $target_chunk_size ) );
+		
+		// If we need fewer ranges, combine adjacent ranges.
+		if ( $target_ranges < count( $fixed_ranges ) ) {
+			$consolidated_ranges = [];
+			$ranges_per_group = ceil( count( $fixed_ranges ) / $target_ranges );
 			
-			// For the last chunk, extend to ensure we capture everything beyond the last email.
-			if ( $i === $num_chunks - 1 ) {
-				$end_email_boundary = 'zzzzz';
-			} else {
-				// Use the last email of this chunk as the end boundary.
-				$end_email_boundary = $hub_data[ $end_index ]['email'];
+			$current_idx = 0;
+			$fixed_ranges_count = count( $fixed_ranges );
+			while ( $current_idx < $fixed_ranges_count ) {
+				$start_idx = $current_idx;
+				$end_idx = min( $current_idx + $ranges_per_group - 1, $fixed_ranges_count - 1 );
+				
+				$consolidated_ranges[] = [
+					'start' => $fixed_ranges[ $start_idx ]['start'],
+					'end'   => $fixed_ranges[ $end_idx ]['end'],
+				];
+				
+				$current_idx += $ranges_per_group;
 			}
-
-			$ranges[] = [
-				'start' => $start_email,
-				'end'   => $end_email_boundary,
-			];
+			
+			return $consolidated_ranges;
+		}
+		
+		// If we need more ranges, subdivide the alphabet further.
+		if ( $target_ranges > count( $fixed_ranges ) ) {
+			$alphabet = 'abcdefghijklmnopqrstuvwxyz';
+			$ranges = [];
+			$chars_per_range = max( 1, floor( 26 / $target_ranges ) );
+			
+			// Ensure we don't exceed available alphabet characters.
+			$actual_target_ranges = min( $target_ranges, 26 );
+			
+			for ( $i = 0; $i < $actual_target_ranges; $i++ ) {
+				$start_char_idx = $i * $chars_per_range;
+				$end_char_idx = min( $start_char_idx + $chars_per_range - 1, 25 );
+				
+				// Validate array bounds.
+				if ( $start_char_idx >= 26 ) {
+					break;
+				}
+				
+				$start_char = $alphabet[ $start_char_idx ];
+				$end_char = ( $i === $actual_target_ranges - 1 ) ? 'zzzzz' : $alphabet[ $end_char_idx ];
+				
+				$ranges[] = [
+					'start' => $start_char,
+					'end'   => $end_char,
+				];
+			}
+			
+			return $ranges;
 		}
 
-		return $ranges;
+		// Default to fixed ranges.
+		return $fixed_ranges;
 	}
 
 
