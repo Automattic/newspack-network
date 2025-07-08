@@ -22,6 +22,11 @@ class Distributor_Migrator {
 	const MIGRATION_LOCK_TRANSIENT_NAME = 'newspack_network_distributor_migration_lock';
 
 	/**
+	 * Log indentation level.
+	 */
+	private static $log_indentation = 0;
+
+	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
@@ -36,10 +41,11 @@ class Distributor_Migrator {
 	 * @param string $message The message to log.
 	 */
 	public static function log( $message ) {
+		$message = str_repeat( '  ', self::$log_indentation ) . $message;
 		if ( defined( 'WP_CLI' ) ) {
 			WP_CLI::log( $message );
-		} else {
-			error_log( $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		} elseif ( method_exists( 'Newspack\Logger', 'log' ) ) {
+			\Newspack\Logger::log( $message );
 		}
 	}
 
@@ -432,10 +438,13 @@ class Distributor_Migrator {
 
 		$errors = new WP_Error();
 		foreach ( $subscription_ids as $subscription_id ) {
+			self::$log_indentation++;
 			self::log( sprintf( 'Migrating subscription %d.', $subscription_id ) );
 			$remote_post_id = get_post_meta( $subscription_id, 'dt_subscription_remote_post_id', true );
 			$site_url       = get_post_meta( $subscription_id, 'dt_subscription_target_url', true );
+			self::$log_indentation++;
 			$migration_result = self::migrate_subscription( $subscription_id, false );
+			--self::$log_indentation;
 			if ( is_wp_error( $migration_result ) ) {
 				$errors->add( $migration_result->get_error_code(), $migration_result->get_error_message() );
 				continue;
@@ -446,6 +455,7 @@ class Distributor_Migrator {
 				'site_url' => $site_url,
 				'post_id'  => $remote_post_id,
 			];
+			--self::$log_indentation;
 		}
 
 		if ( ! empty( $incoming_posts ) ) {
@@ -489,14 +499,17 @@ class Distributor_Migrator {
 		) {
 			return $distribution;
 		}
+		self::log( sprintf( 'Set distribution for post %d to %s.', $post_id, $network_url ) );
 
 		// Clear the subscription meta from the post.
 		$subscriptions = get_post_meta( $post_id, 'dt_subscriptions', true );
 		$subscriptions = array_diff( $subscriptions, [ $subscription_id ] );
 		if ( empty( $subscriptions ) ) {
 			delete_post_meta( $post_id, 'dt_subscriptions' );
+			self::log( sprintf( 'Deleted subscriptions for post %d.', $post_id ) );
 		} else {
 			update_post_meta( $post_id, 'dt_subscriptions', $subscriptions );
+			self::log( sprintf( 'Updated subscriptions for post %d.', $post_id ) );
 		}
 
 		// Clear the connection map from the post.
@@ -511,12 +524,15 @@ class Distributor_Migrator {
 		}
 		if ( empty( $connection_map['external'] ) && empty( $connection_map['internal'] ) ) {
 			delete_post_meta( $post_id, 'dt_connection_map' );
+			self::log( sprintf( 'Deleted connection map for post %d.', $post_id ) );
 		} else {
 			update_post_meta( $post_id, 'dt_connection_map', $connection_map );
+			self::log( sprintf( 'Updated connection map for post %d.', $post_id ) );
 		}
 
 		// Delete the subscription post.
 		wp_delete_post( $subscription_id );
+		self::log( sprintf( 'Deleted subscription %d.', $subscription_id ) );
 
 		if ( $migrate_incoming_post ) {
 			self::dispatch_incoming_posts_migration(
