@@ -120,44 +120,55 @@ class Integrity_Check {
 
 		WP_CLI::warning( sprintf( 'Found %d nodes with discrepancies', count( $discrepancies ) ) );
 
-		// Step 3: For each discrepant node, perform chunked verification.
+		// Step 3: Collect discrepancies from all nodes into a consolidated table.
+		$all_discrepancies = [];
+		$node_columns = [ 'email', 'network_id', 'hub_status' ];
+		
 		foreach ( $discrepancies as $node ) {
 			WP_CLI::line( sprintf( 'Analyzing discrepancies for node: %s', $node->get_url() ) );
+			
+			$node_url = $node->get_url();
+			$node_name = str_replace( [ 'https://www.', 'https://', 'http://www.', 'http://' ], '', $node_url );
+			$node_columns[] = $node_name;
 
 			$specific_discrepancies = self::find_discrepancies_chunked( $hub_data, $node, $chunk_size, $verbose, $max_records );
 
-			if ( ! empty( $specific_discrepancies ) ) {
-				// Deduplicate discrepancies by (email, network_id) pair to prevent duplicate entries
-				$deduplicated_discrepancies = [];
-				$seen_keys = [];
+			// Process discrepancies for this node
+			foreach ( $specific_discrepancies as $discrepancy ) {
+				$key = $discrepancy['email'] . '::' . $discrepancy['network_id'];
 				
-				foreach ( $specific_discrepancies as $discrepancy ) {
-					$key = $discrepancy['email'] . '::' . $discrepancy['network_id'];
-					if ( ! isset( $seen_keys[ $key ] ) ) {
-						$deduplicated_discrepancies[] = $discrepancy;
-						$seen_keys[ $key ] = true;
-					}
-				}
-				
-				WP_CLI::line( sprintf( 'Found %d specific discrepancies:', count( $deduplicated_discrepancies ) ) );
-				WP_CLI::line( '' );
-
-				// Prepare table data for WP-CLI table.
-				$table_data = [];
-				foreach ( $deduplicated_discrepancies as $discrepancy ) {
-					$table_data[] = [
-						'email'       => $discrepancy['email'],
-						'network_id'  => $discrepancy['network_id'],
-						'hub_status'  => $discrepancy['hub_status'],
-						'node_status' => $discrepancy['node_status'],
+				if ( ! isset( $all_discrepancies[ $key ] ) ) {
+					$all_discrepancies[ $key ] = [
+						'email'      => $discrepancy['email'],
+						'network_id' => $discrepancy['network_id'],
+						'hub_status' => $discrepancy['hub_status'],
 					];
 				}
+				
+				$all_discrepancies[ $key ][ $node_name ] = $discrepancy['node_status'];
+			}
+		}
 
-				// Display as table using WP-CLI's table formatter.
-				WP_CLI\Utils\format_items( 'table', $table_data, [ 'email', 'network_id', 'hub_status', 'node_status' ] );
+		// Display consolidated table if there are any discrepancies
+		if ( ! empty( $all_discrepancies ) ) {
+			WP_CLI::line( '' );
+			WP_CLI::line( sprintf( 'Found %d total discrepancies:', count( $all_discrepancies ) ) );
+			WP_CLI::line( '' );
+
+			// Prepare table data with node columns
+			$table_data = [];
+			foreach ( $all_discrepancies as $discrepancy ) {
+				// Fill in missing node statuses with empty string
+				foreach ( $node_columns as $column ) {
+					if ( ! isset( $discrepancy[ $column ] ) && ! in_array( $column, [ 'email', 'network_id', 'hub_status' ] ) ) {
+						$discrepancy[ $column ] = '';
+					}
+				}
+				$table_data[] = $discrepancy;
 			}
 
-			WP_CLI::line( '' );
+			// Display as table using WP-CLI's table formatter
+			WP_CLI\Utils\format_items( 'table', $table_data, $node_columns );
 		}
 
 		if ( $fix_discrepancies ) {
