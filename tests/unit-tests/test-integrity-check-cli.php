@@ -6,6 +6,7 @@
  */
 
 use Newspack_Network\CLI\Integrity_Check;
+use Newspack_Network\Integrity_Check_Utils;
 
 /**
  * Test the Integrity Check CLI class.
@@ -16,12 +17,9 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 	 * Test hash generation for different scenarios
 	 */
 	public function test_generate_hash() {
-		$integrity_check_reflection = new ReflectionClass( Integrity_Check::class );
-		$generate_hash_method = $integrity_check_reflection->getMethod( 'generate_hash' );
-		$generate_hash_method->setAccessible( true );
 
 		// Empty data should return empty string.
-		$empty_data_hash = $generate_hash_method->invoke( null, [] );
+		$empty_data_hash = Integrity_Check_Utils::generate_hash( [] );
 		$this->assertEquals( '', $empty_data_hash );
 
 		// Single item hash.
@@ -32,7 +30,7 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 				'network_id' => 'test-plan',
 			],
 		];
-		$single_item_hash = $generate_hash_method->invoke( null, $single_membership_data );
+		$single_item_hash = Integrity_Check_Utils::generate_hash( $single_membership_data );
 		$expected_single_hash = hash( 'sha256', "test@example.com:wcm-active:test-plan\n" );
 		$this->assertEquals( $expected_single_hash, $single_item_hash );
 
@@ -49,14 +47,14 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 				'network_id' => 'plan-b',
 			],
 		];
-		$multiple_items_hash = $generate_hash_method->invoke( null, $multiple_memberships_data );
+		$multiple_items_hash = Integrity_Check_Utils::generate_hash( $multiple_memberships_data );
 		$expected_multiple_string = "test1@example.com:wcm-active:plan-a\ntest2@example.com:wcm-cancelled:plan-b\n";
 		$expected_multiple_hash = hash( 'sha256', $expected_multiple_string );
 		$this->assertEquals( $expected_multiple_hash, $multiple_items_hash );
 
 		// Hash consistency - same data should produce same hash.
-		$first_consistency_hash = $generate_hash_method->invoke( null, $multiple_memberships_data );
-		$second_consistency_hash = $generate_hash_method->invoke( null, $multiple_memberships_data );
+		$first_consistency_hash = Integrity_Check_Utils::generate_hash( $multiple_memberships_data );
+		$second_consistency_hash = Integrity_Check_Utils::generate_hash( $multiple_memberships_data );
 		$this->assertEquals( $first_consistency_hash, $second_consistency_hash );
 	}
 
@@ -64,9 +62,6 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 	 * Test email range filtering
 	 */
 	public function test_filter_data_by_range() {
-		$integrity_check_reflection = new ReflectionClass( Integrity_Check::class );
-		$filter_data_by_range_method = $integrity_check_reflection->getMethod( 'filter_data_by_range' );
-		$filter_data_by_range_method->setAccessible( true );
 
 		$membership_test_data = [
 			[
@@ -92,11 +87,11 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 		];
 
 		// Test filtering by range (alice to david should include all).
-		$all_filtered_results = $filter_data_by_range_method->invoke( null, $membership_test_data, 'alice@example.com', 'david@example.com' );
+		$all_filtered_results = Integrity_Check_Utils::filter_data_by_range( $membership_test_data, 'alice@example.com', 'david@example.com' );
 		$this->assertCount( 4, $all_filtered_results );
 		
 		// Test filtering by range (b to d should include bob, charlie).
-		$partial_filtered_results = $filter_data_by_range_method->invoke( null, $membership_test_data, 'b', 'd' );
+		$partial_filtered_results = Integrity_Check_Utils::filter_data_by_range( $membership_test_data, 'b', 'd' );
 		$this->assertCount( 2, $partial_filtered_results );
 		$this->assertEquals( 'bob@example.com', $partial_filtered_results[0]['email'] );
 		$this->assertEquals( 'charlie@example.com', $partial_filtered_results[1]['email'] );
@@ -114,7 +109,7 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 				'network_id' => 'plan1',
 			],
 		];
-		$case_insensitive_results = $filter_data_by_range_method->invoke( null, $case_insensitive_test_data, 'a', 'z' );
+		$case_insensitive_results = Integrity_Check_Utils::filter_data_by_range( $case_insensitive_test_data, 'a', 'z' );
 		$this->assertCount( 2, $case_insensitive_results );
 	}
 

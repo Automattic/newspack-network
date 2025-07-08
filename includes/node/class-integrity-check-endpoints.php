@@ -7,7 +7,7 @@
 
 namespace Newspack_Network\Node;
 
-use Newspack_Network\Woocommerce_Memberships\Admin as Memberships_Admin;
+use Newspack_Network\Integrity_Check_Utils;
 
 /**
  * Class that registers the integrity check endpoints for nodes
@@ -121,8 +121,8 @@ class Integrity_Check_Endpoints {
 	 */
 	public static function handle_hash_request( $request ) {
 		$max_records = $request->get_param( 'max' );
-		$membership_data = self::get_node_membership_data( $max_records );
-		$hash = self::generate_hash( $membership_data );
+		$membership_data = Integrity_Check_Utils::get_membership_data( $max_records );
+		$hash = Integrity_Check_Utils::generate_hash( $membership_data );
 
 		return rest_ensure_response(
 			[
@@ -138,7 +138,7 @@ class Integrity_Check_Endpoints {
 	 * @param \WP_REST_Request $request The REST request object.
 	 */
 	public static function handle_memberships_request( $request ) {
-		$membership_data = self::get_node_membership_data();
+		$membership_data = Integrity_Check_Utils::get_membership_data();
 
 		return rest_ensure_response(
 			[
@@ -161,8 +161,8 @@ class Integrity_Check_Endpoints {
 		$end_email = strtolower( $request->get_param( 'end' ) );
 		$max_records = $request->get_param( 'max' );
 
-		$range_data = self::get_node_membership_data_range( $start_email, $end_email, $max_records );
-		$hash = self::generate_hash( $range_data );
+		$range_data = Integrity_Check_Utils::get_membership_data_range( $start_email, $end_email, $max_records );
+		$hash = Integrity_Check_Utils::generate_hash( $range_data );
 
 		return rest_ensure_response(
 			[
@@ -184,7 +184,7 @@ class Integrity_Check_Endpoints {
 		$end_email = strtolower( $request->get_param( 'end' ) );
 		$max_records = $request->get_param( 'max' );
 
-		$range_data = self::get_node_membership_data_range( $start_email, $end_email, $max_records );
+		$range_data = Integrity_Check_Utils::get_membership_data_range( $start_email, $end_email, $max_records );
 
 		return rest_ensure_response(
 			[
@@ -194,129 +194,5 @@ class Integrity_Check_Endpoints {
 				'count'       => count( $range_data ),
 			]
 		);
-	}
-
-	/**
-	 * Get all membership data from the node
-	 *
-	 * @param int|null $max_records Maximum number of records to return (for testing).
-	 * @return array Array of (email, status) pairs
-	 */
-	private static function get_node_membership_data( $max_records = null ) {
-		if ( ! class_exists( 'WC_Memberships_User_Membership' ) ) {
-			return [];
-		}
-
-		global $wpdb;
-
-		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-		$query = "
-			SELECT DISTINCT 
-				u.user_email,
-				p.post_status as status,
-				pm_network.meta_value as network_id
-			FROM {$wpdb->posts} p
-			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
-			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
-			WHERE p.post_type = 'wc_user_membership'
-			AND pm_network.meta_value IS NOT NULL
-			AND pm_network.meta_value != ''
-			ORDER BY LOWER(u.user_email) ASC
-		";
-
-		if ( $max_records ) {
-			$query .= $wpdb->prepare( ' LIMIT %d', $max_records );
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $wpdb->prepare( $query, Memberships_Admin::NETWORK_ID_META_KEY ) );
-		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-
-		$membership_data = [];
-		foreach ( $results as $result ) {
-			$membership_data[] = [
-				'email'      => strtolower( $result->user_email ),
-				'status'     => $result->status,
-				'network_id' => $result->network_id,
-			];
-		}
-
-		return $membership_data;
-	}
-
-	/**
-	 * Get membership data from the node within an email range
-	 *
-	 * Filters memberships by email address range rather than positional offset.
-	 * This enables range-based chunking that's resilient to data shifts when
-	 * memberships are added/removed from the beginning or middle of the dataset.
-	 *
-	 * @param string   $start_email The start email (inclusive).
-	 * @param string   $end_email The end email (inclusive).
-	 * @param int|null $max_records Maximum number of records to return (for testing).
-	 * @return array Array of (email, status) pairs
-	 */
-	private static function get_node_membership_data_range( $start_email, $end_email, $max_records = null ) {
-		if ( ! class_exists( 'WC_Memberships_User_Membership' ) ) {
-			return [];
-		}
-
-		global $wpdb;
-
-		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-		$query = "
-			SELECT DISTINCT 
-				u.user_email,
-				p.post_status as status,
-				pm_network.meta_value as network_id
-			FROM {$wpdb->posts} p
-			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
-			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
-			WHERE p.post_type = 'wc_user_membership'
-			AND pm_network.meta_value IS NOT NULL
-			AND pm_network.meta_value != ''
-			AND LOWER(u.user_email) >= %s
-			AND LOWER(u.user_email) <= %s
-			ORDER BY LOWER(u.user_email) ASC
-		";
-
-		if ( $max_records ) {
-			$query .= $wpdb->prepare( ' LIMIT %d', $max_records );
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $wpdb->prepare( $query, Memberships_Admin::NETWORK_ID_META_KEY, $start_email, $end_email ) );
-		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-
-		$membership_data = [];
-		foreach ( $results as $result ) {
-			$membership_data[] = [
-				'email'      => strtolower( $result->user_email ),
-				'status'     => $result->status,
-				'network_id' => $result->network_id,
-			];
-		}
-
-		return $membership_data;
-	}
-
-	/**
-	 * Generate a hash from membership data
-	 *
-	 * @param array $data Array of (email, status) pairs.
-	 * @return string SHA-256 hash
-	 */
-	private static function generate_hash( $data ) {
-		if ( empty( $data ) ) {
-			return '';
-		}
-
-		// Create a string representation of the data for hashing.
-		$hash_string = '';
-		foreach ( $data as $item ) {
-			$hash_string .= $item['email'] . ':' . $item['status'] . ':' . $item['network_id'] . "\n";
-		}
-
-		return hash( 'sha256', $hash_string );
 	}
 }

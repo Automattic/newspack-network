@@ -9,7 +9,7 @@ namespace Newspack_Network\CLI;
 
 use Newspack_Network\Site_Role;
 use Newspack_Network\Hub\Nodes;
-use Newspack_Network\Woocommerce_Memberships\Admin as Memberships_Admin;
+use Newspack_Network\Integrity_Check_Utils;
 use WP_CLI;
 
 /**
@@ -83,8 +83,8 @@ class Integrity_Check {
 		WP_CLI::line( '' );
 
 		// Step 1: Get hub's membership data and generate hash.
-		$hub_data = self::get_hub_membership_data( $max_records );
-		$hub_hash = self::generate_hash( $hub_data );
+		$hub_data = Integrity_Check_Utils::get_membership_data( $max_records );
+		$hub_hash = Integrity_Check_Utils::generate_hash( $hub_data );
 
 		if ( $verbose ) {
 			WP_CLI::line( sprintf( '%d memberships found on the hub', count( $hub_data ) ) );
@@ -176,53 +176,6 @@ class Integrity_Check {
 		}
 	}
 
-	/**
-	 * Get all membership data from the hub
-	 *
-	 * @param int|null $max_records Maximum number of records to return (for testing).
-	 * @return array Array of (email, status) pairs
-	 */
-	private static function get_hub_membership_data( $max_records = null ) {
-		if ( ! class_exists( 'WC_Memberships_User_Membership' ) ) {
-			WP_CLI::error( 'WooCommerce Memberships plugin is not active.' );
-		}
-
-		global $wpdb;
-
-		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-		$query = "
-			SELECT DISTINCT
-				u.user_email,
-				p.post_status as status,
-				pm_network.meta_value as network_id
-			FROM {$wpdb->posts} p
-			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
-			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
-			WHERE p.post_type = 'wc_user_membership'
-			AND pm_network.meta_value IS NOT NULL
-			AND pm_network.meta_value != ''
-			ORDER BY LOWER(u.user_email) ASC
-		";
-		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-
-		if ( $max_records ) {
-			$query .= $wpdb->prepare( ' LIMIT %d', $max_records );
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users,WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $wpdb->prepare( $query, Memberships_Admin::NETWORK_ID_META_KEY ) );
-
-		$membership_data = [];
-		foreach ( $results as $result ) {
-			$membership_data[] = [
-				'email'      => strtolower( $result->user_email ),
-				'status'     => $result->status,
-				'network_id' => $result->network_id,
-			];
-		}
-
-		return $membership_data;
-	}
 
 	/**
 	 * Get membership data from a node via REST API
@@ -232,6 +185,7 @@ class Integrity_Check {
 	 */
 	private static function get_node_membership_data( $node ) {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/memberships', $node->get_url() );
+		$endpoint = add_query_arg( [ '_t' => time() ], $endpoint ); // Cache-busting parameter.
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
 		$response = wp_remote_get(
 			$endpoint,
@@ -261,9 +215,11 @@ class Integrity_Check {
 	private static function get_node_hash( $node, $max_records = null ) {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/hash', $node->get_url() );
 
+		$query_args = [ '_t' => time() ]; // Cache-busting parameter.
 		if ( $max_records ) {
-			$endpoint = add_query_arg( [ 'max' => $max_records ], $endpoint );
+			$query_args['max'] = $max_records;
 		}
+		$endpoint = add_query_arg( $query_args, $endpoint );
 
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
 		$response = wp_remote_get(
@@ -354,25 +310,6 @@ class Integrity_Check {
 		return $data['memberships'] ?? [];
 	}
 
-	/**
-	 * Generate a hash from membership data
-	 *
-	 * @param array $data Array of (email, status) pairs.
-	 * @return string SHA-256 hash
-	 */
-	private static function generate_hash( $data ) {
-		if ( empty( $data ) ) {
-			return '';
-		}
-
-		// Create a string representation of the data for hashing.
-		$hash_string = '';
-		foreach ( $data as $item ) {
-			$hash_string .= $item['email'] . ':' . $item['status'] . ':' . $item['network_id'] . "\n";
-		}
-
-		return hash( 'sha256', $hash_string );
-	}
 
 	/**
 	 * Find specific discrepancies between hub and node data using range-based chunked approach
@@ -402,10 +339,10 @@ class Integrity_Check {
 
 		foreach ( $email_ranges as $chunk_index => $range ) {
 			// Get hub chunk data for this range.
-			$hub_chunk = self::filter_data_by_range( $hub_data, $range['start'], $range['end'] );
+			$hub_chunk = Integrity_Check_Utils::filter_data_by_range( $hub_data, $range['start'], $range['end'] );
 
 			// Generate hash for this chunk from hub data.
-			$hub_chunk_hash = self::generate_hash( $hub_chunk );
+			$hub_chunk_hash = Integrity_Check_Utils::generate_hash( $hub_chunk );
 
 			// Get corresponding chunk hash from node using range.
 			$node_chunk_hash = self::get_node_range_hash( $node, $range['start'], $range['end'], $max_records );
@@ -528,10 +465,14 @@ class Integrity_Check {
 			$end_index = min( ( $i + 1 ) * $actual_chunk_size - 1, $total_emails - 1 );
 
 			$start_email = $hub_data[ $start_index ]['email'];
-			$end_email = $hub_data[ $end_index ]['email'];
-
+			
 			// For the last chunk, extend to ensure we capture everything beyond the last email.
-			$end_email_boundary = ( $i === $num_chunks - 1 ) ? 'zzzzz' : $end_email;
+			if ( $i === $num_chunks - 1 ) {
+				$end_email_boundary = 'zzzzz';
+			} else {
+				// Use the last email of this chunk as the end boundary.
+				$end_email_boundary = $hub_data[ $end_index ]['email'];
+			}
 
 			$ranges[] = [
 				'start' => $start_email,
@@ -542,27 +483,6 @@ class Integrity_Check {
 		return $ranges;
 	}
 
-	/**
-	 * Filter membership data by email range
-	 *
-	 * @param array  $data Membership data.
-	 * @param string $start_email Start email (inclusive).
-	 * @param string $end_email End email (inclusive).
-	 * @return array Filtered data
-	 */
-	private static function filter_data_by_range( $data, $start_email, $end_email ) {
-		$filtered = [];
-		$start_email = strtolower( $start_email );
-		$end_email = strtolower( $end_email );
-		
-		foreach ( $data as $item ) {
-			$email = strtolower( $item['email'] );
-			if ( $email >= $start_email && $email <= $end_email ) {
-				$filtered[] = $item;
-			}
-		}
-		return $filtered;
-	}
 
 	/**
 	 * Get range hash from a node via REST API
@@ -579,6 +499,7 @@ class Integrity_Check {
 		$query_args = [
 			'start' => strtolower( $start_email ),
 			'end'   => strtolower( $end_email ),
+			'_t'    => time(), // Cache-busting parameter.
 		];
 		
 		if ( $max_records ) {
@@ -619,6 +540,7 @@ class Integrity_Check {
 		$query_args = [
 			'start' => strtolower( $start_email ),
 			'end'   => strtolower( $end_email ),
+			'_t'    => time(), // Cache-busting parameter.
 		];
 		
 		if ( $max_records ) {
