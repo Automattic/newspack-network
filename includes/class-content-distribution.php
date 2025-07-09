@@ -354,7 +354,17 @@ class Content_Distribution {
 		 *
 		 * @param array $post_types Array of post types.
 		 */
-		return apply_filters( 'newspack_network_distributed_post_types', [ 'post', 'page' ] );
+		return apply_filters(
+			'newspack_network_distributed_post_types',
+			[
+				'post',
+				'page',
+				'newspack_lst_event',
+				'newspack_lst_generic',
+				'newspack_lst_mktplce',
+				'newspack_lst_place',
+			]
+		);
 	}
 
 	/**
@@ -386,6 +396,23 @@ class Content_Distribution {
 		 */
 		$ignored_keys = apply_filters( 'newspack_network_content_distribution_ignored_post_meta_keys', $ignored_keys );
 
+		// Always ignore Distributor meta.
+		$distributor_meta = [
+			'dt_full_connection',
+			'dt_original_post_id',
+			'dt_original_post_url',
+			'dt_original_site_name',
+			'dt_original_site_url',
+			'dt_original_source_id',
+			'dt_subscription_signature',
+			'dt_syndicate_time',
+			'dt_unlinked',
+			'dt_subscriptions',
+			'dt_subscription_update',
+			'dt_connection_map',
+		];
+		$ignored_keys = array_merge( $ignored_keys, $distributor_meta );
+
 		// Always ignore content distribution post meta.
 		return array_merge(
 			$ignored_keys,
@@ -397,6 +424,7 @@ class Content_Distribution {
 				Incoming_Post::UNLINKED_META,
 				Incoming_Post::ATTACHMENT_META,
 				Incoming_Post::STATUS_ON_PUBLISH_META,
+				Distributor_Migrator::MIGRATION_DATA_META,
 			]
 		);
 	}
