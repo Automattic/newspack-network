@@ -188,7 +188,7 @@ class TestDistributorMigrator extends \WP_UnitTestCase {
 		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
 			// Create a simple mock class instead of using Mockery.
 			if ( ! class_exists( 'Newspack\Data_Events' ) ) {
-				eval(
+				eval( // phpcs:ignore Squiz.PHP.Eval.Discouraged
 					'
 					namespace Newspack {
 						class Data_Events {
@@ -247,7 +247,7 @@ class TestDistributorMigrator extends \WP_UnitTestCase {
 		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
 			// Create a simple mock class instead of using Mockery.
 			if ( ! class_exists( 'Newspack\Data_Events' ) ) {
-				eval(
+				eval( // phpcs:ignore Squiz.PHP.Eval.Discouraged
 					'
 					namespace Newspack {
 						class Data_Events {
