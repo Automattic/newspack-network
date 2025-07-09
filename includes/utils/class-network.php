@@ -32,7 +32,8 @@ class Network {
 			...array_map( fn( $node ) => $node['url'], get_option( Hub_Node::HUB_NODES_SYNCED_OPTION, [] ) ),
 		];
 
-		return array_map( 'untrailingslashit', $urls );
+		// Filter out empty values and apply untrailingslashit.
+		return array_map( 'untrailingslashit', array_filter( $urls ) );
 	}
 
 	/**

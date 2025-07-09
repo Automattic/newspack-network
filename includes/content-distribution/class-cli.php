@@ -188,57 +188,57 @@ class CLI {
 		if ( isset( $assoc_args['all'] ) ) {
 			$strict = isset( $assoc_args['strict'] );
 
-			$post_ids = Distributor_Migrator::get_posts_with_distributor_subscriptions();
+			$subscription_ids = Distributor_Migrator::get_distributor_subscriptions();
 
-			if ( empty( $post_ids ) ) {
-				WP_CLI::success( 'No distributed posts found.' );
+			if ( empty( $subscription_ids ) ) {
+				WP_CLI::success( 'No subscriptions found.' );
 				return;
 			}
 
-			WP_CLI::line( sprintf( 'Found %d posts.', count( $post_ids ) ) );
+			WP_CLI::log( sprintf( 'Found %d subscriptions.', count( $subscription_ids ) ) );
 
 			// In strict mode, only continue if all posts can be migrated.
 			if ( $strict ) {
-				$errors = [];
-				foreach ( $post_ids as $post_id ) {
-					$can_migrate = Distributor_Migrator::can_migrate_outgoing_post( $post_id );
+				$errors = new WP_Error();
+				foreach ( $subscription_ids as $subscription_id ) {
+					$can_migrate = Distributor_Migrator::can_migrate_subscription( $subscription_id );
 					if ( is_wp_error( $can_migrate ) ) {
-						$errors[] = sprintf( 'Unable to migrate post %d: %s', $post_id, $can_migrate->get_error_message() );
+						$errors->add( $can_migrate->get_error_code(), sprintf( 'Unable to migrate subscription %d: %s', $subscription_id, $can_migrate->get_error_message() ) );
 					}
 				}
-				if ( ! empty( $errors ) ) {
-					WP_CLI::error( 'Strict mode is enabled: ' . PHP_EOL . implode( PHP_EOL, $errors ) );
+				if ( $errors->has_errors() ) {
+					WP_CLI::error( 'Strict mode is enabled: ' . PHP_EOL . implode( PHP_EOL, $errors->get_error_messages() ) );
 				}
 			}
 
 			// Migrate posts.
 			$errors     = new WP_Error();
 			$batch_size = $assoc_args['batch-size'] ?? 50;
-			$batches    = array_chunk( $post_ids, $batch_size );
+			$batches    = array_chunk( $subscription_ids, $batch_size );
 
 			foreach ( $batches as $i => $batch ) {
 				if ( ! $dry_run ) {
-					$result = Distributor_Migrator::migrate_outgoing_posts( $batch );
+					$result = Distributor_Migrator::migrate_subscriptions( $batch );
 					if ( is_wp_error( $result ) ) {
 						$message = sprintf( '(%d/%d) Error migrating batch: %s', $i + 1, count( $batches ), $result->get_error_message() );
 						if ( $strict ) {
 							WP_CLI::error( $message );
 						} else {
 							$errors->add( $result->get_error_code(), $result->get_error_message() );
-							WP_CLI::line( $message );
+							WP_CLI::log( $message );
 						}
 					} else {
-						WP_CLI::line( sprintf( '(%d/%d) Batch migrated.', $i + 1, count( $batches ) ) );
+						WP_CLI::log( sprintf( '(%d/%d) Batch migrated.', $i + 1, count( $batches ) ) );
 					}
 				} else {
-					WP_CLI::line( sprintf( '(%d/%d) Batch would be migrated.', $i + 1, count( $batches ) ) );
+					WP_CLI::log( sprintf( '(%d/%d) Batch would be migrated.', $i + 1, count( $batches ) ) );
 				}
 			}
 
 			if ( ! $dry_run && isset( $assoc_args['delete'] ) && ! $errors->has_errors() ) {
 				deactivate_plugins( [ 'distributor/distributor.php' ] );
 				delete_plugins( [ 'distributor/distributor.php' ] );
-				WP_CLI::line( 'Distributor plugin is deactivated and deleted.' );
+				WP_CLI::log( 'Distributor plugin is deactivated and deleted.' );
 			}
 		} else {
 			$can_migrate = Distributor_Migrator::can_migrate_outgoing_post( $post_id );
