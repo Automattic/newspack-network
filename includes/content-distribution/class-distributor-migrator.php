@@ -236,24 +236,6 @@ class Distributor_Migrator {
 	}
 
 	/**
-	 * Get posts with Distributor subscriptions.
-	 *
-	 * @return int[] Array of post IDs.
-	 */
-	public static function get_posts_with_distributor_subscriptions() {
-		$subscriptions = self::get_distributor_subscriptions();
-		$posts         = [];
-		foreach ( $subscriptions as $subscription_id ) {
-			$post_id = get_post_meta( $subscription_id, 'dt_subscription_post_id', true );
-			if ( ! $post_id ) {
-				continue;
-			}
-			$posts[ $post_id ] = $post_id;
-		}
-		return array_values( $posts );
-	}
-
-	/**
 	 * Validate whether a post can be migrated.
 	 *
 	 * @param int $post_id The ID of the post to check.
