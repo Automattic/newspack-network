@@ -11,6 +11,7 @@ use Newspack_Network\Content_Distribution;
 use Newspack\Data_Events;
 use Newspack_Network\Utils\Network;
 use WP_Error;
+use WP_CLI;
 use InvalidArgumentException;
 
 /**
@@ -20,6 +21,15 @@ class Distributor_Migrator {
 
 	const MIGRATION_LOCK_TRANSIENT_NAME = 'newspack_network_distributor_migration_lock';
 
+	const MIGRATION_DATA_META = '_newspack_network_distributor_migration_data';
+
+	/**
+	 * Log indentation level.
+	 *
+	 * @var int
+	 */
+	private static $log_indentation = 0;
+
 	/**
 	 * Initialize hooks.
 	 */
@@ -27,6 +37,20 @@ class Distributor_Migrator {
 		add_action( 'init', [ __CLASS__, 'register_data_event_actions' ] );
 		add_filter( 'map_meta_cap', [ __CLASS__, 'filter_migration_lock_cap' ], 10, 4 );
 		add_action( 'admin_notices', [ __CLASS__, 'migration_lock_notice' ] );
+	}
+
+	/**
+	 * Log a message.
+	 *
+	 * @param string $message The message to log.
+	 */
+	public static function log( $message ) {
+		$message = str_repeat( '  ', self::$log_indentation ) . $message;
+		if ( defined( 'WP_CLI' ) ) {
+			WP_CLI::log( $message );
+		} elseif ( method_exists( 'Newspack\Logger', 'log' ) ) {
+			\Newspack\Logger::log( $message );
+		}
 	}
 
 	/**
@@ -150,6 +174,7 @@ class Distributor_Migrator {
 			'dt_syndicate_time',
 			'dt_unlinked',
 			'dt_subscriptions',
+			'dt_subscription_update',
 			'dt_connection_map',
 		];
 
@@ -208,24 +233,6 @@ class Distributor_Migrator {
 				'fields'         => 'ids',
 			]
 		);
-	}
-
-	/**
-	 * Get posts with Distributor subscriptions.
-	 *
-	 * @return int[] Array of post IDs.
-	 */
-	public static function get_posts_with_distributor_subscriptions() {
-		$subscriptions = self::get_distributor_subscriptions();
-		$posts         = [];
-		foreach ( $subscriptions as $subscription_id ) {
-			$post_id = get_post_meta( $subscription_id, 'dt_subscription_post_id', true );
-			if ( ! $post_id ) {
-				continue;
-			}
-			$posts[ $post_id ] = $post_id;
-		}
-		return array_values( $posts );
 	}
 
 	/**
@@ -295,6 +302,17 @@ class Distributor_Migrator {
 		$errors = new WP_Error();
 		foreach ( $post_ids as $post_id ) {
 			$subscriptions = get_post_meta( $post_id, 'dt_subscriptions', true );
+			if ( empty( $subscriptions ) || ! is_array( $subscriptions ) ) {
+				$errors->add(
+					'no_subscriptions',
+					sprintf(
+						// translators: post ID.
+						__( 'No subscriptions found for post %d.', 'newspack-network' ),
+						$post_id
+					)
+				);
+				continue;
+			}
 			foreach ( $subscriptions as $subscription_id ) { // phpcs:ignore WordPressVIPMinimum.Functions.CheckReturnValue.NonCheckedVariable
 				$remote_post_id = get_post_meta( $subscription_id, 'dt_subscription_remote_post_id', true );
 				$site_url       = get_post_meta( $subscription_id, 'dt_subscription_target_url', true );
@@ -354,7 +372,7 @@ class Distributor_Migrator {
 	 *
 	 * @return true|WP_Error True if the subscription can be migrated, WP_Error on failure.
 	 */
-	protected static function can_migrate_subscription( $subscription_id ) {
+	public static function can_migrate_subscription( $subscription_id ) {
 		$subscription = get_post( $subscription_id );
 		if ( ! $subscription ) {
 			return new WP_Error( 'subscription_not_found', __( 'Subscription not found.', 'newspack-network' ) );
@@ -387,6 +405,57 @@ class Distributor_Migrator {
 	}
 
 	/**
+	 * Migrate subscriptions from Distributor to Newspack Network Content Distribution.
+	 *
+	 * @param int[] $subscription_ids The IDs of the subscriptions to migrate.
+	 *
+	 * @return WP_Error|void WP_Error on failure, void on success.
+	 */
+	public static function migrate_subscriptions( $subscription_ids ) {
+		if ( ! class_exists( 'Newspack\Data_Events' ) ) {
+			return new WP_Error( 'data_events_not_found', __( 'Data Events not found.', 'newspack-network' ) );
+		}
+
+		if ( empty( $subscription_ids ) || ! is_array( $subscription_ids ) ) {
+			return new WP_Error( 'invalid_subscription_ids', __( 'Invalid subscription IDs.', 'newspack-network' ) );
+		}
+
+		$incoming_posts = [];
+
+		$errors = new WP_Error();
+		foreach ( $subscription_ids as $subscription_id ) {
+			self::$log_indentation++;
+			self::log( sprintf( 'Migrating subscription %d.', $subscription_id ) );
+			$remote_post_id = get_post_meta( $subscription_id, 'dt_subscription_remote_post_id', true );
+			$site_url       = get_post_meta( $subscription_id, 'dt_subscription_target_url', true );
+			self::$log_indentation++;
+			$migration_result = self::migrate_subscription( $subscription_id, false );
+			--self::$log_indentation;
+			if ( is_wp_error( $migration_result ) ) {
+				self::log( sprintf( 'Error migrating subscription %d (post: %d, target: %s): %s.', $subscription_id, $remote_post_id, $site_url, $migration_result->get_error_message() ) );
+				$errors->add( $migration_result->get_error_code(), $migration_result->get_error_message() );
+			} else {
+				$site_url = self::get_network_url( $site_url );
+				self::log( sprintf( 'Migrated subscription %d for remote post %d on %s.', $subscription_id, $remote_post_id, $site_url ) );
+				$incoming_posts[] = [
+					'site_url' => $site_url,
+					'post_id'  => $remote_post_id,
+				];
+			}
+			--self::$log_indentation;
+		}
+
+		if ( ! empty( $incoming_posts ) ) {
+			self::log( sprintf( 'Dispatching incoming posts migration for %d posts.', count( $incoming_posts ) ) );
+			self::dispatch_incoming_posts_migration( $incoming_posts );
+		}
+
+		if ( $errors->has_errors() ) {
+			return $errors;
+		}
+	}
+
+	/**
 	 * Migrate a post subscription from Distributor to Newspack Network Content Distribution.
 	 *
 	 * @param int  $subscription_id       The ID of the subscription to migrate.
@@ -394,14 +463,16 @@ class Distributor_Migrator {
 	 *
 	 * @return Outgoing_Post|WP_Error Outgoing_Post on success, WP_Error on failure.
 	 */
-	protected static function migrate_subscription( $subscription_id, $migrate_incoming_post = true ) {
+	public static function migrate_subscription( $subscription_id, $migrate_incoming_post = true ) {
 		$can_migrate = self::can_migrate_subscription( $subscription_id );
 		if ( is_wp_error( $can_migrate ) ) {
 			return $can_migrate;
 		}
 
-		$post_id     = get_post_meta( $subscription_id, 'dt_subscription_post_id', true );
-		$network_url = self::get_network_url( get_post_meta( $subscription_id, 'dt_subscription_target_url', true ) );
+		$post_id = get_post_meta( $subscription_id, 'dt_subscription_post_id', true );
+		$remote_post_id = get_post_meta( $subscription_id, 'dt_subscription_remote_post_id', true );
+		$target_url = get_post_meta( $subscription_id, 'dt_subscription_target_url', true );
+		$network_url = self::get_network_url( $target_url );
 
 		// Configure distribution.
 		try {
@@ -417,34 +488,59 @@ class Distributor_Migrator {
 		) {
 			return $distribution;
 		}
+		self::log( sprintf( 'Set distribution for post %d to %s.', $post_id, $network_url ) );
 
 		// Clear the subscription meta from the post.
 		$subscriptions = get_post_meta( $post_id, 'dt_subscriptions', true );
-		$subscriptions = array_diff( $subscriptions, [ $subscription_id ] );
 		if ( empty( $subscriptions ) ) {
-			delete_post_meta( $post_id, 'dt_subscriptions' );
+			self::log( sprintf( 'No subscription meta found for post %d.', $post_id ) );
 		} else {
-			update_post_meta( $post_id, 'dt_subscriptions', $subscriptions );
+				$subscriptions = array_diff( $subscriptions, [ $subscription_id ] );
+			if ( empty( $subscriptions ) ) {
+				delete_post_meta( $post_id, 'dt_subscriptions' );
+				self::log( sprintf( 'Deleted subscriptions for post %d.', $post_id ) );
+			} else {
+				update_post_meta( $post_id, 'dt_subscriptions', $subscriptions );
+				self::log( sprintf( 'Updated subscriptions for post %d.', $post_id ) );
+			}
 		}
 
 		// Clear the connection map from the post.
 		$connection_map = get_post_meta( $post_id, 'dt_connection_map', true );
-		$remote_post_id = get_post_meta( $subscription_id, 'dt_subscription_remote_post_id', true );
-		if ( ! empty( $connection_map['external'] ) ) {
-			foreach ( $connection_map['external'] as $connection_id => $value ) {
-				if ( absint( $value['post_id'] ) === absint( $remote_post_id ) ) {
-					unset( $connection_map['external'][ $connection_id ] );
+		if ( empty( $connection_map ) ) {
+			self::log( sprintf( 'No connection map meta found for post %d.', $post_id ) );
+		} else {
+			if ( ! empty( $connection_map['external'] ) ) {
+				foreach ( $connection_map['external'] as $connection_id => $value ) {
+					if ( absint( $value['post_id'] ) === absint( $remote_post_id ) ) {
+						unset( $connection_map['external'][ $connection_id ] );
+					}
 				}
 			}
-		}
-		if ( empty( $connection_map['external'] ) && empty( $connection_map['internal'] ) ) {
-			delete_post_meta( $post_id, 'dt_connection_map' );
-		} else {
-			update_post_meta( $post_id, 'dt_connection_map', $connection_map );
+			if ( empty( $connection_map['external'] ) && empty( $connection_map['internal'] ) ) {
+				delete_post_meta( $post_id, 'dt_connection_map' );
+				self::log( sprintf( 'Deleted connection map for post %d.', $post_id ) );
+			} else {
+				update_post_meta( $post_id, 'dt_connection_map', $connection_map );
+				self::log( sprintf( 'Updated connection map for post %d.', $post_id ) );
+			}
 		}
 
 		// Delete the subscription post.
 		wp_delete_post( $subscription_id );
+		self::log( sprintf( 'Deleted subscription %d.', $subscription_id ) );
+
+		// Add migration data to the post.
+		add_post_meta(
+			$post_id,
+			self::MIGRATION_DATA_META,
+			[
+				'timestamp'       => time(),
+				'subscription_id' => $subscription_id,
+				'remote_post_id'  => $remote_post_id,
+				'target_url'      => $target_url,
+			]
+		);
 
 		if ( $migrate_incoming_post ) {
 			self::dispatch_incoming_posts_migration(
