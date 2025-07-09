@@ -1,3 +1,10 @@
+## [2.11.1](https://github.com/Automattic/newspack-network/compare/v2.11.0...v2.11.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* **content-distribution:** Distributor migration tweaks ([#259](https://github.com/Automattic/newspack-network/issues/259)) ([165b540](https://github.com/Automattic/newspack-network/commit/165b540f6eb6ddde9d24e5111b75c73e8000a5fa))
+
 # [2.11.0](https://github.com/Automattic/newspack-network/compare/v2.10.0...v2.11.0) (2025-06-30)
 
 
