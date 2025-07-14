@@ -88,7 +88,7 @@ class Users {
 					$event_log_url,
 					__( 'View all', 'newspack-network' )
 				);
-			} else {
+			} elseif ( Site_Role::is_node() ) {
 				$event_log_url = add_query_arg(
 					[
 						'page'  => EVENT_LOG_PAGE_SLUG,
