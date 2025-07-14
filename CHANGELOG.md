@@ -1,3 +1,16 @@
+# [2.12.0](https://github.com/Automattic/newspack-network/compare/v2.11.1...v2.12.0) (2025-07-14)
+
+
+### Bug Fixes
+
+* check for woo ([#255](https://github.com/Automattic/newspack-network/issues/255)) ([cea8a71](https://github.com/Automattic/newspack-network/commit/cea8a71a0c00d87fb8f9c830caf56ab685c15840))
+* dont show user acitvity link when misconfigured ([#253](https://github.com/Automattic/newspack-network/issues/253)) ([f456407](https://github.com/Automattic/newspack-network/commit/f456407e66e78ae56ec0d1d90b88f87c5bac4cb5))
+
+
+### Features
+
+* add network subscriptions to my account NPPM-350 ([#248](https://github.com/Automattic/newspack-network/issues/248)) ([a37fc57](https://github.com/Automattic/newspack-network/commit/a37fc57e7ce2bde201bd821e9f116633a2c72713))
+
 ## [2.11.1](https://github.com/Automattic/newspack-network/compare/v2.11.0...v2.11.1) (2025-07-09)
 
 
