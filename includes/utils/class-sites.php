@@ -2,8 +2,6 @@
 /**
  * Newspack Network Sites methods.
  *
- * Helper methods to get sites lists and info in an easy way.
- *
  * @package Newspack
  */
 
@@ -15,7 +13,12 @@ use Newspack_Network\Hub\Node as Hub_Node;
 use Newspack_Network\Node\Settings as Node_Settings;
 
 /**
- * Class to watch the user for updates and trigger events
+ * Class to get information about the sites in the network.
+ *
+ * Helper methods to get sites lists and info in an easy way.
+ *
+ * This is specially useful for third party integration that wants to get a list of the sites in the network.
+ * With these methods, you can get that lists without worrying if you are in a hub or a node and how the data is stored.
  */
 class Sites {
 
