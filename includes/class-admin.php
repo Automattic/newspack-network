@@ -209,7 +209,7 @@ class Admin {
 	 * @return void
 	 */
 	public static function admin_bar_menu( $wp_admin_bar ) {
-		$sites = Sites::get_all_sites_but_current();
+		$sites = Sites::get_all_sites_without_current();
 		foreach ( $sites as $site ) {
 			$item_id = 'site-' . sanitize_title( $site['name'] );
 			$wp_admin_bar->add_node(

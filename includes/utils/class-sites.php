@@ -36,7 +36,7 @@ class Sites {
 	 *
 	 * @return array Array of arrays with name and url properties.
 	 */
-	public static function get_all_sites_but_current() {
+	public static function get_all_sites_without_current() {
 		$sites = self::get_all_sites();
 		return array_filter(
 			$sites,
