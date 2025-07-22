@@ -296,7 +296,7 @@ class Outgoing_Post {
 				'comment_status' => $this->post->comment_status,
 				'ping_status'    => $this->post->ping_status,
 				'taxonomy'       => $this->get_post_taxonomy_terms(),
-				'thumbnail_url'  => get_the_post_thumbnail_url( $this->post->ID, 'full' ),
+				'thumbnail_url'  => $this->get_post_thumbnail_url(),
 				'post_meta'      => $this->get_post_meta(),
 			],
 		];
@@ -373,6 +373,21 @@ class Outgoing_Post {
 	 */
 	protected function get_post_taxonomy_terms() {
 		return Taxonomy_Terms::get_post_taxonomy_terms( $this->post );
+	}
+
+	/**
+	 * Get the post thumbnail URL.
+	 *
+	 * @return string The post thumbnail URL.
+	 */
+	protected function get_post_thumbnail_url() {
+		add_filter( 'jetpack_photon_override_image_downsize', '__return_true' );
+		$thumbnail_url = get_the_post_thumbnail_url( $this->post->ID, 'full' );
+		remove_filter( 'jetpack_photon_override_image_downsize', '__return_true' );
+		if ( ! $thumbnail_url ) {
+			return '';
+		}
+		return $thumbnail_url;
 	}
 
 	/**
