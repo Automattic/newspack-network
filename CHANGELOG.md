@@ -1,3 +1,10 @@
+## [2.12.1](https://github.com/Automattic/newspack-network/compare/v2.12.0...v2.12.1) (2025-07-22)
+
+
+### Bug Fixes
+
+* **content-distribution:** disable photon for thumbnail url ([#261](https://github.com/Automattic/newspack-network/issues/261)) ([bef634b](https://github.com/Automattic/newspack-network/commit/bef634bc69ff64cdc1d8b8d5c260dde37c413793))
+
 # [2.12.0](https://github.com/Automattic/newspack-network/compare/v2.11.1...v2.12.0) (2025-07-14)
 
 
