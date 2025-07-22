@@ -722,4 +722,25 @@ class TestIncomingPost extends \WP_UnitTestCase {
 		$this->assertSame( 'New Title', get_the_title( $post_id ) );
 		$this->assertSame( '2020-10-01 00:00:00', get_post_field( 'post_modified_gmt', $post_id ) );
 	}
+
+	/**
+	 * Test toggling Jetpack Photon.
+	 */
+	public function test_toggle_jetpack_photon() {
+		$payload = $this->get_sample_payload();
+
+		$payload['post_data']['thumbnail_url'] = 'https://i0.wp.com/newspack.com/wp-content/uploads/2025/02/newspack-logo.png?fit=948%2C192&ssl=1';
+
+		$post_id = $this->incoming_post->insert( $payload );
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		$this->assertNotEmpty( $thumbnail_id );
+
+		// Update the payload to use the same image without Photon.
+		$payload['post_data']['thumbnail_url'] = 'https://newspack.com/wp-content/uploads/2025/02/newspack-logo.png';
+		$this->incoming_post->insert( $payload );
+
+		// Assert that the thumbnail is unchanged.
+		$this->assertSame( $thumbnail_id, get_post_thumbnail_id( $post_id ) );
+	}
 }
