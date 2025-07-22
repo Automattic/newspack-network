@@ -436,7 +436,7 @@ class Incoming_Post {
 		$thumbnail_url         = $this->payload['post_data']['thumbnail_url'];
 		$payload               = $this->get_post_payload();
 		$current_thumbnail_id  = get_post_thumbnail_id( $this->ID );
-		$current_thumbnail_url = $payload['post_data']['thumbnail_url'];
+		$current_thumbnail_url = $payload ? $payload['post_data']['thumbnail_url'] : '';
 
 		// Bail if the post has a thumbnail and the thumbnail URL is the same.
 		if (
