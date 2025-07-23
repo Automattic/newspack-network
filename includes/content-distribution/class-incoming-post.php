@@ -433,17 +433,32 @@ class Incoming_Post {
 	 * Upload the thumbnail for a linked post.
 	 */
 	protected function upload_thumbnail() {
-		$thumbnail_url        = $this->payload['post_data']['thumbnail_url'];
-		$payload              = $this->get_post_payload();
-		$current_thumbnail_id = get_post_thumbnail_id( $this->ID );
+		$thumbnail_url         = $this->payload['post_data']['thumbnail_url'];
+		$payload               = $this->get_post_payload();
+		$current_thumbnail_id  = get_post_thumbnail_id( $this->ID );
+		$current_thumbnail_url = $payload ? $payload['post_data']['thumbnail_url'] : '';
 
 		// Bail if the post has a thumbnail and the thumbnail URL is the same.
 		if (
 			$current_thumbnail_id &&
 			$payload &&
-			$payload['post_data']['thumbnail_url'] === $thumbnail_url
+			$current_thumbnail_url === $thumbnail_url
 		) {
 			return;
+		}
+
+		// Handle Jetpack Photon URLs so we can compare the underlying image URLs.
+		$photon_pattern = '/^https:\/\/i[0-9]\.wp\.com\/([^?]+)(\?.*)?$/';
+		if ( preg_match( $photon_pattern, $thumbnail_url ) || preg_match( $photon_pattern, $current_thumbnail_url ) ) {
+			$strip_photon = function( $url ) use ( $photon_pattern ) {
+				if ( preg_match( $photon_pattern, $url, $matches ) ) {
+					return 'https://' . $matches[1];
+				}
+				return $url;
+			};
+			if ( $strip_photon( $thumbnail_url ) === $strip_photon( $current_thumbnail_url ) ) {
+				return;
+			}
 		}
 
 		if ( ! function_exists( 'media_sideload_image' ) ) {
