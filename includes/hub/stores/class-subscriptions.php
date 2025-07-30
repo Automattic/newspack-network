@@ -44,6 +44,15 @@ class Subscriptions extends Woo_Store {
 	}
 
 	/**
+	 * Gets the post status prefix
+	 *
+	 * @return string
+	 */
+	protected static function get_post_status_prefix() {
+		return Subscriptions_DB::POST_STATUS_PREFIX;
+	}
+
+	/**
 	 * Persists a Subscription_Changed event by creating or updating a Subscription post.
 	 *
 	 * @param Subscription_Changed $subscription The Subscription_Changed event.
@@ -82,7 +91,7 @@ class Subscriptions extends Woo_Store {
 		Debugger::log( 'Updating post status to ' . $subscription->get_status_after() );
 		$update_array = [
 			'ID'          => $local_id,
-			'post_status' => $subscription->get_status_after(),
+			'post_status' => self::get_post_status_for_db( $subscription->get_status_after() ),
 		];
 		$update       = wp_update_post( $update_array );
 		Debugger::log( 'Updated post status: ' . $update );
