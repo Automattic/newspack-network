@@ -169,6 +169,8 @@ class Subscriptions {
 			}
 
 			update_option( 'np_hub_subscriptions_db_version', self::DB_VERSION );
+
+			wp_cache_flush();
 		}
 	}
 }

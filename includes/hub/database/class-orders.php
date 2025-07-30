@@ -169,6 +169,8 @@ class Orders {
 			}
 
 			update_option( 'np_hub_orders_db_version', self::DB_VERSION );
+
+			wp_cache_flush();
 		}
 	}
 }
