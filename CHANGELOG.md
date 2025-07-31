@@ -1,3 +1,10 @@
+## [2.12.2](https://github.com/Automattic/newspack-network/compare/v2.12.1...v2.12.2) (2025-07-31)
+
+
+### Bug Fixes
+
+* avoid post status collision ([#264](https://github.com/Automattic/newspack-network/issues/264)) ([95c413e](https://github.com/Automattic/newspack-network/commit/95c413e360abf8466c36bca7c277f8ed3d92f63a))
+
 ## [2.12.1](https://github.com/Automattic/newspack-network/compare/v2.12.0...v2.12.1) (2025-07-22)
 
 
