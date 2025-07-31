@@ -35,7 +35,7 @@ class Orders {
 	 *
 	 * @var string
 	 */
-	const POST_STATUS_PREFIX = 'np-net-';
+	const POST_STATUS_PREFIX = 'npn-';
 
 	/**
 	 * Initialize this class and register hooks
