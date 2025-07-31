@@ -24,6 +24,20 @@ class Orders {
 	const POST_TYPE_SLUG = 'np_hub_orders';
 
 	/**
+	 * DB_VERSION for Node Orders.
+	 *
+	 * @var int
+	 */
+	const DB_VERSION = 2;
+
+	/**
+	 * POST_STATUS_PREFIX for Node Orders.
+	 *
+	 * @var string
+	 */
+	const POST_STATUS_PREFIX = 'npn-';
+
+	/**
 	 * Initialize this class and register hooks
 	 *
 	 * @return void
@@ -31,6 +45,7 @@ class Orders {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'init', [ __CLASS__, 'register_post_statuses' ] );
+		add_action( 'init', [ __CLASS__, 'update_db_version' ], 1 );
 	}
 
 	/**
@@ -96,13 +111,13 @@ class Orders {
 	 */
 	public static function register_post_statuses() {
 		$subscription_statuses = array(
-			'pending'    => _x( 'Pending', 'Order status', 'newspack-network' ),
-			'processing' => _x( 'Processing', 'Order status', 'newspack-network' ),
-			'completed'  => _x( 'Completed', 'Order status', 'newspack-network' ),
-			'on-hold'    => _x( 'On hold', 'Order status', 'newspack-network' ),
-			'cancelled'  => _x( 'Cancelled', 'Order status', 'newspack-network' ),
-			'refunded'   => _x( 'Refunded', 'Order status', 'newspack-network' ),
-			'failed'     => _x( 'Failed', 'Order status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'pending'    => _x( 'Pending', 'Order status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'processing' => _x( 'Processing', 'Order status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'completed'  => _x( 'Completed', 'Order status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'on-hold'    => _x( 'On hold', 'Order status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'cancelled'  => _x( 'Cancelled', 'Order status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'refunded'   => _x( 'Refunded', 'Order status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'failed'     => _x( 'Failed', 'Order status', 'newspack-network' ),
 		);
 		foreach ( $subscription_statuses as $status => $label ) {
 			register_post_status(
@@ -115,6 +130,47 @@ class Orders {
 					'show_in_admin_status_list' => true,
 				)
 			);
+		}
+	}
+
+	/**
+	 * Get the DB version
+	 *
+	 * @return int
+	 */
+	public static function get_db_version() {
+		return get_option( 'np_hub_orders_db_version', 0 );
+	}
+
+	/**
+	 * Update the DB version
+	 *
+	 * @return void
+	 */
+	public static function update_db_version() {
+
+		$current_version = self::get_db_version();
+
+		if ( version_compare( $current_version, self::DB_VERSION, '<' ) ) {
+
+			if ( $current_version < 2 ) {
+				global $wpdb;
+
+				foreach ( [ 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ] as $status ) {
+					$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+						$wpdb->posts,
+						[ 'post_status' => self::POST_STATUS_PREFIX . $status ],
+						[
+							'post_status' => $status,
+							'post_type'   => self::POST_TYPE_SLUG,
+						]
+					);
+				}
+			}
+
+			update_option( 'np_hub_orders_db_version', self::DB_VERSION );
+
+			wp_cache_flush();
 		}
 	}
 }

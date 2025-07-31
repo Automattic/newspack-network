@@ -44,6 +44,15 @@ class Orders extends Woo_Store {
 	}
 
 	/**
+	 * Gets the post status prefix
+	 *
+	 * @return string
+	 */
+	protected static function get_post_status_prefix() {
+		return Orders_DB::POST_STATUS_PREFIX;
+	}
+
+	/**
 	 * Persists a Order_Changed event by creating or updating a Subscription post.
 	 *
 	 * @param Order_Changed $order The Order_Changed event.
@@ -73,7 +82,7 @@ class Orders extends Woo_Store {
 		Debugger::log( 'Updating post status to ' . $order->get_status_after() );
 		$update_array = [
 			'ID'          => $local_id,
-			'post_status' => $order->get_status_after(),
+			'post_status' => self::get_post_status_for_db( $order->get_status_after() ),
 		];
 		$update       = wp_update_post( $update_array );
 		Debugger::log( 'Updated post status: ' . $update );
