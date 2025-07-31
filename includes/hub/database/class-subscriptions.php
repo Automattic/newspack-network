@@ -24,6 +24,20 @@ class Subscriptions {
 	const POST_TYPE_SLUG = 'np_hub_subscriptions';
 
 	/**
+	 * DB_VERSION for Node Subscriptions.
+	 *
+	 * @var int
+	 */
+	const DB_VERSION = 2;
+
+	/**
+	 * POST_STATUS_PREFIX for Node Subscriptions.
+	 *
+	 * @var string
+	 */
+	const POST_STATUS_PREFIX = 'npn-';
+
+	/**
 	 * Initialize this class and register hooks
 	 *
 	 * @return void
@@ -31,6 +45,7 @@ class Subscriptions {
 	public static function init() {
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'init', [ __CLASS__, 'register_post_statuses' ] );
+		add_action( 'init', [ __CLASS__, 'update_db_version' ], 1 );
 	}
 
 	/**
@@ -96,13 +111,13 @@ class Subscriptions {
 	 */
 	public static function register_post_statuses() {
 		$subscription_statuses = array(
-			'pending'        => _x( 'Pending', 'Subscription status', 'newspack-network' ),
-			'active'         => _x( 'Active', 'Subscription status', 'newspack-network' ),
-			'on-hold'        => _x( 'On hold', 'Subscription status', 'newspack-network' ),
-			'cancelled'      => _x( 'Cancelled', 'Subscription status', 'newspack-network' ),
-			'switched'       => _x( 'Switched', 'Subscription status', 'newspack-network' ),
-			'expired'        => _x( 'Expired', 'Subscription status', 'newspack-network' ),
-			'pending-cancel' => _x( 'Pending Cancellation', 'Subscription status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'pending'        => _x( 'Pending', 'Subscription status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'active'         => _x( 'Active', 'Subscription status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'on-hold'        => _x( 'On hold', 'Subscription status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'cancelled'      => _x( 'Cancelled', 'Subscription status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'switched'       => _x( 'Switched', 'Subscription status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'expired'        => _x( 'Expired', 'Subscription status', 'newspack-network' ),
+			self::POST_STATUS_PREFIX . 'pending-cancel' => _x( 'Pending Cancellation', 'Subscription status', 'newspack-network' ),
 		);
 		foreach ( $subscription_statuses as $status => $label ) {
 			register_post_status(
@@ -115,6 +130,47 @@ class Subscriptions {
 					'show_in_admin_status_list' => true,
 				)
 			);
+		}
+	}
+
+	/**
+	 * Get the DB version
+	 *
+	 * @return int
+	 */
+	public static function get_db_version() {
+		return get_option( 'np_hub_subscriptions_db_version', 0 );
+	}
+
+	/**
+	 * Update the DB version
+	 *
+	 * @return void
+	 */
+	public static function update_db_version() {
+
+		$current_version = self::get_db_version();
+
+		if ( version_compare( $current_version, self::DB_VERSION, '<' ) ) {
+
+			if ( $current_version < 2 ) {
+				global $wpdb;
+
+				foreach ( [ 'pending', 'active', 'on-hold', 'cancelled', 'switched', 'expired', 'pending-cancel' ] as $status ) {
+					$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+						$wpdb->posts,
+						[ 'post_status' => self::POST_STATUS_PREFIX . $status ],
+						[
+							'post_status' => $status,
+							'post_type'   => self::POST_TYPE_SLUG,
+						]
+					);
+				}
+			}
+
+			update_option( 'np_hub_subscriptions_db_version', self::DB_VERSION );
+
+			wp_cache_flush();
 		}
 	}
 }
