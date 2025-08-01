@@ -38,6 +38,26 @@ abstract class Woo_Store {
 	abstract protected static function get_item_class();
 
 	/**
+	 * Gets the post status prefix
+	 *
+	 * @return string
+	 */
+	abstract protected static function get_post_status_prefix();
+
+	/**
+	 * Gets the post status for the database
+	 *
+	 * @param string $status The status slug.
+	 * @return string The post status.
+	 */
+	public static function get_post_status_for_db( $status ) {
+		if ( 0 === strpos( $status, static::get_post_status_prefix() ) ) {
+			return $status;
+		}
+		return static::get_post_status_prefix() . $status;
+	}
+
+	/**
 	 * Gets an item by its ID
 	 *
 	 * @param int $item_id The item ID.
@@ -92,7 +112,7 @@ abstract class Woo_Store {
 		}
 		$post_arr = [
 			'post_type'   => static::get_post_type_slug(),
-			'post_status' => $woo_item->get_status_after(),
+			'post_status' => static::get_post_status_for_db( $woo_item->get_status_after() ),
 			'post_title'  => '#' . $woo_item_id,
 			'post_author' => $user_id,
 		];
