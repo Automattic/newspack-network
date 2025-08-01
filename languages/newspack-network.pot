@@ -2,14 +2,14 @@
 # This file is distributed under the GPL3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Network 2.12.1\n"
+"Project-Id-Version: Newspack Network 2.12.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-30T10:05:36+00:00\n"
+"POT-Creation-Date: 2025-08-01T08:36:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-network\n"
@@ -558,7 +558,7 @@ msgid "Total"
 msgstr ""
 
 #: includes/hub/admin/class-orders.php:80
-#: includes/hub/database/class-orders.php:50
+#: includes/hub/database/class-orders.php:65
 msgid "Parent Order"
 msgstr ""
 
@@ -605,12 +605,12 @@ msgid "End Date"
 msgstr ""
 
 #: includes/hub/admin/class-subscriptions.php:46
-#: includes/hub/database/class-orders.php:46
-#: includes/hub/database/class-orders.php:47
-#: includes/hub/database/class-orders.php:48
-#: includes/hub/database/class-orders.php:49
-#: includes/hub/database/class-orders.php:51
-#: includes/hub/database/class-orders.php:73
+#: includes/hub/database/class-orders.php:61
+#: includes/hub/database/class-orders.php:62
+#: includes/hub/database/class-orders.php:63
+#: includes/hub/database/class-orders.php:64
+#: includes/hub/database/class-orders.php:66
+#: includes/hub/database/class-orders.php:88
 msgid "Orders"
 msgstr ""
 
@@ -650,8 +650,8 @@ msgid "Add new Node"
 msgstr ""
 
 #: includes/hub/class-nodes.php:116
-#: includes/hub/database/class-orders.php:53
-#: includes/hub/database/class-subscriptions.php:53
+#: includes/hub/database/class-orders.php:68
+#: includes/hub/database/class-subscriptions.php:68
 msgid "Add New"
 msgstr ""
 
@@ -680,68 +680,68 @@ msgid "Search Node"
 msgstr ""
 
 #: includes/hub/class-nodes.php:123
-#: includes/hub/database/class-orders.php:60
-#: includes/hub/database/class-subscriptions.php:60
+#: includes/hub/database/class-orders.php:75
+#: includes/hub/database/class-subscriptions.php:75
 msgid "Not found"
 msgstr ""
 
 #: includes/hub/class-nodes.php:124
-#: includes/hub/database/class-orders.php:61
-#: includes/hub/database/class-subscriptions.php:61
+#: includes/hub/database/class-orders.php:76
+#: includes/hub/database/class-subscriptions.php:76
 msgid "Not found in Trash"
 msgstr ""
 
 #: includes/hub/class-nodes.php:125
-#: includes/hub/database/class-orders.php:62
-#: includes/hub/database/class-subscriptions.php:62
+#: includes/hub/database/class-orders.php:77
+#: includes/hub/database/class-subscriptions.php:77
 msgid "Featured Image"
 msgstr ""
 
 #: includes/hub/class-nodes.php:126
-#: includes/hub/database/class-orders.php:63
-#: includes/hub/database/class-subscriptions.php:63
+#: includes/hub/database/class-orders.php:78
+#: includes/hub/database/class-subscriptions.php:78
 msgid "Set featured image"
 msgstr ""
 
 #: includes/hub/class-nodes.php:127
-#: includes/hub/database/class-orders.php:64
-#: includes/hub/database/class-subscriptions.php:64
+#: includes/hub/database/class-orders.php:79
+#: includes/hub/database/class-subscriptions.php:79
 msgid "Remove featured image"
 msgstr ""
 
 #: includes/hub/class-nodes.php:128
-#: includes/hub/database/class-orders.php:65
-#: includes/hub/database/class-subscriptions.php:65
+#: includes/hub/database/class-orders.php:80
+#: includes/hub/database/class-subscriptions.php:80
 msgid "Use as featured image"
 msgstr ""
 
 #: includes/hub/class-nodes.php:129
-#: includes/hub/database/class-orders.php:66
-#: includes/hub/database/class-subscriptions.php:66
+#: includes/hub/database/class-orders.php:81
+#: includes/hub/database/class-subscriptions.php:81
 msgid "Insert into item"
 msgstr ""
 
 #: includes/hub/class-nodes.php:130
-#: includes/hub/database/class-orders.php:67
-#: includes/hub/database/class-subscriptions.php:67
+#: includes/hub/database/class-orders.php:82
+#: includes/hub/database/class-subscriptions.php:82
 msgid "Uploaded to this item"
 msgstr ""
 
 #: includes/hub/class-nodes.php:131
-#: includes/hub/database/class-orders.php:68
-#: includes/hub/database/class-subscriptions.php:68
+#: includes/hub/database/class-orders.php:83
+#: includes/hub/database/class-subscriptions.php:83
 msgid "Items list"
 msgstr ""
 
 #: includes/hub/class-nodes.php:132
-#: includes/hub/database/class-orders.php:69
-#: includes/hub/database/class-subscriptions.php:69
+#: includes/hub/database/class-orders.php:84
+#: includes/hub/database/class-subscriptions.php:84
 msgid "Items list navigation"
 msgstr ""
 
 #: includes/hub/class-nodes.php:133
-#: includes/hub/database/class-orders.php:70
-#: includes/hub/database/class-subscriptions.php:70
+#: includes/hub/database/class-orders.php:85
+#: includes/hub/database/class-subscriptions.php:85
 msgid "Filter items list"
 msgstr ""
 
@@ -761,170 +761,170 @@ msgstr ""
 msgid "Link the site"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:44
+#: includes/hub/database/class-orders.php:59
 msgctxt "Post Type General Name"
 msgid "Orders"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:45
+#: includes/hub/database/class-orders.php:60
 msgctxt "Post Type Singular Name"
 msgid "Order"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:52
+#: includes/hub/database/class-orders.php:67
 msgid "Add new Order"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:54
+#: includes/hub/database/class-orders.php:69
 msgid "New Order"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:55
+#: includes/hub/database/class-orders.php:70
 msgid "Edit Order"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:56
+#: includes/hub/database/class-orders.php:71
 msgid "Update Order"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:57
+#: includes/hub/database/class-orders.php:72
 msgid "View Order"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:58
+#: includes/hub/database/class-orders.php:73
 msgid "View Orders"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:59
+#: includes/hub/database/class-orders.php:74
 msgid "Search Order"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:74
+#: includes/hub/database/class-orders.php:89
 msgid "Node Orders"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:99
+#: includes/hub/database/class-orders.php:114
 msgctxt "Order status"
 msgid "Pending"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:100
+#: includes/hub/database/class-orders.php:115
 msgctxt "Order status"
 msgid "Processing"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:101
+#: includes/hub/database/class-orders.php:116
 msgctxt "Order status"
 msgid "Completed"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:102
+#: includes/hub/database/class-orders.php:117
 msgctxt "Order status"
 msgid "On hold"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:103
+#: includes/hub/database/class-orders.php:118
 msgctxt "Order status"
 msgid "Cancelled"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:104
+#: includes/hub/database/class-orders.php:119
 msgctxt "Order status"
 msgid "Refunded"
 msgstr ""
 
-#: includes/hub/database/class-orders.php:105
+#: includes/hub/database/class-orders.php:120
 msgctxt "Order status"
 msgid "Failed"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:44
+#: includes/hub/database/class-subscriptions.php:59
 msgctxt "Post Type General Name"
 msgid "Subscriptions"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:45
+#: includes/hub/database/class-subscriptions.php:60
 msgctxt "Post Type Singular Name"
 msgid "Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:46
-#: includes/hub/database/class-subscriptions.php:47
-#: includes/hub/database/class-subscriptions.php:48
-#: includes/hub/database/class-subscriptions.php:49
-#: includes/hub/database/class-subscriptions.php:51
-#: includes/hub/database/class-subscriptions.php:73
+#: includes/hub/database/class-subscriptions.php:61
+#: includes/hub/database/class-subscriptions.php:62
+#: includes/hub/database/class-subscriptions.php:63
+#: includes/hub/database/class-subscriptions.php:64
+#: includes/hub/database/class-subscriptions.php:66
+#: includes/hub/database/class-subscriptions.php:88
 #: includes/woocommerce-subscriptions/class-my-account.php:99
 msgid "Subscriptions"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:50
+#: includes/hub/database/class-subscriptions.php:65
 msgid "Parent Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:52
+#: includes/hub/database/class-subscriptions.php:67
 msgid "Add new Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:54
+#: includes/hub/database/class-subscriptions.php:69
 msgid "New Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:55
+#: includes/hub/database/class-subscriptions.php:70
 msgid "Edit Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:56
+#: includes/hub/database/class-subscriptions.php:71
 msgid "Update Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:57
+#: includes/hub/database/class-subscriptions.php:72
 msgid "View Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:58
+#: includes/hub/database/class-subscriptions.php:73
 msgid "View Subscriptions"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:59
+#: includes/hub/database/class-subscriptions.php:74
 msgid "Search Subscription"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:74
+#: includes/hub/database/class-subscriptions.php:89
 msgid "Node Subscriptions"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:99
+#: includes/hub/database/class-subscriptions.php:114
 msgctxt "Subscription status"
 msgid "Pending"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:100
+#: includes/hub/database/class-subscriptions.php:115
 msgctxt "Subscription status"
 msgid "Active"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:101
+#: includes/hub/database/class-subscriptions.php:116
 msgctxt "Subscription status"
 msgid "On hold"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:102
+#: includes/hub/database/class-subscriptions.php:117
 msgctxt "Subscription status"
 msgid "Cancelled"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:103
+#: includes/hub/database/class-subscriptions.php:118
 msgctxt "Subscription status"
 msgid "Switched"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:104
+#: includes/hub/database/class-subscriptions.php:119
 msgctxt "Subscription status"
 msgid "Expired"
 msgstr ""
 
-#: includes/hub/database/class-subscriptions.php:105
+#: includes/hub/database/class-subscriptions.php:120
 msgctxt "Subscription status"
 msgid "Pending Cancellation"
 msgstr ""
