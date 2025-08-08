@@ -464,11 +464,12 @@ class Outgoing_Post {
 		$attachments = self::get_content_attachments( $content );
 		foreach ( $attachments as $attachment ) {
 			$attachment_data[ $attachment->ID ] = [
-				'url'      => wp_get_attachment_image_src( $attachment->ID, 'full' )[0],
-				'caption'  => wp_get_attachment_caption( $attachment->ID ),
-				'credit'   => get_post_meta( $attachment->ID, '_media_credit', true ),
-				'alt'      => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
-				'featured' => false,
+				'url'        => wp_get_attachment_image_src( $attachment->ID, 'full' )[0],
+				'caption'    => wp_get_attachment_caption( $attachment->ID ),
+				'credit'     => get_post_meta( $attachment->ID, '_media_credit', true ),
+				'credit_url' => get_post_meta( $attachment->ID, '_media_credit_url', true ),
+				'alt'        => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
+				'featured'   => false,
 			];
 		}
 
