@@ -1,3 +1,10 @@
+# [2.13.0](https://github.com/Automattic/newspack-network/compare/v2.12.2...v2.13.0) (2025-08-11)
+
+
+### Features
+
+* propagate hub name ([#262](https://github.com/Automattic/newspack-network/issues/262)) ([498db0b](https://github.com/Automattic/newspack-network/commit/498db0b435259f1ef00dd4804842d3a1fd673c23))
+
 ## [2.12.2](https://github.com/Automattic/newspack-network/compare/v2.12.1...v2.12.2) (2025-07-31)
 
 
