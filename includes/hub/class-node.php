@@ -9,6 +9,7 @@ namespace Newspack_Network\Hub;
 
 use Newspack_Network\Crypto;
 use Newspack_Network\Rest_Authenticaton;
+use Newspack_Network\Utils\Sites;
 use WP_Post;
 
 /**
@@ -120,47 +121,6 @@ class Node {
 	}
 
 	/**
-	 * Generates a collection of bookmarks for this Node
-	 *
-	 * @param  string $url The URL of the Node.
-	 * @return array
-	 */
-	public static function generate_bookmarks( $url ) {
-		$base_url = trailingslashit( $url );
-
-		return [
-			[
-				'label' => __( 'Dashboard', 'newspack-network' ),
-				'url'   => $base_url . 'wp-admin/',
-			],
-			[
-				'label' => 'Newspack',
-				'url'   => $base_url . 'wp-admin?page=newspack',
-			],
-			[
-				'label' => 'WooCommerce',
-				'url'   => $base_url . 'wp-admin/admin.php?page=wc-admin',
-			],
-			[
-				'label' => __( 'Posts', 'newspack-network' ),
-				'url'   => $base_url . 'wp-admin/edit.php',
-			],
-			[
-				'label' => __( 'Users', 'newspack-network' ),
-				'url'   => $base_url . 'wp-admin/users.php',
-			],
-			[
-				'label' => __( 'Plugins', 'newspack-network' ),
-				'url'   => $base_url . 'wp-admin/plugins.php',
-			],
-			[
-				'label' => __( 'Settings', 'newspack-network' ),
-				'url'   => $base_url . 'wp-admin/options-general.php',
-			],
-		];
-	}
-
-	/**
 	 * Gets a collection of bookmarks for this Node.
 	 *
 	 * @return array
@@ -168,7 +128,7 @@ class Node {
 	public function get_bookmarks() {
 		$base_url = $this->get_url();
 
-		return self::generate_bookmarks( $base_url );
+		return Sites::generate_bookmarks( $base_url );
 	}
 
 	/**

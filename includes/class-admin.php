@@ -7,6 +7,8 @@
 
 namespace Newspack_Network;
 
+use Newspack_Network\Utils\Sites;
+
 /**
  * Class to handle the plugin admin pages
  */
@@ -30,6 +32,7 @@ class Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
 		add_filter( 'allowed_options', [ __CLASS__, 'allowed_options' ] );
+		add_action( 'admin_bar_menu', [ __CLASS__, 'admin_bar_menu' ], 100 );
 	}
 
 	/**
@@ -197,5 +200,37 @@ class Admin {
 	 */
 	public static function use_experimental_auditing_features() {
 		return defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES' ) ? NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES : false;
+	}
+
+	/**
+	 * Adds the admin bar menu
+	 *
+	 * @param \WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
+	 * @return void
+	 */
+	public static function admin_bar_menu( $wp_admin_bar ) {
+		$sites = Sites::get_all_sites_without_current();
+		foreach ( $sites as $site ) {
+			$item_id = 'site-' . sanitize_title( $site['name'] );
+			$wp_admin_bar->add_node(
+				[
+					'id'     => $item_id,
+					'title'  => $site['name'],
+					'href'   => $site['url'],
+					'parent' => 'site-name',
+				]
+			);
+
+			foreach ( Sites::generate_bookmarks( $site['url'] ) as $bookmark ) {
+				$sub_item_id = $item_id . '-' . sanitize_title( $bookmark['label'] );
+				$args        = [
+					'id'     => $sub_item_id,
+					'title'  => $bookmark['label'],
+					'href'   => $bookmark['url'],
+					'parent' => $item_id,
+				];
+				$wp_admin_bar->add_node( $args );
+			}
+		}
 	}
 }
