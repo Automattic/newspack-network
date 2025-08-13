@@ -298,6 +298,7 @@ class Outgoing_Post {
 				'taxonomy'       => $this->get_post_taxonomy_terms(),
 				'thumbnail_url'  => $this->get_post_thumbnail_url(),
 				'post_meta'      => $this->get_post_meta(),
+				'media_data'     => $this->get_post_media_data(),
 			],
 		];
 
@@ -435,5 +436,83 @@ class Outgoing_Post {
 		 * @param WP_Post $post The post object.
 		 */
 		return apply_filters( 'newspack_network_distributed_post_meta', $meta, $this->post );
+	}
+
+	/**
+	 * Get the post attachment data for distribution.
+	 *
+	 * @return array The post attachment data.
+	 */
+	protected function get_post_media_data() {
+		$attachment_data = [];
+
+		add_filter( 'jetpack_photon_override_image_downsize', '__return_true' );
+
+		$thumbnail_id = get_post_thumbnail_id( $this->post->ID );
+		if ( $thumbnail_id ) {
+			$attachment_data[ $thumbnail_id ] = [
+				'url'        => wp_get_attachment_image_src( $thumbnail_id, 'full' )[0],
+				'caption'    => wp_get_attachment_caption( $thumbnail_id ),
+				'credit'     => get_post_meta( $thumbnail_id, '_media_credit', true ),
+				'credit_url' => get_post_meta( $thumbnail_id, '_media_credit_url', true ),
+				'alt'        => get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true ),
+				'featured'   => true,
+			];
+		}
+
+		$content     = apply_filters( 'the_content', get_the_content( null, false, get_post( $this->post->ID ) ) );
+		$attachments = self::get_content_attachments( $content );
+		foreach ( $attachments as $attachment ) {
+			$attachment_data[ $attachment->ID ] = [
+				'url'        => wp_get_attachment_image_src( $attachment->ID, 'full' )[0],
+				'caption'    => wp_get_attachment_caption( $attachment->ID ),
+				'credit'     => get_post_meta( $attachment->ID, '_media_credit', true ),
+				'credit_url' => get_post_meta( $attachment->ID, '_media_credit_url', true ),
+				'alt'        => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
+				'featured'   => false,
+			];
+		}
+
+		remove_filter( 'jetpack_photon_override_image_downsize', '__return_true' );
+		return $attachment_data;
+	}
+
+	/**
+	 * Get the attachments given a content string.
+	 *
+	 * @param string $content The content to search for attachment posts.
+	 *
+	 * @return WP_Post[] The attachment posts.
+	 */
+	public static function get_content_attachments( $content ) {
+		$pattern = '/<img[^>]+src="([^"]+)"[^>]*>/i';
+		preg_match_all( $pattern, $content, $matches );
+
+		if ( empty( $matches ) ) {
+			return [];
+		}
+
+		$attachment_ids = [];
+		foreach ( $matches[0] as $image_tag ) {
+			$attachment_id = null;
+			if ( preg_match( '/wp-image-(\d+)/i', $image_tag, $m ) ) {
+				$attachment_id = $m[1];
+			} elseif ( preg_match( '/data-attachment-id="(\d+)"/i', $image_tag, $m ) ) {
+				$attachment_id = $m[1];
+			} elseif ( preg_match( '/data-id="(\d+)"/i', $image_tag, $m ) ) {
+				$attachment_id = $m[1];
+			} elseif ( preg_match( '/id="(\d+)"/i', $image_tag, $m ) ) {
+				$attachment_id = $m[1];
+			}
+			if ( empty( $attachment_id ) ) {
+				continue;
+			}
+			$attachment = get_post( $attachment_id );
+			if ( ! $attachment ) {
+				continue;
+			}
+			$attachment_ids[] = $attachment;
+		}
+		return $attachment_ids;
 	}
 }

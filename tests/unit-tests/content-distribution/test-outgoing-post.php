@@ -162,6 +162,7 @@ class TestOutgoingPost extends \WP_UnitTestCase {
 			'thumbnail_url',
 			'taxonomy',
 			'post_meta',
+			'media_data',
 			'author',
 		];
 		$this->assertEmpty( array_diff( $post_data_keys, array_keys( $payload['post_data'] ) ) );
