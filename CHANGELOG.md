@@ -1,3 +1,10 @@
+# [2.14.0](https://github.com/Automattic/newspack-network/compare/v2.13.0...v2.14.0) (2025-08-13)
+
+
+### Features
+
+* **content-distribution:** add media data to the outgoing post payload ([#266](https://github.com/Automattic/newspack-network/issues/266)) ([f17f67c](https://github.com/Automattic/newspack-network/commit/f17f67c99f75c45cd692f625630f69dd02aa8944))
+
 # [2.13.0](https://github.com/Automattic/newspack-network/compare/v2.12.2...v2.13.0) (2025-08-11)
 
 
