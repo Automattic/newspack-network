@@ -71,6 +71,7 @@ function get_sample_payload( $origin = '', $destination = '' ) {
 				'array'    => [ [ 'a' => 'b', 'c' => 'd' ] ], // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 				'multiple' => [ 'value 1', 'value 2' ],
 			],
+			'media_data'     => [],
 		],
 	];
 }
