@@ -106,6 +106,10 @@ class TestIncomingPost extends \WP_UnitTestCase {
 
 		// Assert featured image.
 		$this->assertNotEmpty( get_post_thumbnail_id( $post_id ) );
+		$this->assertSame( 'Caption', wp_get_attachment_caption( get_post_thumbnail_id( $post_id ) ) );
+		$this->assertSame( 'Credit', get_post_meta( get_post_thumbnail_id( $post_id ), '_media_credit', true ) );
+		$this->assertSame( 'https://credit.url', get_post_meta( get_post_thumbnail_id( $post_id ), '_media_credit_url', true ) );
+		$this->assertSame( 'Alt', get_post_meta( get_post_thumbnail_id( $post_id ), '_wp_attachment_image_alt', true ) );
 
 		// Assert taxonomy terms.
 		$terms = wp_get_post_terms( $post_id, [ 'category', 'post_tag' ] );
