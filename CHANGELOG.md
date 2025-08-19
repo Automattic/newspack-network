@@ -1,3 +1,10 @@
+## [2.14.2](https://github.com/Automattic/newspack-network/compare/v2.14.1...v2.14.2) (2025-08-19)
+
+
+### Bug Fixes
+
+* **content-distribution:** populate distributed featured image meta ([#272](https://github.com/Automattic/newspack-network/issues/272)) ([cc5388d](https://github.com/Automattic/newspack-network/commit/cc5388d255e9581cea59915313ea860d11fc4b6e))
+
 ## [2.14.1](https://github.com/Automattic/newspack-network/compare/v2.14.0...v2.14.1) (2025-08-19)
 
 
