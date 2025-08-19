@@ -474,6 +474,38 @@ class Incoming_Post {
 			return;
 		}
 
+		/**
+		 * Update the attachment post meta.
+		 */
+		$media_data = $this->payload['post_data']['media_data'];
+		if ( ! empty( $media_data ) ) {
+			$meta = array_filter(
+				$media_data,
+				function( $media_item ) {
+					return $media_item['featured'];
+				}
+			);
+			if ( ! empty( $meta ) ) {
+				$meta = array_shift( $meta );
+				if ( ! empty( $meta['caption'] ) ) {
+					wp_update_post(
+						[
+							'ID'           => $attachment_id,
+							'post_excerpt' => $meta['caption'],
+						]
+					);
+				}
+				if ( ! empty( $meta['alt'] ) ) {
+					update_post_meta( $attachment_id, '_wp_attachment_image_alt', $meta['alt'] );
+				}
+				if ( ! empty( $meta['credit'] ) ) {
+					update_post_meta( $attachment_id, '_media_credit', $meta['credit'] );
+				}
+				if ( ! empty( $meta['credit_url'] ) ) {
+					update_post_meta( $attachment_id, '_media_credit_url', $meta['credit_url'] );
+				}
+			}
+		}
 		update_post_meta( $attachment_id, self::ATTACHMENT_META, true );
 
 		set_post_thumbnail( $this->ID, $attachment_id );

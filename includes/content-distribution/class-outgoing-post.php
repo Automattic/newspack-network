@@ -463,6 +463,9 @@ class Outgoing_Post {
 		$content     = apply_filters( 'the_content', get_the_content( null, false, get_post( $this->post->ID ) ) );
 		$attachments = self::get_content_attachments( $content );
 		foreach ( $attachments as $attachment ) {
+			if ( isset( $attachment_data[ $attachment->ID ] ) ) {
+				continue;
+			}
 			$attachment_data[ $attachment->ID ] = [
 				'url'        => wp_get_attachment_image_src( $attachment->ID, 'full' )[0],
 				'caption'    => wp_get_attachment_caption( $attachment->ID ),
