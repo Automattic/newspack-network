@@ -2,14 +2,14 @@
 # This file is distributed under the GPL3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Network 2.14.0\n"
+"Project-Id-Version: Newspack Network 2.14.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-08-14T17:55:42+00:00\n"
+"POT-Creation-Date: 2025-08-19T15:34:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-network\n"
@@ -291,28 +291,28 @@ msgstr ""
 msgid "Invalid subscription IDs."
 msgstr ""
 
-#: includes/content-distribution/class-editor.php:175
+#: includes/content-distribution/class-editor.php:179
 msgid "Content Distribution"
 msgstr ""
 
 #. translators: %s is the original site URL.
-#: includes/content-distribution/class-editor.php:221
+#: includes/content-distribution/class-editor.php:225
 #, php-format
 msgid "Originally posted and linked to %s."
 msgstr ""
 
 #. translators: %s is the original site URL.
-#: includes/content-distribution/class-editor.php:226
+#: includes/content-distribution/class-editor.php:230
 #, php-format
 msgid "Originally posted in %s and currently unlinked."
 msgstr ""
 
-#: includes/content-distribution/class-editor.php:229
+#: includes/content-distribution/class-editor.php:233
 msgid "Click to visit the original post."
 msgstr ""
 
 #. translators: %s is the number of network sites the post has been distributed to.
-#: includes/content-distribution/class-editor.php:243
+#: includes/content-distribution/class-editor.php:247
 #, php-format
 msgid "This post has been distributed to %d network site."
 msgid_plural "This post has been distributed to %d network sites."
