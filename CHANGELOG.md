@@ -1,3 +1,10 @@
+## [2.14.1](https://github.com/Automattic/newspack-network/compare/v2.14.0...v2.14.1) (2025-08-19)
+
+
+### Bug Fixes
+
+* **content-distribution:** account for null get_post return value ([aebd3d6](https://github.com/Automattic/newspack-network/commit/aebd3d6abb6464f2424082ea677db1ae7428c947))
+
 # [2.14.0](https://github.com/Automattic/newspack-network/compare/v2.13.0...v2.14.0) (2025-08-13)
 
 

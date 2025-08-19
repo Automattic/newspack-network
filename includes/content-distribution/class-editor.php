@@ -74,6 +74,10 @@ class Editor {
 
 		$post = get_post();
 
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+
 		if ( Content_Distribution_Class::is_post_incoming( $post ) ) {
 			self::enqueue_block_editor_assets_for_incoming_post( $post );
 		} else {
