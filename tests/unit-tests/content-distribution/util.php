@@ -71,7 +71,16 @@ function get_sample_payload( $origin = '', $destination = '' ) {
 				'array'    => [ [ 'a' => 'b', 'c' => 'd' ] ], // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 				'multiple' => [ 'value 1', 'value 2' ],
 			],
-			'media_data'     => [],
+			'media_data'     => [
+				[
+					'url'        => 'https://picsum.photos/id/1/300/300.jpg',
+					'caption'    => 'Caption',
+					'credit'     => 'Credit',
+					'credit_url' => 'https://credit.url',
+					'alt'        => 'Alt',
+					'featured'   => true,
+				],
+			],
 		],
 	];
 }
