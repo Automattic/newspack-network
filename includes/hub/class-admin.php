@@ -21,6 +21,5 @@ class Admin {
 		Admin\Orders::init();
 		Admin\Membership_Plans::init();
 		Admin\Nodes_List::init();
-		Distributor_Settings::init();
 	}
 }
