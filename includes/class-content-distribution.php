@@ -558,7 +558,7 @@ class Content_Distribution {
 	 */
 	public static function register_block_processor( $block_name, $transform_callback ) {
 		$block_processor = new Block_Processor( $block_name, $transform_callback );
-		if( ! isset( self::$block_processors[ $block_name ] ) ) {
+		if ( ! isset( self::$block_processors[ $block_name ] ) ) {
 			self::$block_processors[ $block_name ] = [];
 		}
 		self::$block_processors[ $block_name ][] = $block_processor;
