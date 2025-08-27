@@ -44,7 +44,7 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	public function test_process_block() {
 		Content_Distribution::register_block_processor( 'core/paragraph', [ __CLASS__, 'process_paragraph' ] );
 
-		$post = $this->factory->post->create_and_get( [ 'post_content' => "<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->" ] );
+		$post = $this->factory->post->create_and_get( [ 'post_content' => '<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->' ] );
 
 		$outgoing_post = new Outgoing_Post( $post );
 		$payload       = $outgoing_post->get_payload();
