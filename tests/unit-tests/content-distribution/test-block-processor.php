@@ -34,14 +34,28 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 */
 	public function test_register_block_processor() {
 		Content_Distribution::register_block_processor( 'core/paragraph', [ __CLASS__, 'process_paragraph' ] );
-		$block_processor = Content_Distribution::get_block_processor( 'core/paragraph' );
-		$this->assertInstanceOf( Block_Processor::class, $block_processor );
+		$block_processor = Content_Distribution::get_block_processors( 'core/paragraph' );
+		$this->assertNotEmpty( $block_processor );
+		$this->assertCount( 1, $block_processor );
+		$this->assertInstanceOf( Block_Processor::class, $block_processor[0] );
 	}
 
 	/**
-	 * Test block processing in Outgoing_Post.
+	 * Test processing a block.
 	 */
 	public function test_process_block() {
+		Content_Distribution::register_block_processor( 'core/paragraph', [ __CLASS__, 'process_paragraph' ] );
+		$block = [ 'blockName' => 'core/paragraph' ];
+		$processed_block = Content_Distribution::process_block( $block );
+		$this->assertEquals( 'test', $processed_block['attrs']['test'] );
+		$this->assertEquals( '<p>Processed</p>', $processed_block['innerHTML'] );
+		$this->assertEquals( [ '<p>Processed</p>' ], $processed_block['innerContent'] );
+	}
+
+	/**
+	 * Test Outgoing_Post
+	 */
+	public function test_outgoing_post() {
 		Content_Distribution::register_block_processor( 'core/paragraph', [ __CLASS__, 'process_paragraph' ] );
 
 		$post = $this->factory->post->create_and_get( [ 'post_content' => '<!-- wp:paragraph --><p>Test</p><!-- /wp:paragraph -->' ] );

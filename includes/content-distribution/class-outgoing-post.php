@@ -366,10 +366,7 @@ class Outgoing_Post {
 
 		$blocks = parse_blocks( $this->post->post_content );
 		foreach ( $blocks as &$block ) {
-			$block_processor = Content_Distribution_Class::get_block_processor( $block['blockName'] );
-			if ( $block_processor ) {
-				$block = $block_processor->process_block( $block );
-			}
+			$block = Content_Distribution_Class::process_block( $block );
 		}
 
 		return serialize_blocks( $blocks );

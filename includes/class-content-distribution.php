@@ -36,9 +36,9 @@ class Content_Distribution {
 	private static $queued_distributions = [];
 
 	/**
-	 * Registered block processors keyed by block name.
+	 * Registered block processors
 	 *
-	 * @var Block_Processor[]
+	 * @var array<string, Block_Processor[]> Array of block processors indexed by block name.
 	 */
 	private static $block_processors = [];
 
@@ -71,7 +71,8 @@ class Content_Distribution {
 		Yoast_Primary_Cat::init();
 
 		// Register block processors.
-		self::register_block_processor( 'jetpack/slideshow', [ __CLASS__, 'process_jetpack_slideshow' ] );
+		self::register_block_processor( 'jetpack/slideshow', [ __CLASS__, 'process_jetpack_galleries' ] );
+		self::register_block_processor( 'jetpack/tiled-gallery', [ __CLASS__, 'process_jetpack_galleries' ] );
 	}
 
 	/**
@@ -557,28 +558,52 @@ class Content_Distribution {
 	 */
 	public static function register_block_processor( $block_name, $transform_callback ) {
 		$block_processor = new Block_Processor( $block_name, $transform_callback );
-		self::$block_processors[ $block_name ] = $block_processor;
+		if( ! isset( self::$block_processors[ $block_name ] ) ) {
+			self::$block_processors[ $block_name ] = [];
+		}
+		self::$block_processors[ $block_name ][] = $block_processor;
 	}
 
 	/**
-	 * Get a block processor.
-	 *
-	 * @param string $block_name The name of the block to get.
-	 *
-	 * @return Block_Processor|null The block processor or null if not found.
-	 */
-	public static function get_block_processor( $block_name ) {
-		return self::$block_processors[ $block_name ] ?? null;
-	}
-
-	/**
-	 * Process a Jetpack slideshow block.
+	 * Process a block.
 	 *
 	 * @param array $block The block to process.
 	 *
 	 * @return array The processed block.
 	 */
-	public static function process_jetpack_slideshow( $block ) {
+	public static function process_block( $block ) {
+		$block_name = $block['blockName'];
+
+		$processors = self::get_block_processors( $block_name );
+		if ( empty( $processors ) ) {
+			return $block;
+		}
+
+		foreach ( $processors as $processor ) {
+			$block = $processor->process_block( $block );
+		}
+		return $block;
+	}
+
+	/**
+	 * Get the processors for a block.
+	 *
+	 * @param string $block_name The name of the block.
+	 *
+	 * @return Block_Processor[] The block processors.
+	 */
+	public static function get_block_processors( $block_name ) {
+		return self::$block_processors[ $block_name ] ?? [];
+	}
+
+	/**
+	 * Process Jetpack galleries blocks.
+	 *
+	 * @param array $block The block to process.
+	 *
+	 * @return array The processed block.
+	 */
+	public static function process_jetpack_galleries( $block ) {
 		unset( $block['attrs']['ids'] );
 		return $block;
 	}
