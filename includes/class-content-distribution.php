@@ -18,6 +18,7 @@ use Newspack_Network\Content_Distribution\Editor;
 use Newspack_Network\Content_Distribution\Incoming_Post;
 use Newspack_Network\Content_Distribution\Outgoing_Post;
 use Newspack_Network\Content_Distribution\Yoast_Primary_Cat;
+use Newspack_Network\Content_Distribution\Block_Processor;
 use WP_Post;
 
 /**
@@ -33,6 +34,13 @@ class Content_Distribution {
 	 * @var array Post IDs to update.
 	 */
 	private static $queued_distributions = [];
+
+	/**
+	 * Registered block processors keyed by block name.
+	 *
+	 * @var Block_Processor[]
+	 */
+	private static $block_processors = [];
 
 	/**
 	 * Initialize this class and register hooks
@@ -61,6 +69,9 @@ class Content_Distribution {
 		Distributor_Migrator::init();
 		Cap_Authors::init();
 		Yoast_Primary_Cat::init();
+
+		// Register block processors.
+		self::register_block_processor( 'jetpack/slideshow', [ __CLASS__, 'process_jetpack_slideshow' ] );
 	}
 
 	/**
@@ -534,5 +545,41 @@ class Content_Distribution {
 			// Store payload hash to prevent unnecessary updates.
 			update_post_meta( $post->ID, self::PAYLOAD_HASH_META, $payload_hash );
 		}
+	}
+
+	/**
+	 * Register a block processor.
+	 *
+	 * @param string   $block_name         The name of the block to process.
+	 * @param callable $transform_callback The callback to transform the block.
+	 *
+	 * @return void
+	 */
+	public static function register_block_processor( $block_name, $transform_callback ) {
+		$block_processor = new Block_Processor( $block_name, $transform_callback );
+		self::$block_processors[ $block_name ] = $block_processor;
+	}
+
+	/**
+	 * Get a block processor.
+	 *
+	 * @param string $block_name The name of the block to get.
+	 *
+	 * @return Block_Processor|null The block processor or null if not found.
+	 */
+	public static function get_block_processor( $block_name ) {
+		return self::$block_processors[ $block_name ] ?? null;
+	}
+
+	/**
+	 * Process a Jetpack slideshow block.
+	 *
+	 * @param array $block The block to process.
+	 *
+	 * @return array The processed block.
+	 */
+	public static function process_jetpack_slideshow( $block ) {
+		unset( $block['attrs']['ids'] );
+		return $block;
 	}
 }
