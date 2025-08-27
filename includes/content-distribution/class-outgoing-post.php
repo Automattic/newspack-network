@@ -356,7 +356,7 @@ class Outgoing_Post {
 	 * @return string The raw post content.
 	 */
 	protected function get_raw_post_content() {
-		if ( use_block_editor_for_post_type( $this->post->post_type ) ) {
+		if ( ! use_block_editor_for_post_type( $this->post->post_type ) ) {
 			return $this->post->post_content;
 		}
 
@@ -365,14 +365,14 @@ class Outgoing_Post {
 		}
 
 		$blocks = parse_blocks( $this->post->post_content );
-		foreach ( $blocks as $block ) {
+		foreach ( $blocks as &$block ) {
 			$block_processor = Content_Distribution_Class::get_block_processor( $block['blockName'] );
 			if ( $block_processor ) {
 				$block = $block_processor->process_block( $block );
 			}
 		}
 
-		return array_map( 'serialize_block', $blocks );
+		return serialize_blocks( $blocks );
 	}
 
 	/**
