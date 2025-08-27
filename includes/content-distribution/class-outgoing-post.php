@@ -364,10 +364,10 @@ class Outgoing_Post {
 			return $this->post->post_content;
 		}
 
-		$blocks = parse_blocks( $this->post->post_content );
-		foreach ( $blocks as &$block ) {
-			$block = Content_Distribution_Class::process_block( $block );
-		}
+		$blocks = array_map(
+			[ Content_Distribution_Class::class, 'process_block' ],
+			parse_blocks( $this->post->post_content )
+		);
 
 		return serialize_blocks( $blocks );
 	}
