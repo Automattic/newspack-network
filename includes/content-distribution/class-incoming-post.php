@@ -595,6 +595,31 @@ class Incoming_Post {
 	}
 
 	/**
+	 * Get the post content for insertion.
+	 *
+	 * @return string The post content.
+	 */
+	protected function get_post_content() {
+		$post_data = $this->payload['post_data'];
+		$post_type = $post_data['post_type'];
+
+		if ( ! use_block_editor_for_post_type( $post_type ) ) {
+			return $post_data['content'];
+		}
+
+		if ( ! has_blocks( $post_data['raw_content'] ) ) {
+			return $post_data['content'];
+		}
+
+		$blocks = array_map(
+			[ Content_Distribution_Class::class, 'process_incoming_block' ],
+			parse_blocks( $post_data['raw_content'] )
+		);
+
+		return serialize_blocks( $blocks );
+	}
+
+	/**
 	 * Insert the incoming post.
 	 *
 	 * This will create or update an existing post and the stored payload.
@@ -639,9 +664,7 @@ class Incoming_Post {
 			'post_date_gmt'  => $post_data['date_gmt'],
 			'post_title'     => $post_data['title'],
 			'post_name'      => $post_data['slug'],
-			'post_content'   => use_block_editor_for_post_type( $post_type ) ?
-				$post_data['raw_content'] :
-				$post_data['content'],
+			'post_content'   => $this->get_post_content(),
 			'post_excerpt'   => $post_data['excerpt'],
 			'post_type'      => $post_type,
 			'comment_status' => $post_data['comment_status'],

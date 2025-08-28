@@ -551,13 +551,14 @@ class Content_Distribution {
 	/**
 	 * Register a block processor.
 	 *
-	 * @param string   $block_name         The name of the block to process.
-	 * @param callable $transform_callback The callback to transform the block.
+	 * @param string        $block_name        The name of the block to process.
+	 * @param callable|null $outgoing_callback The callback to transform the outgoing block.
+	 * @param callable|null $incoming_callback The callback to transform the incoming block.
 	 *
 	 * @return void
 	 */
-	public static function register_block_processor( $block_name, $transform_callback ) {
-		$block_processor = new Block_Processor( $block_name, $transform_callback );
+	public static function register_block_processor( $block_name, $outgoing_callback = null, $incoming_callback = null ) {
+		$block_processor = new Block_Processor( $block_name, $outgoing_callback, $incoming_callback );
 		if ( ! isset( self::$block_processors[ $block_name ] ) ) {
 			self::$block_processors[ $block_name ] = [];
 		}
@@ -565,13 +566,13 @@ class Content_Distribution {
 	}
 
 	/**
-	 * Process a block.
+	 * Process an outgoing block.
 	 *
 	 * @param array $block The block to process.
 	 *
 	 * @return array The processed block.
 	 */
-	public static function process_block( $block ) {
+	public static function process_outgoing_block( $block ) {
 		$block_name = $block['blockName'];
 
 		$processors = self::get_block_processors( $block_name );
@@ -580,7 +581,28 @@ class Content_Distribution {
 		}
 
 		foreach ( $processors as $processor ) {
-			$block = $processor->process_block( $block );
+			$block = $processor->process_outgoing_block( $block );
+		}
+		return $block;
+	}
+
+	/**
+	 * Process an incoming block.
+	 *
+	 * @param array $block The block to process.
+	 *
+	 * @return array The processed block.
+	 */
+	public static function process_incoming_block( $block ) {
+		$block_name = $block['blockName'];
+
+		$processors = self::get_block_processors( $block_name );
+		if ( empty( $processors ) ) {
+			return $block;
+		}
+
+		foreach ( $processors as $processor ) {
+			$block = $processor->process_incoming_block( $block );
 		}
 		return $block;
 	}

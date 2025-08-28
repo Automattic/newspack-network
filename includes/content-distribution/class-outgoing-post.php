@@ -365,7 +365,7 @@ class Outgoing_Post {
 		}
 
 		$blocks = array_map(
-			[ Content_Distribution_Class::class, 'process_block' ],
+			[ Content_Distribution_Class::class, 'process_outgoing_block' ],
 			parse_blocks( $this->post->post_content )
 		);
 
