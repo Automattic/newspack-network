@@ -67,4 +67,13 @@ class Site_Role {
 	public static function sanitize( $role ) {
 		return in_array( $role, [ 'hub', 'node' ], true ) ? $role : false;
 	}
+
+	/**
+	 * Checks if the site has a role
+	 *
+	 * @return boolean
+	 */
+	public static function has_role() {
+		return self::is_hub() || self::is_node();
+	}
 }
