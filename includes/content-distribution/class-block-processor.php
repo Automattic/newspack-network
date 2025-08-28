@@ -41,7 +41,7 @@ class Block_Processor {
 	 * @param callable|null $incoming_callback The callback to transform the incoming block.
 	 */
 	public function __construct( $block_name, $outgoing_callback = null, $incoming_callback = null ) {
-		$this->block_name         = $block_name;
+		$this->block_name = $block_name;
 
 		if ( $outgoing_callback ) {
 			$this->set_outgoing_callback( $outgoing_callback );
