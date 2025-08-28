@@ -606,7 +606,7 @@ class TestIncomingPost extends \WP_UnitTestCase {
 
 		// Assert that the post title was updated and the content was not.
 		$this->assertSame( 'Updated Title', get_the_title( $post_id ) );
-		$this->assertSame( 'Content', get_post_field( 'post_content', $post_id ) );
+		$this->assertSame( '<!-- wp:paragraph --><p>Content</p><!-- /wp:paragraph -->', get_post_field( 'post_content', $post_id ) );
 	}
 
 	/**
@@ -629,7 +629,7 @@ class TestIncomingPost extends \WP_UnitTestCase {
 
 		// Assert that the post title was updated and the content was not.
 		$this->assertSame( 'Updated Title', get_the_title( $post_id ) );
-		$this->assertSame( 'Content', get_post_field( 'post_content', $post_id ) );
+		$this->assertSame( '<!-- wp:paragraph --><p>Content</p><!-- /wp:paragraph -->', get_post_field( 'post_content', $post_id ) );
 	}
 
 	/**
