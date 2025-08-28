@@ -25,6 +25,14 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down the test.
+	 */
+	public function tear_down() {
+		parent::tear_down();
+		Content_Distribution::reset_block_processors( 'core/paragraph' );
+	}
+
+	/**
 	 * Process an outgoing paragraph block.
 	 *
 	 * @param array $block The block to process.

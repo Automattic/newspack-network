@@ -566,6 +566,17 @@ class Content_Distribution {
 	}
 
 	/**
+	 * Reset the block processors for a block name.
+	 *
+	 * @param string $block_name The name of the block.
+	 *
+	 * @return void
+	 */
+	public static function reset_block_processors( $block_name ) {
+		self::$block_processors[ $block_name ] = [];
+	}
+
+	/**
 	 * Process an outgoing block.
 	 *
 	 * @param array $block The block to process.
