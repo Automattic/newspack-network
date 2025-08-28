@@ -36,9 +36,9 @@ class Block_Processor {
 	/**
 	 * Constructor.
 	 *
-	 * @param string        $block_name         The name of the block to process.
-	 * @param callable|null $outgoing_callback  The callback to transform the outgoing block.
-	 * @param callable|null $incoming_callback  The callback to transform the incoming block.
+	 * @param string        $block_name        The name of the block to process.
+	 * @param callable|null $outgoing_callback The callback to transform the outgoing block.
+	 * @param callable|null $incoming_callback The callback to transform the incoming block.
 	 */
 	public function __construct( $block_name, $outgoing_callback = null, $incoming_callback = null ) {
 		$this->block_name         = $block_name;
