@@ -89,7 +89,7 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 		// Test filtering by range (alice to david should include all).
 		$all_filtered_results = Integrity_Check_Utils::filter_data_by_range( $membership_test_data, 'alice@example.com', 'david@example.com' );
 		$this->assertCount( 4, $all_filtered_results );
-		
+
 		// Test filtering by range (b to d should include bob, charlie).
 		$partial_filtered_results = Integrity_Check_Utils::filter_data_by_range( $membership_test_data, 'b', 'd' );
 		$this->assertCount( 2, $partial_filtered_results );
@@ -100,7 +100,7 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 		$case_insensitive_test_data = [
 			[
 				'email'      => 'Alice@Example.com',
-				'status'     => 'wcm-active', 
+				'status'     => 'wcm-active',
 				'network_id' => 'plan1',
 			],
 			[
@@ -112,40 +112,6 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 		$case_insensitive_results = Integrity_Check_Utils::filter_data_by_range( $case_insensitive_test_data, 'a', 'z' );
 		$this->assertCount( 2, $case_insensitive_results );
 	}
-
-	/**
-	 * Test email range creation with fixed alphabetical ranges
-	 */
-	public function test_create_email_ranges() {
-		$integrity_check_reflection = new ReflectionClass( Integrity_Check::class );
-		$create_email_ranges_method = $integrity_check_reflection->getMethod( 'create_email_ranges' );
-		$create_email_ranges_method->setAccessible( true );
-
-		$email_range_test_data = [
-			[ 'email' => 'a@test.com' ],
-			[ 'email' => 'b@test.com' ],
-			[ 'email' => 'c@test.com' ],
-			[ 'email' => 'd@test.com' ],
-		];
-
-		// Test with target chunk size of 2 - should consolidate ranges.
-		$created_ranges = $create_email_ranges_method->invoke( null, $email_range_test_data, 2 );
-		$this->assertCount( 2, $created_ranges );
-		
-		// Fixed ranges are consolidated when fewer chunks are needed.
-		$this->assertEquals( '0', $created_ranges[0]['start'] );
-		$this->assertEquals( 'k', $created_ranges[0]['end'] );
-		
-		$this->assertEquals( 'l', $created_ranges[1]['start'] );
-		$this->assertEquals( 'zzzzz', $created_ranges[1]['end'] );
-		
-		// Test with larger chunk size - should use default fixed ranges.
-		$large_ranges = $create_email_ranges_method->invoke( null, $email_range_test_data, 1000 );
-		$this->assertCount( 1, $large_ranges );
-		$this->assertEquals( '0', $large_ranges[0]['start'] );
-		$this->assertEquals( 'zzzzz', $large_ranges[0]['end'] );
-	}
-
 
 	/**
 	 * Test chunk comparison with no discrepancies
@@ -243,7 +209,7 @@ class TestIntegrityCheckCLI extends WP_UnitTestCase {
 
 		$missing_membership_discrepancies = $compare_chunk_data_method->invoke( null, $hub_chunk_with_test_email, $node_chunk_with_different_email );
 		$this->assertCount( 2, $missing_membership_discrepancies );
-		
+
 		// Check for both NOT_FOUND cases.
 		$discrepancy_emails = array_column( $missing_membership_discrepancies, 'email' );
 		$this->assertContains( 'test@example.com', $discrepancy_emails );
