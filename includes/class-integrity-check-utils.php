@@ -15,16 +15,13 @@ use Newspack_Network\Woocommerce_Memberships\Admin as Memberships_Admin;
 class Integrity_Check_Utils {
 
 	/**
-	 * Get all membership data
+	 * Build the base membership query
 	 *
-	 * @param int|null $max_records Maximum number of records to return (for testing).
-	 * @return array Array of (email, status, network_id) data
+	 * @param string|null $start_email Optional start email for range filtering.
+	 * @param string|null $end_email Optional end email for range filtering.
+	 * @return string The SQL query string
 	 */
-	public static function get_membership_data( $max_records = null ) {
-		if ( ! class_exists( 'WC_Memberships_User_Membership' ) ) {
-			return [];
-		}
-
+	private static function build_membership_query( $start_email = null, $end_email = null ) {
 		global $wpdb;
 
 		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
@@ -52,17 +49,39 @@ class Integrity_Check_Utils {
 				AND p.post_date = latest.max_date
 			WHERE p.post_type = 'wc_user_membership'
 			AND pm_network.meta_value IS NOT NULL
-			AND pm_network.meta_value != ''
-			ORDER BY LOWER(u.user_email) ASC
-		";
+			AND pm_network.meta_value != ''";
+
+		// Add range filtering if provided.
+		if ( $start_email !== null && $end_email !== null ) {
+			$query .= "
+			AND LOWER(u.user_email) >= %s
+			AND LOWER(u.user_email) <= %s";
+		}
+
+		$query .= "
+			ORDER BY LOWER(u.user_email) ASC";
 		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+
+		return $query;
+	}
+
+	/**
+	 * Execute membership query and format results
+	 *
+	 * @param string   $query The SQL query.
+	 * @param array    $prepare_args Arguments for wpdb->prepare.
+	 * @param int|null $max_records Maximum number of records to return.
+	 * @return array Array of (email, status, network_id) data
+	 */
+	private static function execute_membership_query( $query, $prepare_args, $max_records = null ) {
+		global $wpdb;
 
 		if ( $max_records ) {
 			$query .= $wpdb->prepare( ' LIMIT %d', $max_records );
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users,WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $wpdb->prepare( $query, Memberships_Admin::NETWORK_ID_META_KEY, Memberships_Admin::NETWORK_ID_META_KEY ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
+		$results = $wpdb->get_results( $wpdb->prepare( $query, ...$prepare_args ) );
 
 		$membership_data = [];
 		foreach ( $results as $result ) {
@@ -74,6 +93,26 @@ class Integrity_Check_Utils {
 		}
 
 		return $membership_data;
+	}
+
+	/**
+	 * Get all membership data
+	 *
+	 * @param int|null $max_records Maximum number of records to return (for testing).
+	 * @return array Array of (email, status, network_id) data
+	 */
+	public static function get_membership_data( $max_records = null ) {
+		if ( ! class_exists( 'WC_Memberships_User_Membership' ) ) {
+			return [];
+		}
+
+		$query = self::build_membership_query();
+		$prepare_args = [
+			Memberships_Admin::NETWORK_ID_META_KEY,
+			Memberships_Admin::NETWORK_ID_META_KEY,
+		];
+
+		return self::execute_membership_query( $query, $prepare_args, $max_records );
 	}
 
 	/**
@@ -93,57 +132,15 @@ class Integrity_Check_Utils {
 			return [];
 		}
 
-		global $wpdb;
+		$query = self::build_membership_query( $start_email, $end_email );
+		$prepare_args = [
+			Memberships_Admin::NETWORK_ID_META_KEY,
+			Memberships_Admin::NETWORK_ID_META_KEY,
+			$start_email,
+			$end_email,
+		];
 
-		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-		$query = "
-			SELECT 
-				u.user_email,
-				p.post_status as status,
-				pm_network.meta_value as network_id
-			FROM {$wpdb->posts} p
-			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
-			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
-			INNER JOIN (
-				SELECT 
-					p2.post_author,
-					pm2.meta_value,
-					MAX(p2.post_date) as max_date
-				FROM {$wpdb->posts} p2
-				INNER JOIN {$wpdb->postmeta} pm2 ON p2.post_parent = pm2.post_id AND pm2.meta_key = %s
-				WHERE p2.post_type = 'wc_user_membership'
-				AND pm2.meta_value IS NOT NULL
-				AND pm2.meta_value != ''
-				GROUP BY p2.post_author, pm2.meta_value
-			) latest ON p.post_author = latest.post_author 
-				AND pm_network.meta_value = latest.meta_value 
-				AND p.post_date = latest.max_date
-			WHERE p.post_type = 'wc_user_membership'
-			AND pm_network.meta_value IS NOT NULL
-			AND pm_network.meta_value != ''
-			AND LOWER(u.user_email) >= %s
-			AND LOWER(u.user_email) <= %s
-			ORDER BY LOWER(u.user_email) ASC
-		";
-
-		if ( $max_records ) {
-			$query .= $wpdb->prepare( ' LIMIT %d', $max_records );
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $wpdb->prepare( $query, Memberships_Admin::NETWORK_ID_META_KEY, Memberships_Admin::NETWORK_ID_META_KEY, $start_email, $end_email ) );
-		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
-
-		$membership_data = [];
-		foreach ( $results as $result ) {
-			$membership_data[] = [
-				'email'      => strtolower( $result->user_email ),
-				'status'     => $result->status,
-				'network_id' => $result->network_id,
-			];
-		}
-
-		return $membership_data;
+		return self::execute_membership_query( $query, $prepare_args, $max_records );
 	}
 
 	/**
