@@ -45,9 +45,6 @@ class Integrity_Check {
 	 * [--verbose]
 	 * : Output verbose information during the check.
 	 *
-	 * [--fix-discrepancies]
-	 * : Attempt to fix discrepancies found during the check.
-	 *
 	 * [--chunk-size=<size>]
 	 * : Maximum number of memberships to compare in each chunk (default: 1000).
 	 *
@@ -67,7 +64,6 @@ class Integrity_Check {
 	 */
 	public static function integrity_check( $args, $assoc_args ) { // phpcs:ignore Generic.NamingConventions.ConstructorName.OldStyle
 		$verbose = isset( $assoc_args['verbose'] ) ? true : false;
-		$fix_discrepancies = isset( $assoc_args['fix-discrepancies'] ) ? true : false;
 		$chunk_size = isset( $assoc_args['chunk-size'] ) ? intval( $assoc_args['chunk-size'] ) : 1000;
 		$max_records = isset( $assoc_args['max'] ) ? intval( $assoc_args['max'] ) : null;
 
@@ -165,10 +161,6 @@ class Integrity_Check {
 
 			// Display as table using WP-CLI's table formatter.
 			WP_CLI\Utils\format_items( 'table', $table_data, $node_columns );
-		}
-
-		if ( $fix_discrepancies ) {
-			WP_CLI::line( 'Fix discrepancies functionality would be implemented here.' );
 		}
 	}
 
