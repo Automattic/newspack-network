@@ -229,77 +229,6 @@ class Integrity_Check {
 	}
 
 	/**
-	 * Get chunk hash from a node via REST API
-	 *
-	 * @param \Newspack_Network\Node\Node $node The node to query.
-	 * @param int                         $offset The offset for the chunk.
-	 * @param int                         $limit The limit for the chunk.
-	 * @return string The chunk hash from the node
-	 */
-	private static function get_node_chunk_hash( $node, $offset, $limit ) {
-		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/chunk-hash', $node->get_url() );
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
-		$response = wp_remote_get(
-			add_query_arg(
-				[
-					'offset' => $offset,
-					'limit'  => $limit,
-				],
-				$endpoint
-			),
-			[
-				'headers' => $node->get_authorization_headers( 'integrity-check' ),
-				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-			]
-		);
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			WP_CLI::error( sprintf( 'Failed to get chunk hash from node: %s', $node->get_url() ) );
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-
-		return $data['hash'] ?? '';
-	}
-
-	/**
-	 * Get chunk data from a node via REST API
-	 *
-	 * @param \Newspack_Network\Node\Node $node The node to query.
-	 * @param int                         $offset The offset for the chunk.
-	 * @param int                         $limit The limit for the chunk.
-	 * @return array The chunk data from the node
-	 */
-	private static function get_node_chunk_data( $node, $offset, $limit ) {
-		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/chunk-data', $node->get_url() );
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
-		$response = wp_remote_get(
-			add_query_arg(
-				[
-					'offset' => $offset,
-					'limit'  => $limit,
-				],
-				$endpoint
-			),
-			[
-				'headers' => $node->get_authorization_headers( 'integrity-check' ),
-				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-			]
-		);
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			WP_CLI::error( sprintf( 'Failed to get chunk data from node: %s', $node->get_url() ) );
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-
-		return $data['memberships'] ?? [];
-	}
-
-
-	/**
 	 * Find specific discrepancies between hub and node data using range-based chunked approach
 	 *
 	 * Uses email address ranges instead of positional offsets to avoid the "shifting problem":
@@ -534,16 +463,17 @@ class Integrity_Check {
 
 
 	/**
-	 * Get range hash from a node via REST API
+	 * Get range data from a node via REST API (common implementation)
 	 *
 	 * @param \Newspack_Network\Node\Node $node The node to query.
+	 * @param string                      $endpoint_type The endpoint type ('range-hash' or 'range-data').
 	 * @param string                      $start_email Start email for the range.
 	 * @param string                      $end_email End email for the range.
-	 * @param int|null                    $max_records Maximum number of records to include in hash (for testing).
-	 * @return string The range hash from the node
+	 * @param int|null                    $max_records Maximum number of records (for testing).
+	 * @return mixed The response data from the node
 	 */
-	private static function get_node_range_hash( $node, $start_email, $end_email, $max_records = null ) {
-		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/range-hash', $node->get_url() );
+	private static function get_node_range_request( $node, $endpoint_type, $start_email, $end_email, $max_records = null ) {
+		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/%s', $node->get_url(), $endpoint_type );
 
 		$query_args = [
 			'start' => strtolower( $start_email ),
@@ -565,12 +495,25 @@ class Integrity_Check {
 		);
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			WP_CLI::error( sprintf( 'Failed to get range hash from node: %s', $node->get_url() ) );
+			$error_type = str_replace( '-', ' ', $endpoint_type );
+			WP_CLI::error( sprintf( 'Failed to get %s from node: %s', $error_type, $node->get_url() ) );
 		}
 
 		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
+		return json_decode( $body, true );
+	}
 
+	/**
+	 * Get range hash from a node via REST API
+	 *
+	 * @param \Newspack_Network\Node\Node $node The node to query.
+	 * @param string                      $start_email Start email for the range.
+	 * @param string                      $end_email End email for the range.
+	 * @param int|null                    $max_records Maximum number of records to include in hash (for testing).
+	 * @return string The range hash from the node
+	 */
+	private static function get_node_range_hash( $node, $start_email, $end_email, $max_records = null ) {
+		$data = self::get_node_range_request( $node, 'range-hash', $start_email, $end_email, $max_records );
 		return $data['hash'] ?? '';
 	}
 
@@ -584,34 +527,7 @@ class Integrity_Check {
 	 * @return array The range data from the node
 	 */
 	private static function get_node_range_data( $node, $start_email, $end_email, $max_records = null ) {
-		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/range-data', $node->get_url() );
-
-		$query_args = [
-			'start' => strtolower( $start_email ),
-			'end'   => strtolower( $end_email ),
-			'_t'    => time(), // Cache-busting parameter.
-		];
-
-		if ( $max_records ) {
-			$query_args['max'] = $max_records;
-		}
-
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
-		$response = wp_remote_get(
-			add_query_arg( $query_args, $endpoint ),
-			[
-				'headers' => $node->get_authorization_headers( 'integrity-check' ),
-				'timeout' => 60, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
-			]
-		);
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			WP_CLI::error( sprintf( 'Failed to get range data from node: %s', $node->get_url() ) );
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-
+		$data = self::get_node_range_request( $node, 'range-data', $start_email, $end_email, $max_records );
 		return $data['memberships'] ?? [];
 	}
 }
