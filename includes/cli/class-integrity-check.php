@@ -357,11 +357,7 @@ class Integrity_Check {
 	}
 
 	/**
-	 * Create fixed email ranges for consistent chunking
-	 *
-	 * Creates fixed alphabetical ranges that are consistent across hub and nodes
-	 * regardless of data distribution differences. This prevents boundary mismatches
-	 * that occur when hub and nodes have different membership counts.
+	 * Create fixed email ranges for consistent chunking.
 	 *
 	 * @param array $hub_data Hub membership data (sorted by email).
 	 * @param int   $target_chunk_size Target number of emails per chunk.
@@ -372,93 +368,66 @@ class Integrity_Check {
 			return [];
 		}
 
-		// Use fixed alphabetical ranges instead of data-dependent ranges.
-		// This ensures consistent boundaries regardless of data distribution.
-		$fixed_ranges = [
-			[
-				'start' => '0',
-				'end'   => 'c',
-			],
-			[
-				'start' => 'd',
-				'end'   => 'g',
-			],
-			[
-				'start' => 'h',
-				'end'   => 'k',
-			],
-			[
-				'start' => 'l',
-				'end'   => 'o',
-			],
-			[
-				'start' => 'p',
-				'end'   => 's',
-			],
-			[
-				'start' => 't',
-				'end'   => 'zzzzz',
-			],
-		];
-
-		// Calculate target ranges based on data size and target chunk size.
 		$total_emails = count( $hub_data );
-		$target_ranges = max( 1, ceil( $total_emails / $target_chunk_size ) );
+		$num_ranges = max( 1, ceil( $total_emails / $target_chunk_size ) );
+		$ranges = [];
 
-		// If we need fewer ranges, combine adjacent ranges.
-		if ( $target_ranges < count( $fixed_ranges ) ) {
-			$consolidated_ranges = [];
-			$ranges_per_group = ceil( count( $fixed_ranges ) / $target_ranges );
+		// Sort data by email to ensure consistent ordering.
+		usort(
+			$hub_data,
+			function( $a, $b ) {
+				return strcasecmp( $a['email'], $b['email'] );
+			}
+		);
 
-			$current_idx = 0;
-			$fixed_ranges_count = count( $fixed_ranges );
-			while ( $current_idx < $fixed_ranges_count ) {
-				$start_idx = $current_idx;
-				$end_idx = min( $current_idx + $ranges_per_group - 1, $fixed_ranges_count - 1 );
+		// Create ranges based on actual data distribution.
+		$emails_per_range = ceil( $total_emails / $num_ranges );
 
-				$consolidated_ranges[] = [
-					'start' => $fixed_ranges[ $start_idx ]['start'],
-					'end'   => $fixed_ranges[ $end_idx ]['end'],
-				];
+		for ( $i = 0; $i < $num_ranges; $i++ ) {
+			$start_idx = $i * $emails_per_range;
+			$end_idx = min( ( $i + 1 ) * $emails_per_range - 1, $total_emails - 1 );
 
-				$current_idx += $ranges_per_group;
+			if ( $start_idx >= $total_emails ) {
+				break;
 			}
 
-			return $consolidated_ranges;
-		}
+			// Use actual email addresses as boundaries.
+			$start_email = $hub_data[ $start_idx ]['email'];
 
-		// If we need more ranges, subdivide the alphabet further.
-		if ( $target_ranges > count( $fixed_ranges ) ) {
-			$alphabet = 'abcdefghijklmnopqrstuvwxyz';
-			$ranges = [];
-			$chars_per_range = max( 1, floor( 26 / $target_ranges ) );
-
-			// Ensure we don't exceed available alphabet characters.
-			$actual_target_ranges = min( $target_ranges, 26 );
-
-			for ( $i = 0; $i < $actual_target_ranges; $i++ ) {
-				$start_char_idx = $i * $chars_per_range;
-				$end_char_idx = min( $start_char_idx + $chars_per_range - 1, 25 );
-
-				// Validate array bounds.
-				if ( $start_char_idx >= 26 ) {
-					break;
+			// For the last range, use 'zzzzz' as the end to catch everything.
+			if ( $i === $num_ranges - 1 ) {
+				$end_email = 'zzzzz';
+			} else {
+				// Use the email just before the next range starts as the upper bound.
+				// This ensures no gaps between ranges.
+				$next_start_idx = min( ( $i + 1 ) * $emails_per_range, $total_emails - 1 );
+				if ( $next_start_idx > 0 ) {
+					// Get the character just before the next range's first email.
+					$next_email = $hub_data[ $next_start_idx ]['email'];
+					// Create an end boundary that includes everything up to (but not including) the next email.
+					// We'll use the next email with a character decremented.
+					$end_email = $next_email;
+					// Adjust to create a proper boundary.
+					$last_char = substr( $end_email, -1 );
+					if ( ord( $last_char ) > ord( 'a' ) ) {
+						$end_email = substr( $end_email, 0, -1 ) . chr( ord( $last_char ) - 1 ) . 'zzz';
+					} else {
+						// If we can't decrement, just use the email as-is.
+						// The range comparison should handle this correctly.
+						$end_email = $next_email;
+					}
+				} else {
+					$end_email = 'zzzzz';
 				}
-
-				$start_char = $alphabet[ $start_char_idx ];
-				$end_char = ( $i === $actual_target_ranges - 1 ) ? 'zzzzz' : $alphabet[ $end_char_idx ];
-
-				$ranges[] = [
-					'start' => $start_char,
-					'end'   => $end_char,
-				];
 			}
 
-			return $ranges;
+			$ranges[] = [
+				'start' => strtolower( $start_email ),
+				'end'   => strtolower( $end_email ),
+			];
 		}
 
-		// Default to fixed ranges.
-		return $fixed_ranges;
+		return $ranges;
 	}
 
 

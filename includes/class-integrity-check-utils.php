@@ -53,13 +53,13 @@ class Integrity_Check_Utils {
 
 		// Add range filtering if provided.
 		if ( $start_email !== null && $end_email !== null ) {
-			$query .= "
+			$query .= '
 			AND LOWER(u.user_email) >= %s
-			AND LOWER(u.user_email) <= %s";
+			AND LOWER(u.user_email) <= %s';
 		}
 
-		$query .= "
-			ORDER BY LOWER(u.user_email) ASC";
+		$query .= '
+			ORDER BY LOWER(u.user_email) ASC';
 		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 
 		return $query;
