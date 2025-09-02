@@ -32,7 +32,7 @@ class Integrity_Check {
 	 * @return void
 	 */
 	public static function register_commands() {
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		if ( Site_Role::is_hub() && defined( 'WP_CLI' ) && WP_CLI ) {
 			WP_CLI::add_command( 'newspack-network integrity-check', [ __CLASS__, 'integrity_check' ] );
 		}
 	}
@@ -70,10 +70,6 @@ class Integrity_Check {
 		$fix_discrepancies = isset( $assoc_args['fix-discrepancies'] ) ? true : false;
 		$chunk_size = isset( $assoc_args['chunk-size'] ) ? intval( $assoc_args['chunk-size'] ) : 1000;
 		$max_records = isset( $assoc_args['max'] ) ? intval( $assoc_args['max'] ) : null;
-
-		if ( ! Site_Role::is_hub() ) {
-			WP_CLI::error( 'This command can only be run on a Hub site.' );
-		}
 
 		if ( $max_records ) {
 			WP_CLI::warning( sprintf( 'Using --max=%d for testing. Do not use --max in production as it may produce false positives.', $max_records ) );
@@ -123,10 +119,10 @@ class Integrity_Check {
 		// Step 3: Collect discrepancies from all nodes into a consolidated table.
 		$all_discrepancies = [];
 		$node_columns = [ 'email', 'network_id', 'hub_status' ];
-		
+
 		foreach ( $discrepancies as $node ) {
 			WP_CLI::line( sprintf( 'Analyzing discrepancies for node: %s', $node->get_url() ) );
-			
+
 			$node_url = $node->get_url();
 			$node_name = str_replace( [ 'https://www.', 'https://', 'http://www.', 'http://' ], '', $node_url );
 			$node_columns[] = $node_name;
@@ -136,7 +132,7 @@ class Integrity_Check {
 			// Process discrepancies for this node.
 			foreach ( $specific_discrepancies as $discrepancy ) {
 				$key = $discrepancy['email'] . '::' . $discrepancy['network_id'];
-				
+
 				if ( ! isset( $all_discrepancies[ $key ] ) ) {
 					$all_discrepancies[ $key ] = [
 						'email'      => $discrepancy['email'],
@@ -144,7 +140,7 @@ class Integrity_Check {
 						'hub_status' => $discrepancy['hub_status'],
 					];
 				}
-				
+
 				$all_discrepancies[ $key ][ $node_name ] = $discrepancy['node_status'];
 			}
 		}
@@ -417,10 +413,10 @@ class Integrity_Check {
 		foreach ( $all_keys as $key ) {
 			$hub_item = $hub_lookup[ $key ] ?? null;
 			$node_item = $node_lookup[ $key ] ?? null;
-			
+
 			$hub_status = $hub_item ? $hub_item['status'] : 'NOT_FOUND';
 			$node_status = $node_item ? $node_item['status'] : 'NOT_FOUND';
-			
+
 			// Extract email and network_id for display.
 			$parts = explode( '::', $key );
 			$email = $parts[0];
@@ -487,56 +483,56 @@ class Integrity_Check {
 		// Calculate target ranges based on data size and target chunk size.
 		$total_emails = count( $hub_data );
 		$target_ranges = max( 1, ceil( $total_emails / $target_chunk_size ) );
-		
+
 		// If we need fewer ranges, combine adjacent ranges.
 		if ( $target_ranges < count( $fixed_ranges ) ) {
 			$consolidated_ranges = [];
 			$ranges_per_group = ceil( count( $fixed_ranges ) / $target_ranges );
-			
+
 			$current_idx = 0;
 			$fixed_ranges_count = count( $fixed_ranges );
 			while ( $current_idx < $fixed_ranges_count ) {
 				$start_idx = $current_idx;
 				$end_idx = min( $current_idx + $ranges_per_group - 1, $fixed_ranges_count - 1 );
-				
+
 				$consolidated_ranges[] = [
 					'start' => $fixed_ranges[ $start_idx ]['start'],
 					'end'   => $fixed_ranges[ $end_idx ]['end'],
 				];
-				
+
 				$current_idx += $ranges_per_group;
 			}
-			
+
 			return $consolidated_ranges;
 		}
-		
+
 		// If we need more ranges, subdivide the alphabet further.
 		if ( $target_ranges > count( $fixed_ranges ) ) {
 			$alphabet = 'abcdefghijklmnopqrstuvwxyz';
 			$ranges = [];
 			$chars_per_range = max( 1, floor( 26 / $target_ranges ) );
-			
+
 			// Ensure we don't exceed available alphabet characters.
 			$actual_target_ranges = min( $target_ranges, 26 );
-			
+
 			for ( $i = 0; $i < $actual_target_ranges; $i++ ) {
 				$start_char_idx = $i * $chars_per_range;
 				$end_char_idx = min( $start_char_idx + $chars_per_range - 1, 25 );
-				
+
 				// Validate array bounds.
 				if ( $start_char_idx >= 26 ) {
 					break;
 				}
-				
+
 				$start_char = $alphabet[ $start_char_idx ];
 				$end_char = ( $i === $actual_target_ranges - 1 ) ? 'zzzzz' : $alphabet[ $end_char_idx ];
-				
+
 				$ranges[] = [
 					'start' => $start_char,
 					'end'   => $end_char,
 				];
 			}
-			
+
 			return $ranges;
 		}
 
@@ -556,13 +552,13 @@ class Integrity_Check {
 	 */
 	private static function get_node_range_hash( $node, $start_email, $end_email, $max_records = null ) {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/range-hash', $node->get_url() );
-		
+
 		$query_args = [
 			'start' => strtolower( $start_email ),
 			'end'   => strtolower( $end_email ),
 			'_t'    => time(), // Cache-busting parameter.
 		];
-		
+
 		if ( $max_records ) {
 			$query_args['max'] = $max_records;
 		}
@@ -597,13 +593,13 @@ class Integrity_Check {
 	 */
 	private static function get_node_range_data( $node, $start_email, $end_email, $max_records = null ) {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/range-data', $node->get_url() );
-		
+
 		$query_args = [
 			'start' => strtolower( $start_email ),
 			'end'   => strtolower( $end_email ),
 			'_t'    => time(), // Cache-busting parameter.
 		];
-		
+
 		if ( $max_records ) {
 			$query_args['max'] = $max_records;
 		}
