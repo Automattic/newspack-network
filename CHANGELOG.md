@@ -1,3 +1,17 @@
+# [2.15.0](https://github.com/Automattic/newspack-network/compare/v2.14.2...v2.15.0) (2025-09-03)
+
+
+### Bug Fixes
+
+* trigger release ([c6df12f](https://github.com/Automattic/newspack-network/commit/c6df12f283411ac8096dbad4452c2870e5143bb7))
+
+
+### Features
+
+* add filter to story budget synced fields ([#276](https://github.com/Automattic/newspack-network/issues/276)) ([03db089](https://github.com/Automattic/newspack-network/commit/03db089cc7a3d3f4d61d0ca32a5dbf0bc91da7ca))
+* add i18n ([#263](https://github.com/Automattic/newspack-network/issues/263)) ([bc89850](https://github.com/Automattic/newspack-network/commit/bc898505cb6530a5742422ecdea6e094c3be1df3))
+* release content distribution ([#268](https://github.com/Automattic/newspack-network/issues/268)) ([79b49ed](https://github.com/Automattic/newspack-network/commit/79b49eda2eb9e27219fdbff52f2dde30ebfd92a0))
+
 # [2.15.1](https://github.com/Automattic/newspack-network/compare/v2.15.0...v2.15.1) (2025-09-03)
 
 ### Features
