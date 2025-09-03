@@ -24,16 +24,6 @@ class Story_Budget {
 	const SITES_FIELD_SLUG = 'network_sites';
 
 	/**
-	 * Story Budget fields that are synced on distribution.
-	 *
-	 * @var array
-	 */
-	private static $synced_fields = [
-		'name',   // Story name.
-		'status', // Story status.
-	];
-
-	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
@@ -47,6 +37,25 @@ class Story_Budget {
 		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_outgoing_post_network_sites_props' ], 10, 2 );
 		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_incoming_post_network_sites_props' ], 10, 2 );
 		add_filter( 'newspack_story_budget_fields_props', [ __CLASS__, 'add_synced_fields_props' ], 10, 2 );
+	}
+
+	/**
+	 * Get the Story Budget fields that are synced on distribution.
+	 *
+	 * @return array The synced fields.
+	 */
+	private static function get_synced_fields() {
+		$synced_fields = [
+			'name',   // Story name.
+			'status', // Story status.
+		];
+
+		/**
+		 * Filter the Story Budget fields that are synced on distribution.
+		 *
+		 * @param array $synced_fields Array of field slugs that are synced.
+		 */
+		return apply_filters( 'newspack_network_story_budget_synced_fields', $synced_fields );
 	}
 
 	/**
@@ -108,7 +117,7 @@ class Story_Budget {
 		$ignored_fields = array_map(
 			function( $field ) {
 				$slug = $field->get_slug();
-				if ( ! in_array( $slug, self::$synced_fields, true ) ) {
+				if ( ! in_array( $slug, self::get_synced_fields(), true ) ) {
 					return $field->get_post_meta_name();
 				}
 				return null;
@@ -355,7 +364,7 @@ class Story_Budget {
 		}
 
 		// Disable editing of synced fields.
-		foreach ( self::$synced_fields as $field_slug ) {
+		foreach ( self::get_synced_fields() as $field_slug ) {
 			if ( ! isset( $fields_props[ $field_slug ] ) ) {
 				$fields_props[ $field_slug ] = [];
 			}
