@@ -38,7 +38,7 @@ function get_sample_payload( $origin = '', $destination = '' ) {
 			'modified_gmt'   => '2021-01-01 00:00:00',
 			'slug'           => 'slug',
 			'post_type'      => 'post',
-			'raw_content'    => 'Content',
+			'raw_content'    => '<!-- wp:paragraph --><p>Content</p><!-- /wp:paragraph -->',
 			'content'        => '<p>Content</p>',
 			'excerpt'        => 'Excerpt',
 			'thumbnail_url'  => 'https://picsum.photos/id/1/300/300.jpg',

@@ -290,7 +290,7 @@ class Outgoing_Post {
 				'modified_gmt'   => $this->post->post_modified_gmt,
 				'slug'           => $this->post->post_name,
 				'post_type'      => $this->post->post_type,
-				'raw_content'    => $this->post->post_content,
+				'raw_content'    => $this->get_raw_post_content(),
 				'content'        => $this->get_processed_post_content(),
 				'excerpt'        => $this->post->post_excerpt,
 				'comment_status' => $this->post->comment_status,
@@ -351,6 +351,28 @@ class Outgoing_Post {
 	}
 
 	/**
+	 * Get the raw post content for distribution.
+	 *
+	 * @return string The raw post content.
+	 */
+	protected function get_raw_post_content() {
+		if ( ! use_block_editor_for_post_type( $this->post->post_type ) ) {
+			return $this->post->post_content;
+		}
+
+		if ( ! has_blocks( $this->post->post_content ) ) {
+			return $this->post->post_content;
+		}
+
+		$blocks = array_map(
+			[ Content_Distribution_Class::class, 'process_outgoing_block' ],
+			parse_blocks( $this->post->post_content )
+		);
+
+		return serialize_blocks( $blocks );
+	}
+
+	/**
 	 * Get the processed post content for distribution.
 	 *
 	 * @return string The post content.
@@ -362,7 +384,7 @@ class Outgoing_Post {
 		 */
 		remove_filter( 'the_content', [ $wp_embed, 'autoembed' ], 8 );
 		// Filter documented in WordPress core.
-		$post_content = apply_filters( 'the_content', $this->post->post_content );
+		$post_content = apply_filters( 'the_content', $this->get_raw_post_content() );
 		add_filter( 'the_content', [ $wp_embed, 'autoembed' ], 8 );
 		return $post_content;
 	}

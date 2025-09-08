@@ -209,6 +209,10 @@ class Admin {
 	 * @return void
 	 */
 	public static function admin_bar_menu( $wp_admin_bar ) {
+		if ( ! Site_Role::has_role() ) {
+			return;
+		}
+
 		$sites = Sites::get_all_sites_without_current();
 		foreach ( $sites as $site ) {
 			$item_id = 'site-' . sanitize_title( $site['name'] );
