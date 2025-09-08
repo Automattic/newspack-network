@@ -1,3 +1,17 @@
+# [2.16.0](https://github.com/Automattic/newspack-network/compare/v2.15.1...v2.16.0) (2025-09-08)
+
+
+### Bug Fixes
+
+* don't show admin bar if network is not configured ([#270](https://github.com/Automattic/newspack-network/issues/270)) ([4fd4390](https://github.com/Automattic/newspack-network/commit/4fd43906b6b1906e84fed29bfaa5e76f727e8241))
+
+
+### Features
+
+* release content distribution ([#268](https://github.com/Automattic/newspack-network/issues/268)) ([d0f2626](https://github.com/Automattic/newspack-network/commit/d0f26260b0cb060e084de579f71bdf97064e8f71))
+* **content-distribution:** add media data to the outgoing post payload ([#266](https://github.com/Automattic/newspack-network/issues/266)) ([bcc0c5c](https://github.com/Automattic/newspack-network/commit/bcc0c5cbbb42fa629518231f1e51eeda0047f903))
+* **content-distribution:** block processors and Jetpack galleries handling ([#274](https://github.com/Automattic/newspack-network/issues/274)) ([7d919bb](https://github.com/Automattic/newspack-network/commit/7d919bbadf0aa9ebfe2609727647c71735e79b20))
+
 # [2.15.1](https://github.com/Automattic/newspack-network/compare/v2.15.0...v2.15.1) (2025-09-03)
 
 ### Features
