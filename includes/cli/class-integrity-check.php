@@ -45,9 +45,6 @@ class Integrity_Check {
 	 * [--verbose]
 	 * : Output verbose information during the check.
 	 *
-	 * [--chunk-size=<size>]
-	 * : Maximum number of memberships to compare in each chunk (default: 1000).
-	 *
 	 * [--max=<count>]
 	 * : Maximum number of memberships to process (for testing only - do not use in production).
 	 *
@@ -55,7 +52,6 @@ class Integrity_Check {
 	 *
 	 *     wp newspack-network integrity-check
 	 *     wp newspack-network integrity-check --verbose
-	 *     wp newspack-network integrity-check --chunk-size=500
 	 *     wp newspack-network integrity-check --max=50 --verbose
 	 *
 	 * @param array $args The command arguments.
@@ -64,7 +60,6 @@ class Integrity_Check {
 	 */
 	public static function integrity_check( $args, $assoc_args ) { // phpcs:ignore Generic.NamingConventions.ConstructorName.OldStyle
 		$verbose = isset( $assoc_args['verbose'] ) ? true : false;
-		$chunk_size = isset( $assoc_args['chunk-size'] ) ? intval( $assoc_args['chunk-size'] ) : 1000;
 		$max_records = isset( $assoc_args['max'] ) ? intval( $assoc_args['max'] ) : null;
 
 		if ( $max_records ) {
@@ -123,7 +118,7 @@ class Integrity_Check {
 			$node_name = str_replace( [ 'https://www.', 'https://', 'http://www.', 'http://' ], '', $node_url );
 			$node_columns[] = $node_name;
 
-			$specific_discrepancies = self::find_discrepancies_chunked( $hub_data, $node, $chunk_size, $verbose, $max_records );
+			$specific_discrepancies = self::find_discrepancies_chunked( $hub_data, $node, $verbose, $max_records );
 
 			// Process discrepancies for this node.
 			foreach ( $specific_discrepancies as $discrepancy ) {
@@ -237,13 +232,13 @@ class Integrity_Check {
 	 *
 	 * @param array                       $hub_data Hub membership data.
 	 * @param \Newspack_Network\Node\Node $node The node to compare with.
-	 * @param int                         $chunk_size Maximum number of memberships per chunk.
 	 * @param bool                        $verbose Whether to output verbose information.
 	 * @param int|null                    $max_records Maximum number of records to process (for testing).
 	 * @return array Array of specific discrepancies
 	 */
-	private static function find_discrepancies_chunked( $hub_data, $node, $chunk_size, $verbose = false, $max_records = null ) {
+	private static function find_discrepancies_chunked( $hub_data, $node, $verbose = false, $max_records = null ) {
 		$total_hub_memberships = count( $hub_data );
+		$chunk_size = 1000; // Target chunk size in number of emails.
 
 		// Create email ranges based on actual data distribution.
 		$email_ranges = self::create_email_ranges( $hub_data, $chunk_size );
