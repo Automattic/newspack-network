@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-09-08T19:01:43+00:00\n"
+"POT-Creation-Date: 2025-09-25T15:11:40+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-network\n"
@@ -54,7 +54,7 @@ msgstr ""
 msgid "This site acts as the Network Hub"
 msgstr ""
 
-#: includes/class-initializer.php:76
+#: includes/class-initializer.php:78
 msgid "Network Reader"
 msgstr ""
 
