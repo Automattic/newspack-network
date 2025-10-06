@@ -1,3 +1,10 @@
+# [2.17.0](https://github.com/Automattic/newspack-network/compare/v2.16.0...v2.17.0) (2025-10-06)
+
+
+### Features
+
+* network memberships integrity check ([#258](https://github.com/Automattic/newspack-network/issues/258)) ([94ae8b4](https://github.com/Automattic/newspack-network/commit/94ae8b4ab4cdc5bf672fc38af1952bff929d5656))
+
 # [2.16.0](https://github.com/Automattic/newspack-network/compare/v2.15.1...v2.16.0) (2025-09-08)
 
 
