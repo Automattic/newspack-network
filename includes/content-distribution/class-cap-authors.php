@@ -162,7 +162,7 @@ class Cap_Authors {
 			}
 		}
 
-		do_action( 'newspack_network_incoming_cap_guest_authors', $post->ID, $guest_authors );
+		do_action( 'newspack_network_incoming_cap_guest_authors', $post->ID, $guest_authors, $cap_authors_from_payload );
 
 		global $coauthors_plus;
 		$coauthors_plus->add_coauthors( $post->ID, $guest_contributors );

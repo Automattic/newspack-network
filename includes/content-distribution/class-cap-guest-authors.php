@@ -20,6 +20,11 @@ class Cap_Guest_Authors {
 	const GUEST_AUTHORS_META_KEY = 'newspack_network_guest_authors_distributed';
 
 	/**
+	 * Meta key to keep track of how many authors there are.
+	 */
+	const AUTHOR_COUNT_META_KEY = 'newspack_network_author_count';
+
+	/**
 	 * Go!
 	 *
 	 * @return void
@@ -35,7 +40,7 @@ class Cap_Guest_Authors {
 
 		add_filter( 'newspack_network_content_distribution_ignored_post_meta_keys', [ __CLASS__, 'filter_ignored_post_meta_keys' ], 10, 2 );
 		add_filter( 'newspack_network_outgoing_non_wp_user_author', [ __CLASS__, 'filter_outgoing_non_wp_user_author' ], 10, 2 );
-		add_action( 'newspack_network_incoming_cap_guest_authors', [ __CLASS__, 'on_guest_authors_incoming' ], 10, 2 );
+		add_action( 'newspack_network_incoming_cap_guest_authors', [ __CLASS__, 'on_guest_authors_incoming' ], 10, 3 );
 
 
 		if ( ! is_admin() ) {
@@ -92,6 +97,7 @@ class Cap_Guest_Authors {
 		}
 
 		$distributed_authors = get_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, true );
+		$number_of_authors   = get_post_meta( $post_id, self::AUTHOR_COUNT_META_KEY, true );
 
 		if ( ! $distributed_authors ) {
 			return $coauthors;
@@ -109,6 +115,11 @@ class Cap_Guest_Authors {
 			$distributed_author['ID']            = - 2;
 
 			$guest_authors[] = (object) $distributed_author;
+		}
+
+		// If a post has only guest authors, don't include the non-guest authors.
+		if ( $number_of_authors && (int) $number_of_authors === count( $guest_authors ) ) {
+			return [ ...$guest_authors ];
 		}
 
 		return [ ...$coauthors, ...$guest_authors ];
@@ -151,20 +162,22 @@ class Cap_Guest_Authors {
 	}
 
 	/**
-	 * Action callback for reacting to incoimng guest authors.
+	 * Action callback for reacting to incoming guest authors.
 	 *
 	 * @param int   $post_id The post ID.
 	 * @param array $guest_authors The guest authors.
+	 * @param array $all_authors All synced authors.
 	 *
 	 * @return void
 	 */
-	public static function on_guest_authors_incoming( $post_id, $guest_authors ): void {
+	public static function on_guest_authors_incoming( $post_id, $guest_authors, $all_authors ): void {
 		if ( empty( $guest_authors ) ) {
 			delete_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY );
-
+			delete_post_meta( $post_id, self::AUTHOR_COUNT_META_KEY );
 			return;
 		}
 
+		update_post_meta( $post_id, self::AUTHOR_COUNT_META_KEY, count( $all_authors ) );
 		update_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, $guest_authors );
 	}
 
@@ -179,6 +192,7 @@ class Cap_Guest_Authors {
 	 */
 	public static function filter_ignored_post_meta_keys( array $ignored_keys ): array {
 		$ignored_keys[] = self::GUEST_AUTHORS_META_KEY;
+		$ignored_keys[] = self::AUTHOR_COUNT_META_KEY;
 
 		return $ignored_keys;
 	}
