@@ -20,9 +20,9 @@ class Cap_Guest_Authors {
 	const GUEST_AUTHORS_META_KEY = 'newspack_network_guest_authors_distributed';
 
 	/**
-	 * Meta key to keep track of how many authors there are.
+	 * Meta key to keep track of which authors and guest authors are assigned to a post.
 	 */
-	const AUTHOR_COUNT_META_KEY = 'newspack_network_author_count';
+	const ASSIGNED_AUTHORS_META_KEY = 'newspack_network_assigned_authors';
 
 	/**
 	 * Go!
@@ -96,33 +96,34 @@ class Cap_Guest_Authors {
 			return $coauthors;
 		}
 
-		$distributed_authors = get_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, true );
-		$number_of_authors   = get_post_meta( $post_id, self::AUTHOR_COUNT_META_KEY, true );
+		$distributed_authors   = get_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, true );
+		$assigned_author_names = get_post_meta( $post_id, self::ASSIGNED_AUTHORS_META_KEY, true );
 
 		if ( ! $distributed_authors ) {
 			return $coauthors;
 		}
 
-		$guest_authors = [];
+		$assigned_authors = [];
+		foreach ( $coauthors as $coauthor ) {
+			if ( empty( $assigned_author_names ) || in_array( $coauthor->display_name, $assigned_author_names ) ) {
+				$assigned_authors[] = $coauthor;
+			}
+		}
 
 		foreach ( $distributed_authors as $distributed_author ) {
-
 			if ( 'guest_author' !== $distributed_author['type'] ) {
 				continue;
 			}
-			// This removes the author URL from the guest author.
-			$distributed_author['user_nicename'] = '';
-			$distributed_author['ID']            = - 2;
 
-			$guest_authors[] = (object) $distributed_author;
+			if ( empty( $assigned_author_names ) || in_array( $distributed_author['display_name'], $assigned_author_names ) ) {
+				// This removes the author URL from the guest author.
+				$distributed_author['user_nicename'] = '';
+				$distributed_author['ID']            = - 2;
+				$assigned_authors[] = (object) $distributed_author;
+			}
 		}
 
-		// If a post has only guest authors, don't include the non-guest authors.
-		if ( $number_of_authors && (int) $number_of_authors === count( $guest_authors ) ) {
-			return [ ...$guest_authors ];
-		}
-
-		return [ ...$coauthors, ...$guest_authors ];
+		return $assigned_authors;
 	}
 
 	/**
@@ -173,11 +174,11 @@ class Cap_Guest_Authors {
 	public static function on_guest_authors_incoming( $post_id, $guest_authors, $all_authors ): void {
 		if ( empty( $guest_authors ) ) {
 			delete_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY );
-			delete_post_meta( $post_id, self::AUTHOR_COUNT_META_KEY );
+			delete_post_meta( $post_id, self::ASSIGNED_AUTHORS_META_KEY );
 			return;
 		}
 
-		update_post_meta( $post_id, self::AUTHOR_COUNT_META_KEY, count( $all_authors ) );
+		update_post_meta( $post_id, self::ASSIGNED_AUTHORS_META_KEY, wp_list_pluck( $all_authors, 'display_name' ) );
 		update_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, $guest_authors );
 	}
 
@@ -192,7 +193,7 @@ class Cap_Guest_Authors {
 	 */
 	public static function filter_ignored_post_meta_keys( array $ignored_keys ): array {
 		$ignored_keys[] = self::GUEST_AUTHORS_META_KEY;
-		$ignored_keys[] = self::AUTHOR_COUNT_META_KEY;
+		$ignored_keys[] = self::ASSIGNED_AUTHORS_META_KEY;
 
 		return $ignored_keys;
 	}
