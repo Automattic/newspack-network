@@ -11,7 +11,7 @@ import { broadcast } from '../../icons';
  */
 import './style.scss';
 
-const ContentDistributionPanel = ({ header, body, footer, buttons }) => {
+const ContentDistributionPanel = ( { header, body, footer, buttons } ) => {
 	return (
 		<PluginSidebar
 			name="newspack-network-content-distribution-panel"
@@ -30,7 +30,11 @@ const ContentDistributionPanel = ({ header, body, footer, buttons }) => {
 					{ footer }
 				</PanelBody>
 				<PanelBody className="content-distribution-panel-buttons">
-					<Flex direction="column" className="content-distribution-panel__button-column" gap={ 4 }>
+					<Flex
+						direction="column"
+						className="content-distribution-panel__button-column"
+						gap={ 4 }
+					>
 						{ buttons }
 					</Flex>
 				</PanelBody>
