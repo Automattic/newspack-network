@@ -48,8 +48,8 @@ function OutgoingPost() {
 			getCurrentPostId,
 			getCurrentPostAttribute,
 			hasChangedContent: _hasChangedContent,
-			_isSavingPost,
-			_isCleanNewPost,
+			isSavingPost: _isSavingPost,
+			isCleanNewPost: _isCleanNewPost,
 		} = select( 'core/editor' );
 		return {
 			postId: getCurrentPostId(),
