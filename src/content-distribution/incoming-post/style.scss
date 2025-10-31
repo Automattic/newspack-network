@@ -1,5 +1,6 @@
 @mixin grey-out-outer {
 	position: relative;
+
 	&::before {
 		content: "";
 		position: absolute;
@@ -18,7 +19,6 @@
 
 // Aggressively grey out and "disable" the editor and sidebar on linked posts.
 .newspack-network-incoming-post-linked {
-
 	.edit-post-visual-editor {
 		@include grey-out-outer;
 
@@ -27,8 +27,8 @@
 		}
 	}
 
+	/* stylelint-disable-next-line selector-id-pattern */
 	.editor-sidebar:not(#newspack-network-incoming-post\:newspack-network-content-distribution-panel, #edit-post\:document) {
-
 		.components-panel {
 			@include grey-out-outer;
 
@@ -39,12 +39,13 @@
 	}
 
 	// This will grey out most – but not the top part with status, trash, etc. That part is not in a panel.
+	/* stylelint-disable-next-line selector-id-pattern */
 	#edit-post\:document {
 		.components-panel__body,
 		.editor-post-featured-image,
 		.editor-post-discussion__panel-dropdown,
 		.editor-post-excerpt__dropdown,
-		.components-dropdown:has( .editor-post-author__panel-toggle ) {
+		.components-dropdown:has(.editor-post-author__panel-toggle) {
 			@include grey-out-outer;
 
 			* {
@@ -52,7 +53,6 @@
 			}
 		}
 	}
-
 
 	.edit-post-meta-boxes-area {
 		@include grey-out-outer;
@@ -63,7 +63,7 @@
 	}
 
 	// This is very fragile, but there are no handles on the prepublish panel children.
-	.editor-post-publish-panel__prepublish > .components-panel__body:nth-child(n+6) {
+	.editor-post-publish-panel__prepublish > .components-panel__body:nth-child(n + 6) {
 		@include grey-out-outer;
 
 		* {
