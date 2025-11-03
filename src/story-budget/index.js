@@ -17,18 +17,18 @@ addFilter(
 	'newspack-story-budget.sites',
 	'newspack-network/story-budget',
 	() => newspackStoryBudgetNetwork.sites
-)
+);
 
 // Add "Pull" to the Story Budget actions.
 addFilter(
 	'newspack-story-budget.actions',
 	'newspack-network/story-budget',
-	actions => [
+	( actions ) => [
 		...actions,
 		{
 			id: 'pull',
 			label: __( 'Pull Story', 'newspack-network' ),
-			isEligible: item =>
+			isEligible: ( item ) =>
 				item.metadata &&
 				item.metadata?.can_pull &&
 				! item.metadata?.is_pulled,

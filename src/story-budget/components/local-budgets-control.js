@@ -39,7 +39,7 @@ export default function LocalBudgetsControl( {
 					label: __( 'Select a budget', 'newspack-network' ),
 					value: '',
 				},
-				...localBudgets.map( budget => ( {
+				...localBudgets.map( ( budget ) => ( {
 					label: budget.name,
 					value: budget.id,
 				} ) ),

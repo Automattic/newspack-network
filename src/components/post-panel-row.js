@@ -6,7 +6,7 @@ import clsx from 'clsx';
 /**
  * WordPress dependencies
  */
-import { __experimentalHStack as HStack } from '@wordpress/components';
+import { __experimentalHStack as HStack } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { forwardRef } from '@wordpress/element';
 
 const PostPanelRow = forwardRef( ( { className, label, children }, ref ) => {
