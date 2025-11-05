@@ -1,3 +1,11 @@
+## [2.17.1](https://github.com/Automattic/newspack-network/compare/v2.17.0...v2.17.1) (2025-11-05)
+
+
+### Bug Fixes
+
+* improve CAP GA logic ([bc24364](https://github.com/Automattic/newspack-network/commit/bc24364183799656146d151943123af365e0f80d))
+* improve guest author distribution ([da7f88e](https://github.com/Automattic/newspack-network/commit/da7f88ea05c2f2be684adf5248664122f57a889a))
+
 # [2.17.0](https://github.com/Automattic/newspack-network/compare/v2.16.0...v2.17.0) (2025-10-06)
 
 

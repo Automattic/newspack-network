@@ -20,6 +20,11 @@ class Cap_Guest_Authors {
 	const GUEST_AUTHORS_META_KEY = 'newspack_network_guest_authors_distributed';
 
 	/**
+	 * Meta key to keep track of which authors and guest authors are assigned to a post.
+	 */
+	const ASSIGNED_AUTHORS_META_KEY = 'newspack_network_assigned_authors';
+
+	/**
 	 * Go!
 	 *
 	 * @return void
@@ -35,7 +40,7 @@ class Cap_Guest_Authors {
 
 		add_filter( 'newspack_network_content_distribution_ignored_post_meta_keys', [ __CLASS__, 'filter_ignored_post_meta_keys' ], 10, 2 );
 		add_filter( 'newspack_network_outgoing_non_wp_user_author', [ __CLASS__, 'filter_outgoing_non_wp_user_author' ], 10, 2 );
-		add_action( 'newspack_network_incoming_cap_guest_authors', [ __CLASS__, 'on_guest_authors_incoming' ], 10, 2 );
+		add_action( 'newspack_network_incoming_cap_guest_authors', [ __CLASS__, 'on_guest_authors_incoming' ], 10, 3 );
 
 
 		if ( ! is_admin() ) {
@@ -91,27 +96,34 @@ class Cap_Guest_Authors {
 			return $coauthors;
 		}
 
-		$distributed_authors = get_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, true );
+		$distributed_authors   = get_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, true );
+		$assigned_author_names = get_post_meta( $post_id, self::ASSIGNED_AUTHORS_META_KEY, true );
 
 		if ( ! $distributed_authors ) {
 			return $coauthors;
 		}
 
-		$guest_authors = [];
+		$assigned_authors = [];
+		foreach ( $coauthors as $coauthor ) {
+			if ( empty( $assigned_author_names ) || in_array( $coauthor->display_name, $assigned_author_names ) ) {
+				$assigned_authors[] = $coauthor;
+			}
+		}
 
 		foreach ( $distributed_authors as $distributed_author ) {
-
 			if ( 'guest_author' !== $distributed_author['type'] ) {
 				continue;
 			}
-			// This removes the author URL from the guest author.
-			$distributed_author['user_nicename'] = '';
-			$distributed_author['ID']            = - 2;
 
-			$guest_authors[] = (object) $distributed_author;
+			if ( empty( $assigned_author_names ) || in_array( $distributed_author['display_name'], $assigned_author_names ) ) {
+				// This removes the author URL from the guest author.
+				$distributed_author['user_nicename'] = '';
+				$distributed_author['ID']            = - 2;
+				$assigned_authors[] = (object) $distributed_author;
+			}
 		}
 
-		return [ ...$coauthors, ...$guest_authors ];
+		return $assigned_authors;
 	}
 
 	/**
@@ -151,20 +163,22 @@ class Cap_Guest_Authors {
 	}
 
 	/**
-	 * Action callback for reacting to incoimng guest authors.
+	 * Action callback for reacting to incoming guest authors.
 	 *
 	 * @param int   $post_id The post ID.
 	 * @param array $guest_authors The guest authors.
+	 * @param array $all_authors All synced authors.
 	 *
 	 * @return void
 	 */
-	public static function on_guest_authors_incoming( $post_id, $guest_authors ): void {
+	public static function on_guest_authors_incoming( $post_id, $guest_authors, $all_authors ): void {
 		if ( empty( $guest_authors ) ) {
 			delete_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY );
-
+			delete_post_meta( $post_id, self::ASSIGNED_AUTHORS_META_KEY );
 			return;
 		}
 
+		update_post_meta( $post_id, self::ASSIGNED_AUTHORS_META_KEY, wp_list_pluck( $all_authors, 'display_name' ) );
 		update_post_meta( $post_id, self::GUEST_AUTHORS_META_KEY, $guest_authors );
 	}
 
@@ -179,6 +193,7 @@ class Cap_Guest_Authors {
 	 */
 	public static function filter_ignored_post_meta_keys( array $ignored_keys ): array {
 		$ignored_keys[] = self::GUEST_AUTHORS_META_KEY;
+		$ignored_keys[] = self::ASSIGNED_AUTHORS_META_KEY;
 
 		return $ignored_keys;
 	}
