@@ -41,7 +41,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 		}
 	}, [ errors ] );
 
-	const pullStory = async storyId => {
+	const pullStory = async ( storyId ) => {
 		const payload = await apiFetch( {
 			isStoryBudget: true,
 			fullPath: `newspack-network/v1/content-distribution/pull/${ storyId }`,
@@ -63,7 +63,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 		fetchStory( storyId );
 	};
 
-	const handleSubmit = ev => {
+	const handleSubmit = ( ev ) => {
 		ev.preventDefault();
 		setErrors( [] );
 		setIsLoading( true );
@@ -76,7 +76,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 				closeModal();
 				onActionPerformed?.( items );
 			} )
-			.catch( error => {
+			.catch( ( error ) => {
 				setErrors( [ ...errors, error.message ] );
 			} )
 			.finally( () => {
@@ -127,7 +127,7 @@ export default function PullStory( { items, closeModal, onActionPerformed } ) {
 							) }
 						</p>
 						<ul>
-							{ items.map( item => (
+							{ items.map( ( item ) => (
 								<li key={ item.id }>{ item.name }</li>
 							) ) }
 						</ul>

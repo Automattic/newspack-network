@@ -1,3 +1,5 @@
+/* eslint @wordpress/valid-sprintf: 0 */
+
 /* globals newspack_network_outgoing_post */
 
 /**
@@ -7,7 +9,12 @@ import apiFetch from '@wordpress/api-fetch';
 import { sprintf, __, _n } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { CheckboxControl, TextControl, Button, Notice } from '@wordpress/components';
+import {
+	CheckboxControl,
+	TextControl,
+	Button,
+	Notice,
+} from '@wordpress/components';
 import { broadcast } from '../../icons';
 import { registerPlugin } from '@wordpress/plugins';
 
@@ -29,21 +36,29 @@ function OutgoingPost() {
 	const [ siteSelection, setSiteSelection ] = useState( [] );
 	const [ statusOnPublish, setStatusOnPublish ] = useState( defaultStatus );
 
-	const { postId, postStatus, savedUrls, hasChangedContent, isSavingPost, isCleanNewPost } = useSelect( select => {
+	const {
+		postId,
+		postStatus,
+		savedUrls,
+		hasChangedContent,
+		isSavingPost,
+		isCleanNewPost,
+	} = useSelect( ( select ) => {
 		const {
 			getCurrentPostId,
 			getCurrentPostAttribute,
-			hasChangedContent,
-			isSavingPost,
-			isCleanNewPost,
+			hasChangedContent: _hasChangedContent,
+			isSavingPost: _isSavingPost,
+			isCleanNewPost: _isCleanNewPost,
 		} = select( 'core/editor' );
 		return {
 			postId: getCurrentPostId(),
 			postStatus: getCurrentPostAttribute( 'status' ),
-			savedUrls: getCurrentPostAttribute( 'meta' )?.[ distributedMetaKey ] || [],
-			hasChangedContent: hasChangedContent(),
-			isSavingPost: isSavingPost(),
-			isCleanNewPost: isCleanNewPost(),
+			savedUrls:
+				getCurrentPostAttribute( 'meta' )?.[ distributedMetaKey ] || [],
+			hasChangedContent: _hasChangedContent(),
+			isSavingPost: _isSavingPost(),
+			isCleanNewPost: _isCleanNewPost(),
 		};
 	} );
 
@@ -58,6 +73,7 @@ function OutgoingPost() {
 			createNotice(
 				'warning',
 				sprintf(
+					// translators: %s: post type; %d: number of network sites
 					_n(
 						'This %s is distributed to one network site.',
 						'This %s is distributed to %d network sites.',
@@ -77,20 +93,23 @@ function OutgoingPost() {
 	const { savePost } = useDispatch( 'core/editor' );
 	const { createNotice } = useDispatch( 'core/notices' );
 
-	const sites = networkSites.filter( url => url.includes( search ) );
+	const sites = networkSites.filter( ( url ) => url.includes( search ) );
 
-	const selectableSites = networkSites.filter( url => ! distribution.includes( url ) );
+	const selectableSites = networkSites.filter(
+		( url ) => ! distribution.includes( url )
+	);
 
 	const isUnpublished = postStatus !== 'publish';
 
 	const isAutoDraft = postStatus === 'auto-draft';
 
-	const isDisabled = isSavingPost || isDistributing || isCleanNewPost || isAutoDraft;
+	const isDisabled =
+		isSavingPost || isDistributing || isCleanNewPost || isAutoDraft;
 
-	const getFormattedSite = site => {
+	const getFormattedSite = ( site ) => {
 		const url = new URL( site );
 		return url.hostname;
-	}
+	};
 
 	const distribute = () => {
 		setIsDistributing( true );
@@ -99,57 +118,78 @@ function OutgoingPost() {
 			method: 'POST',
 			data: {
 				urls: siteSelection,
-				'status_on_publish': statusOnPublish,
+				status_on_publish: statusOnPublish,
 			},
-		} ).then( urls => {
-			setDistribution( urls );
-			setSiteSelection( [] );
-			createNotice(
-				'info',
-				sprintf(
-					_n(
-						'%s distributed to one network site.',
-						'%s distributed to %d network sites.',
-						urls.length,
-						'newspack-network'
+		} )
+			.then( ( urls ) => {
+				setDistribution( urls );
+				setSiteSelection( [] );
+				createNotice(
+					'info',
+					sprintf(
+						// translators: %s: post type; %d: number of network sites
+						_n(
+							'%s distributed to one network site.',
+							'%s distributed to %d network sites.',
+							urls.length,
+							'newspack-network'
+						),
+						postTypeLabel,
+						urls.length
 					),
-					postTypeLabel,
-					urls.length
-				),
-				{
-					type: 'snackbar',
-					isDismissible: true,
-				}
-			);
-		} ).catch( error => {
-			createNotice( 'error', error.message );
-		} ).finally( () => {
-			setIsDistributing( false );
-		} );
-	}
+					{
+						type: 'snackbar',
+						isDismissible: true,
+					}
+				);
+			} )
+			.catch( ( error ) => {
+				createNotice( 'error', error.message );
+			} )
+			.finally( () => {
+				setIsDistributing( false );
+			} );
+	};
 
 	return (
 		<ContentDistributionPanel
-			header={ (
+			header={
 				<>
 					{ isAutoDraft && (
 						<>
 							<Notice status="warning" isDismissible={ false }>
-								{ __( 'Save the post at least once before distributing it.', 'newspack-network' ) }
+								{ __(
+									'Save the post at least once before distributing it.',
+									'newspack-network'
+								) }
 							</Notice>
 							<hr />
 						</>
 					) }
 					{ ! distribution.length ? (
 						<p>
-							{ networkSites.length === 1 ?
-								sprintf( __( 'This %s has not been distributed to your network site yet.', 'newspack-network' ), postTypeLabel.toLowerCase() ) :
-								sprintf( __( 'This %s has not been distributed to any network sites yet.', 'newspack-network' ), postTypeLabel.toLowerCase() )
-							}
+							{ networkSites.length === 1
+								? sprintf(
+										// translators: %s: post type
+										__(
+											'This %s has not been distributed to your network site yet.',
+											'newspack-network'
+										),
+										postTypeLabel.toLowerCase()
+								  )
+								: sprintf(
+										// translators: %s: post type
+										__(
+											'This %s has not been distributed to any network sites yet.',
+											'newspack-network'
+										),
+										postTypeLabel.toLowerCase()
+								  ) }
 						</p>
 					) : (
 						<p>
 							{ sprintf(
+								// translators: %s: post type; %d: number of network sites
 								_n(
 									'This %s has been distributed to one network site.',
 									'This %s has been distributed to %d network sites.',
@@ -164,48 +204,72 @@ function OutgoingPost() {
 					{ networkSites.length > 5 && (
 						<TextControl
 							__next40pxDefaultSize
-							placeholder={ __( 'Search available network sites', 'newspack-network' ) }
+							placeholder={ __(
+								'Search available network sites',
+								'newspack-network'
+							) }
 							value={ search }
 							disabled={ isDisabled }
 							onChange={ setSearch }
 						/>
 					) }
 				</>
-			) }
-			body={ (
+			}
+			body={
 				<>
-					{ networkSites.length > 1 && selectableSites.length !== 0 && sites.length === networkSites.length && (
-						<CheckboxControl
-							name="select-all"
-							label={ __( 'Select all', 'newspack-network' ) }
-							disabled={ isDisabled }
-							checked={ siteSelection.length === selectableSites.length }
-							indeterminate={ siteSelection.length > 0 && siteSelection.length < selectableSites.length }
-							onChange={ checked => {
-								setSiteSelection( checked ? selectableSites : [] );
-							} }
-						/>
-					) }
-					{ sites.map( siteUrl => (
+					{ networkSites.length > 1 &&
+						selectableSites.length !== 0 &&
+						sites.length === networkSites.length && (
+							<CheckboxControl
+								name="select-all"
+								label={ __( 'Select all', 'newspack-network' ) }
+								disabled={ isDisabled }
+								checked={
+									siteSelection.length ===
+									selectableSites.length
+								}
+								indeterminate={
+									siteSelection.length > 0 &&
+									siteSelection.length <
+										selectableSites.length
+								}
+								onChange={ ( checked ) => {
+									setSiteSelection(
+										checked ? selectableSites : []
+									);
+								} }
+							/>
+						) }
+					{ sites.map( ( siteUrl ) => (
 						<CheckboxControl
 							key={ siteUrl }
 							label={ getFormattedSite( siteUrl ) }
-							disabled={ isDisabled || distribution.includes( siteUrl ) } // Do not allow undistributing a site.
-							checked={ siteSelection.includes( siteUrl ) || distribution.includes( siteUrl ) }
-							onChange={ checked => {
-								const urls = checked ? [ ...siteSelection, siteUrl ] : siteSelection.filter( url => siteUrl !== url );
+							disabled={
+								isDisabled || distribution.includes( siteUrl )
+							} // Do not allow undistributing a site.
+							checked={
+								siteSelection.includes( siteUrl ) ||
+								distribution.includes( siteUrl )
+							}
+							onChange={ ( checked ) => {
+								const urls = checked
+									? [ ...siteSelection, siteUrl ]
+									: siteSelection.filter(
+											( url ) => siteUrl !== url
+									  );
 								setSiteSelection( urls );
 							} }
 						/>
 					) ) }
 				</>
-			) }
-			footer={ (
+			}
+			footer={
 				<>
 					{ siteSelection.length > 0 && (
 						<p className="selected-sites">
 							<span>
 								{ sprintf(
+									// translators: %d: number of network sites
 									_n(
 										'One network site selected.',
 										'%d network sites selected.',
@@ -215,21 +279,29 @@ function OutgoingPost() {
 									siteSelection.length
 								) }
 							</span>
-							<a
-								href="javascript:void(0)"
-								onClick={ () => setSiteSelection( [] ) }
-							>
+							<button onClick={ () => setSiteSelection( [] ) }>
 								Clear
-							</a>
+							</button>
 						</p>
 					) }
 				</>
-			) }
-			buttons={ (
+			}
+			buttons={
 				<>
 					<PostStatus
-						label={ isUnpublished ? __( 'Status on publish', 'newspack-network' ) : null }
-						description={ isUnpublished ? __( "Which status to set the post when it's published.", 'newspack-network' ) : null }
+						label={
+							isUnpublished
+								? __( 'Status on publish', 'newspack-network' )
+								: null
+						}
+						description={
+							isUnpublished
+								? __(
+										"Which status to set the post when it's published.",
+										'newspack-network'
+								  )
+								: null
+						}
 						status={ statusOnPublish }
 						onChange={ setStatusOnPublish }
 						disabled={ isDisabled }
@@ -246,19 +318,19 @@ function OutgoingPost() {
 							}
 						} }
 					>
-						{ isDistributing ? __( 'Distributing...', 'newspack-network' ) : (
-							hasChangedContent || isCleanNewPost ?
-							__( 'Save & Distribute', 'newspack-network' ) :
-							__( 'Distribute', 'newspack-network' )
-						) }
+						{ isDistributing
+							? __( 'Distributing…', 'newspack-network' )
+							: hasChangedContent || isCleanNewPost
+							? __( 'Save & Distribute', 'newspack-network' )
+							: __( 'Distribute', 'newspack-network' ) }
 					</Button>
 				</>
-			) }
+			}
 		/>
 	);
 }
 
 registerPlugin( 'newspack-network-outgoing-post', {
-		render: OutgoingPost,
-		icon: broadcast,
+	render: OutgoingPost,
+	icon: broadcast,
 } );
