@@ -2,14 +2,14 @@
 # This file is distributed under the GPL3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Network 2.16.0\n"
+"Project-Id-Version: Newspack Network 2.17.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-09-25T15:11:40+00:00\n"
+"POT-Creation-Date: 2025-11-03T18:31:32+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-network\n"
@@ -114,9 +114,9 @@ msgstr[1] ""
 #: includes/content-distribution/class-admin.php:120
 #: dist/incoming-post.js:1
 #: dist/outgoing-post.js:1
-#: dist/outgoing-post.js:4
+#: dist/outgoing-post.js:22
 #: src/content-distribution/content-distribution-panel/index.js:19
-#: src/content-distribution/outgoing-post/index.js:252
+#: src/content-distribution/outgoing-post/index.js:325
 msgid "Distribute"
 msgstr ""
 
@@ -1176,171 +1176,179 @@ msgstr ""
 msgid "Manage"
 msgstr ""
 
-#: dist/incoming-post.js:1
-#: src/content-distribution/incoming-post/index.js:64
+#. translators: %s: original site URL.
+#: dist/incoming-post.js:4
+#: src/content-distribution/incoming-post/index.js:67
 #, js-format
 msgid "Originally distributed from %s."
 msgstr ""
 
-#: dist/incoming-post.js:1
-#: src/content-distribution/incoming-post/index.js:65
+#. translators: %s: original site URL.
+#: dist/incoming-post.js:7
+#: src/content-distribution/incoming-post/index.js:75
 #, js-format
 msgid "Distributed from %s."
 msgstr ""
 
-#: dist/incoming-post.js:1
-#: src/content-distribution/incoming-post/index.js:139
+#. translators: %1$s: post type
+#: dist/incoming-post.js:10
+#: src/content-distribution/incoming-post/index.js:160
 #, js-format
 msgid "This %1$s has been unlinked from its origin. Edits to the origin %1$s will not update this version."
 msgstr ""
 
-#. translators: %s: post type
-#: dist/incoming-post.js:4
-#: src/content-distribution/incoming-post/index.js:147
+#. translators: %1$s: post type
+#: dist/incoming-post.js:13
+#: src/content-distribution/incoming-post/index.js:168
 #, js-format
 msgid "This %1$s is linked to its origin. Edits to the origin %1$s will update this version."
 msgstr ""
 
 #. translators: %s: post type
-#: dist/incoming-post.js:7
-#: src/content-distribution/incoming-post/index.js:163
+#: dist/incoming-post.js:16
+#: src/content-distribution/incoming-post/index.js:184
 #, js-format
 msgid "Edit origin %s"
 msgstr ""
 
-#: dist/incoming-post.js:7
-#: src/content-distribution/incoming-post/index.js:178
-msgid "Relinking..."
-msgstr ""
-
-#: dist/incoming-post.js:7
-#: src/content-distribution/incoming-post/index.js:179
-msgid "Unlinking..."
-msgstr ""
-
-#. translators: %s: post type
-#: dist/incoming-post.js:10
-#: src/content-distribution/incoming-post/index.js:189
-#, js-format
-msgid "Relink to origin %s"
-msgstr ""
-
-#. translators: %s: post type
-#: dist/incoming-post.js:13
-#: src/content-distribution/incoming-post/index.js:184
-#, js-format
-msgid "Unlink from origin %s"
-msgstr ""
-
-#. translators: %s: post type
 #: dist/incoming-post.js:16
-#: src/content-distribution/incoming-post/index.js:120
-#, js-format
-msgid "%s has been unlinked"
+#: src/content-distribution/incoming-post/index.js:198
+msgid "Relinking…"
 msgstr ""
 
 #: dist/incoming-post.js:16
-#: src/content-distribution/incoming-post/index.js:205
-msgid "Relink"
-msgstr ""
-
-#: dist/incoming-post.js:16
-#: src/content-distribution/incoming-post/index.js:205
-msgid "Unlink"
+#: src/content-distribution/incoming-post/index.js:199
+msgid "Unlinking…"
 msgstr ""
 
 #. translators: %s: post type
 #: dist/incoming-post.js:19
 #: src/content-distribution/incoming-post/index.js:211
 #, js-format
-msgid "Are you sure you want to relink this %s to its origin? Any changes you've made will be lost."
+msgid "Relink to origin %s"
 msgstr ""
 
 #. translators: %s: post type
 #: dist/incoming-post.js:22
-#: src/content-distribution/incoming-post/index.js:216
+#: src/content-distribution/incoming-post/index.js:203
+#, js-format
+msgid "Unlink from origin %s"
+msgstr ""
+
+#. translators: %s: post type
+#: dist/incoming-post.js:25
+#: src/content-distribution/incoming-post/index.js:139
+#, js-format
+msgid "%s has been unlinked"
+msgstr ""
+
+#: dist/incoming-post.js:25
+#: src/content-distribution/incoming-post/index.js:230
+msgid "Relink"
+msgstr ""
+
+#: dist/incoming-post.js:25
+#: src/content-distribution/incoming-post/index.js:231
+msgid "Unlink"
+msgstr ""
+
+#. translators: %s: post type
+#: dist/incoming-post.js:28
+#: src/content-distribution/incoming-post/index.js:238
+#, js-format
+msgid "Are you sure you want to relink this %s to its origin? Any changes you've made will be lost."
+msgstr ""
+
+#. translators: %s: post type
+#: dist/incoming-post.js:31
+#: src/content-distribution/incoming-post/index.js:246
 #, js-format
 msgid "Are you sure you want to unlink this %s from its origin?"
 msgstr ""
 
-#. translators: %s: Current post status.
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:61
+#. translators: %s: post type; %d: number of network sites
+#: dist/outgoing-post.js:7
+#: src/content-distribution/outgoing-post/index.js:77
 #, js-format
 msgid "This %s is distributed to one network site."
 msgid_plural "This %s is distributed to %d network sites."
 msgstr[0] ""
 msgstr[1] ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:110
+#. translators: %s: post type; %d: number of network sites
+#: dist/outgoing-post.js:10
+#: src/content-distribution/outgoing-post/index.js:131
 #, js-format
 msgid "%s distributed to one network site."
 msgid_plural "%s distributed to %d network sites."
 msgstr[0] ""
 msgstr[1] ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:138
+#: dist/outgoing-post.js:10
+#: src/content-distribution/outgoing-post/index.js:161
 msgid "Save the post at least once before distributing it."
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:153
+#. translators: %s: post type; %d: number of network sites
+#: dist/outgoing-post.js:13
+#: src/content-distribution/outgoing-post/index.js:193
 #, js-format
 msgid "This %s has been distributed to one network site."
 msgid_plural "This %s has been distributed to %d network sites."
 msgstr[0] ""
 msgstr[1] ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:146
+#. translators: %s: post type
+#: dist/outgoing-post.js:16
+#: src/content-distribution/outgoing-post/index.js:174
 #, js-format
 msgid "This %s has not been distributed to your network site yet."
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:147
+#. translators: %s: post type
+#: dist/outgoing-post.js:19
+#: src/content-distribution/outgoing-post/index.js:182
 #, js-format
 msgid "This %s has not been distributed to any network sites yet."
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:167
+#: dist/outgoing-post.js:19
+#: src/content-distribution/outgoing-post/index.js:207
 msgid "Search available network sites"
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:180
+#: dist/outgoing-post.js:19
+#: src/content-distribution/outgoing-post/index.js:225
 msgid "Select all"
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:209
+#. translators: %d: number of network sites
+#: dist/outgoing-post.js:22
+#: src/content-distribution/outgoing-post/index.js:273
 msgid "One network site selected."
 msgid_plural "%d network sites selected."
 msgstr[0] ""
 msgstr[1] ""
 
-#: dist/outgoing-post.js:4
+#: dist/outgoing-post.js:22
 #: dist/story-budget.js:4
-#: src/content-distribution/outgoing-post/index.js:231
+#: src/content-distribution/outgoing-post/index.js:294
 #: src/story-budget/components/pull-story.js:146
 msgid "Status on publish"
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:232
+#: dist/outgoing-post.js:22
+#: src/content-distribution/outgoing-post/index.js:299
 msgid "Which status to set the post when it's published."
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:249
-msgid "Distributing..."
+#: dist/outgoing-post.js:22
+#: src/content-distribution/outgoing-post/index.js:322
+msgid "Distributing…"
 msgstr ""
 
-#: dist/outgoing-post.js:4
-#: src/content-distribution/outgoing-post/index.js:251
+#: dist/outgoing-post.js:22
+#: src/content-distribution/outgoing-post/index.js:324
 msgid "Save & Distribute"
 msgstr ""
 
