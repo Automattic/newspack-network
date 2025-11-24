@@ -1,3 +1,10 @@
+# [2.18.0](https://github.com/Automattic/newspack-network/compare/v2.17.1...v2.18.0) (2025-11-24)
+
+
+### Features
+
+* Merge pull request [#283](https://github.com/Automattic/newspack-network/issues/283) from Automattic/trunk ([8385a9e](https://github.com/Automattic/newspack-network/commit/8385a9eed367339244bfbb39701f0642fbcdae77))
+
 ## [2.17.1](https://github.com/Automattic/newspack-network/compare/v2.17.0...v2.17.1) (2025-11-05)
 
 
