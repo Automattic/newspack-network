@@ -35,28 +35,28 @@ class Image_Block {
 	 */
 	public static function hook_lightbox_render( $post ) {
 		if ( Content_Distribution_Class::is_post_incoming( $post ) ) {
-			add_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 14, 2 ); // 14 is right before the core filter.
+			add_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16, 2 ); // 16 is right after the core filter.
 			$incoming_post = new Incoming_Post( $post->ID );
 			self::$post_payload = $incoming_post->get_post_payload();
 		} else {
-			remove_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 14 );
+			remove_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16 );
 			self::$post_payload = null;
 		}
 	}
 
-/**
- * Adds the directives and layout needed for the lightbox behavior.
- *
- * This is a slightly modified version from Gutenberg's
- * `block_core_image_render_lightbox`.
- *
- * @see https://github.com/WordPress/gutenberg/blob/0186ae622a99a6e3e54ae4f9dfab325780fe5254/packages/block-library/src/image/index.php#L179
- *
- * @param string $block_content Rendered block content.
- * @param array  $block         Block object.
- *
- * @return string Filtered block content.
- */
+	/**
+	 * Adds the directives and layout needed for the lightbox behavior.
+	 *
+	 * This is a slightly modified version from Gutenberg's
+	 * `block_core_image_render_lightbox`.
+	 *
+	 * @see https://github.com/WordPress/gutenberg/blob/0186ae622a99a6e3e54ae4f9dfab325780fe5254/packages/block-library/src/image/index.php#L179
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @param array  $block         Block object.
+	 *
+	 * @return string Filtered block content.
+	 */
 	public static function render_lightbox( $block_content, $block ) {
 		/**
 		 * If the core filter is not applied the lightbox is not enabled and should
@@ -65,10 +65,6 @@ class Image_Block {
 		if ( ! has_filter( 'render_block_core/image', 'block_core_image_render_lightbox' ) ) {
 			return $block_content;
 		}
-
-		// Remove the core filter so it doesn't attempt to apply the lightbox using
-		// the 'id' attribute with local values.
-		remove_filter( 'render_block_core/image', 'block_core_image_render_lightbox', 15 );
 
 		/*
 		 * If there's no IMG tag in the block then return the given block content
@@ -97,6 +93,7 @@ class Image_Block {
 		 * Fetch media data from the original post payload.
 		 */
 		if ( isset( $block['attrs']['id'] ) && isset( self::$post_payload['post_data']['media_data'][ $block['attrs']['id'] ] ) ) {
+			error_log( 'MEDIA DATA FOUND: ' .  $block['attrs']['id'] );
 			$media_data       = self::$post_payload['post_data']['media_data'][ $block['attrs']['id'] ];
 			$img_uploaded_src = $media_data['url'] ?? null;
 			$img_srcset       = $media_data['srcset'] ?? null;
@@ -171,6 +168,9 @@ class Image_Block {
 		// Adds a button alongside image in the body content.
 		$img = null;
 		preg_match( '/<img[^>]+>/', $body_content, $img );
+
+		// Remove the button added from the core filter.
+		$body_content = preg_replace( '/<button[^>]+>/', '', $body_content );
 
 		$button =
 			$img[0]
