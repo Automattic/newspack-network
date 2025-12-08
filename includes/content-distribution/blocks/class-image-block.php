@@ -10,7 +10,7 @@ namespace Newspack_Network\Content_Distribution;
 use Newspack_Network\Content_Distribution as Content_Distribution_Class;
 
 /**
- * Blocks class.
+ * Image block class.
  */
 class Image_Block {
 	/**
