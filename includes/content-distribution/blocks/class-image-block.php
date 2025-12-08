@@ -40,7 +40,7 @@ class Image_Block {
 			self::$post_payload = $incoming_post->get_post_payload();
 
 			add_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16, 2 ); // 16 is right after the core filter.
-			add_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX, 2 );
+			add_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX );
 		} else {
 			remove_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16 );
 			remove_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX );
