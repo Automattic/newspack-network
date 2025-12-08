@@ -235,8 +235,8 @@ class Image_Block {
 			$attrs['data-orig-size']         = ! empty( $data['width'] ) ? absint( $data['width'] ) . ',' . absint( $data['height'] ) : '';
 			$attrs['data-comments-opened']   = 0;
 			$attrs['data-image-meta']        = $img_meta;
-			$attrs['data-image-title']       = $data['title'] ?? $data['caption'] ?? '';
-			$attrs['data-image-description'] = $data['description'] ?? $data['caption'] ?? '';
+			$attrs['data-image-title']       = $data['title'] ?? '';
+			$attrs['data-image-description'] = $data['description'] ?? '';
 			$attrs['data-image-caption']     = $data['caption'] ?? '';
 			$attrs['data-medium-file']       = $data['url'];
 			$attrs['data-large-file']        = $data['url'];
