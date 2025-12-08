@@ -18,16 +18,16 @@ class Blocks {
 	 */
 	private static $block_processors = [];
 
-  /**
-   * Initialize hooks.
-   */
-  public static function init() {
-    Image_Block::init();
+	/**
+	 * Initialize hooks.
+	 */
+	public static function init() {
+		Image_Block::init();
 
 		// Register block processors.
 		self::register_block_processor( 'jetpack/slideshow', [ __CLASS__, 'process_jetpack_galleries' ] );
 		self::register_block_processor( 'jetpack/tiled-gallery', [ __CLASS__, 'process_jetpack_galleries' ] );
-  }
+	}
 
 	/**
 	 * Register a block processor.
