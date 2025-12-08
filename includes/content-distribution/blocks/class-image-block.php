@@ -173,7 +173,7 @@ class Image_Block {
 		preg_match( '/<img[^>]+>/', $body_content, $img );
 
 		// Remove the button added from the core filter.
-		$body_content = preg_replace( '/<button[^>]+>/', '', $body_content );
+		$body_content = preg_replace( '/<button[^>]*class=["\'][^"\']*lightbox-trigger[^"\']*["\'][^>]*>/', '', $body_content );
 
 		$button =
 			$img[0]
