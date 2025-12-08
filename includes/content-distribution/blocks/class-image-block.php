@@ -30,7 +30,8 @@ class Image_Block {
 	/**
 	 * Hook the custom lightbox rendering strategy if this is an incoming post.
 	 *
-	 * @param mixed $post
+	 * @param \WP_Post $post The post object.
+	 *
 	 * @return void
 	 */
 	public static function hook_lightbox_render( $post ) {
