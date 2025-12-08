@@ -93,7 +93,6 @@ class Image_Block {
 		 * Fetch media data from the original post payload.
 		 */
 		if ( isset( $block['attrs']['id'] ) && isset( self::$post_payload['post_data']['media_data'][ $block['attrs']['id'] ] ) ) {
-			error_log( 'MEDIA DATA FOUND: ' .  $block['attrs']['id'] );
 			$media_data       = self::$post_payload['post_data']['media_data'][ $block['attrs']['id'] ];
 			$img_uploaded_src = $media_data['url'] ?? null;
 			$img_srcset       = $media_data['srcset'] ?? null;
