@@ -24,7 +24,7 @@ class Image_Block {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		add_action( 'the_post', [ __CLASS__, 'hook_lightbox_render' ] );
+		add_action( 'the_post', [ __CLASS__, 'hook_incoming_post_filters' ] );
 	}
 
 	/**
@@ -34,13 +34,16 @@ class Image_Block {
 	 *
 	 * @return void
 	 */
-	public static function hook_lightbox_render( $post ) {
+	public static function hook_incoming_post_filters( $post ) {
 		if ( Content_Distribution_Class::is_post_incoming( $post ) ) {
-			add_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16, 2 ); // 16 is right after the core filter.
 			$incoming_post = new Incoming_Post( $post->ID );
 			self::$post_payload = $incoming_post->get_post_payload();
+
+			add_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16, 2 ); // 16 is right after the core filter.
+			add_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX, 2 );
 		} else {
 			remove_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16 );
+			remove_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX );
 			self::$post_payload = null;
 		}
 	}
@@ -194,5 +197,55 @@ class Image_Block {
 		add_action( 'wp_footer', 'block_core_image_print_lightbox_overlay' );
 
 		return $body_content;
+	}
+
+	/**
+	 * Filter the image tags to set distributed post attributes.
+	 *
+	 * @param string $content The content to filter.
+	 *
+	 * @return string The filtered content.
+	 */
+	public static function filter_content_image_attributes( $content ) {
+		$processor = new \WP_HTML_Tag_Processor( $content );
+
+		while ( $processor->next_tag( 'img' ) ) {
+			$attachment_id = $processor->get_attribute( 'data-id' );
+			if ( empty( $attachment_id ) ) {
+				continue;
+			}
+
+			if ( ! isset( self::$post_payload['post_data']['media_data'][ $attachment_id ] ) ) {
+				continue;
+			}
+
+			$data = self::$post_payload['post_data']['media_data'][ $attachment_id ];
+
+			$img_meta = ( ! empty( $data['metadata']['image_meta'] ) ) ? (array) $data['metadata']['image_meta'] : array();
+			if ( isset( $img_meta['keywords'] ) ) {
+				unset( $img_meta['keywords'] );
+			}
+			$img_meta = wp_json_encode( array_map( 'strval', array_filter( $img_meta, 'is_scalar' ) ), JSON_UNESCAPED_SLASHES | JSON_HEX_AMP );
+
+			$attrs = [];
+
+			$attrs['srcset']                 = $data['srcset'];
+			$attrs['data-permalink']         = $data['url'];
+			$attrs['data-orig-file']         = $data['url'];
+			$attrs['data-orig-size']         = ! empty( $data['width'] ) ? absint( $data['width'] ) . ',' . absint( $data['height'] ) : '';
+			$attrs['data-comments-opened']   = 0;
+			$attrs['data-image-meta']        = $img_meta;
+			$attrs['data-image-title']       = $data['title'] ?? $data['caption'] ?? '';
+			$attrs['data-image-description'] = $data['description'] ?? $data['caption'] ?? '';
+			$attrs['data-image-caption']     = $data['caption'] ?? '';
+			$attrs['data-medium-file']       = $data['url'];
+			$attrs['data-large-file']        = $data['url'];
+
+			foreach ( $attrs as $attr_name => $attr_value ) {
+				$processor->set_attribute( $attr_name, $attr_value );
+			}
+		}
+
+		return $processor->get_updated_html();
 	}
 }
