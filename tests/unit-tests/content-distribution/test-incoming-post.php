@@ -747,4 +747,83 @@ class TestIncomingPost extends \WP_UnitTestCase {
 		// Assert that the thumbnail is unchanged.
 		$this->assertSame( $thumbnail_id, get_post_thumbnail_id( $post_id ) );
 	}
+
+	/**
+	 * Test removing all terms from a taxonomy with empty array.
+	 */
+	public function test_remove_all_terms_with_empty_array() {
+		$payload = $this->get_sample_payload();
+
+		// Insert the linked post with categories.
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the post has categories.
+		$terms = wp_get_post_terms( $post_id, 'category' );
+		$this->assertNotEmpty( $terms );
+		$this->assertCount( 2, $terms );
+
+		// Update the payload to have an empty array for categories.
+		$payload['post_data']['taxonomy']['category'] = [];
+
+		// Insert the updated linked post.
+		$this->incoming_post->insert( $payload );
+
+		// Assert that all categories have been removed.
+		$terms = wp_get_post_terms( $post_id, 'category' );
+		$this->assertEmpty( $terms );
+
+		// Assert that tags are still present.
+		$tags = wp_get_post_terms( $post_id, 'post_tag' );
+		$this->assertNotEmpty( $tags );
+		$this->assertCount( 2, $tags );
+	}
+
+	/**
+	 * Test removing all terms from multiple taxonomies with empty arrays.
+	 */
+	public function test_remove_all_terms_from_multiple_taxonomies() {
+		$payload = $this->get_sample_payload();
+
+		// Insert the linked post with categories and tags.
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the post has categories and tags.
+		$categories = wp_get_post_terms( $post_id, 'category' );
+		$tags = wp_get_post_terms( $post_id, 'post_tag' );
+		$this->assertNotEmpty( $categories );
+		$this->assertNotEmpty( $tags );
+
+		// Update the payload to have empty arrays for both taxonomies.
+		$payload['post_data']['taxonomy']['category'] = [];
+		$payload['post_data']['taxonomy']['post_tag'] = [];
+
+		// Insert the updated linked post.
+		$this->incoming_post->insert( $payload );
+
+		// Assert that all categories and tags have been removed.
+		$categories = wp_get_post_terms( $post_id, 'category' );
+		$tags = wp_get_post_terms( $post_id, 'post_tag' );
+		$this->assertEmpty( $categories );
+		$this->assertEmpty( $tags );
+	}
+
+	/**
+	 * Test empty taxonomy array creates post without terms.
+	 */
+	public function test_insert_post_with_empty_taxonomy_array() {
+		$payload = $this->get_sample_payload();
+
+		// Set taxonomies to empty arrays before inserting.
+		$payload['post_data']['taxonomy']['category'] = [];
+		$payload['post_data']['taxonomy']['post_tag'] = [];
+
+		// Insert the linked post.
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Assert that the post was created without any terms.
+		$categories = wp_get_post_terms( $post_id, 'category' );
+		$tags = wp_get_post_terms( $post_id, 'post_tag' );
+		$this->assertEmpty( $categories );
+		$this->assertEmpty( $tags );
+	}
 }
