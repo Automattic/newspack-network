@@ -224,6 +224,56 @@ class TestOutgoingPost extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Test empty taxonomies are included in the payload.
+	 */
+	public function test_empty_taxonomies_included_in_payload() {
+		// Create a post without any terms.
+		$post = $this->factory->post->create_and_get(
+			[
+				'post_type'   => 'post',
+				'post_author' => $this->some_editor->ID,
+			]
+		);
+		$outgoing_post = new Outgoing_Post( $post );
+		$outgoing_post->set_distribution( [ $this->network[0]['url'] ] );
+
+		$payload = $outgoing_post->get_payload();
+
+		// Assert that category and post_tag exist in the payload as empty arrays.
+		$this->assertArrayHasKey( 'taxonomy', $payload['post_data'] );
+		$this->assertArrayHasKey( 'post_tag', $payload['post_data']['taxonomy'] );
+		$this->assertIsArray( $payload['post_data']['taxonomy']['post_tag'] );
+		$this->assertEmpty( $payload['post_data']['taxonomy']['post_tag'] );
+	}
+
+	/**
+	 * Test empty custom taxonomy is included in the payload.
+	 */
+	public function test_empty_custom_taxonomy_included_in_payload() {
+		// Register a custom taxonomy.
+		$custom_taxonomy = 'custom_taxonomy';
+		register_taxonomy( $custom_taxonomy, 'post', [ 'public' => true ] );
+
+		// Create a post without any terms in the custom taxonomy.
+		$post = $this->factory->post->create_and_get(
+			[
+				'post_type'   => 'post',
+				'post_author' => $this->some_editor->ID,
+			]
+		);
+		$outgoing_post = new Outgoing_Post( $post );
+		$outgoing_post->set_distribution( [ $this->network[0]['url'] ] );
+
+		$payload = $outgoing_post->get_payload();
+
+		// Assert that the custom taxonomy exists in the payload as an empty array.
+		$this->assertArrayHasKey( 'taxonomy', $payload['post_data'] );
+		$this->assertArrayHasKey( $custom_taxonomy, $payload['post_data']['taxonomy'] );
+		$this->assertIsArray( $payload['post_data']['taxonomy'][ $custom_taxonomy ] );
+		$this->assertEmpty( $payload['post_data']['taxonomy'][ $custom_taxonomy ] );
+	}
+
+	/**
 	 * Test get partial payload.
 	 */
 	public function test_get_partial_payload() {

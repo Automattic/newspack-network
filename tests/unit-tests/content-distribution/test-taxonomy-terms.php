@@ -674,4 +674,73 @@ class TestTaxonomyTerms extends \WP_UnitTestCase {
 		$this->assertNotFalse( $new_term );
 		$this->assertContains( $new_term->term_id, $term_ids );
 	}
+
+	/**
+	 * Test get_post_taxonomy_terms with no terms returns empty array.
+	 */
+	public function test_get_post_taxonomy_terms_no_terms_returns_empty_array() {
+		// Create a post without any terms.
+		$post_id = $this->factory->post->create( [ 'post_title' => 'Test Post' ] );
+		$post = get_post( $post_id );
+
+		// Get taxonomy terms.
+		$terms = Taxonomy_Terms::get_post_taxonomy_terms( $post );
+
+		// Assert that categories and tags exist in the array as empty arrays.
+		$this->assertArrayHasKey( 'post_tag', $terms );
+		$this->assertIsArray( $terms['post_tag'] );
+		$this->assertEmpty( $terms['post_tag'] );
+	}
+
+	/**
+	 * Test get_post_taxonomy_terms with mixed terms (some empty, some not).
+	 */
+	public function test_get_post_taxonomy_terms_mixed_empty_and_populated() {
+		// Create a post.
+		$post_id = $this->factory->post->create( [ 'post_title' => 'Test Post' ] );
+		$post = get_post( $post_id );
+
+		// Create and assign categories but not tags.
+		$category_1 = $this->factory->term->create(
+			[
+				'taxonomy' => 'category',
+				'name'     => 'Category 1',
+			]
+		);
+		wp_set_post_terms( $post_id, [ $category_1 ], 'category' );
+
+		// Get taxonomy terms.
+		$terms = Taxonomy_Terms::get_post_taxonomy_terms( $post );
+
+		// Assert that categories are populated.
+		$this->assertArrayHasKey( 'category', $terms );
+		$this->assertNotEmpty( $terms['category'] );
+		$this->assertCount( 1, $terms['category'] );
+		$this->assertSame( 'Category 1', $terms['category'][0]['name'] );
+
+		// Assert that tags are present but empty.
+		$this->assertArrayHasKey( 'post_tag', $terms );
+		$this->assertIsArray( $terms['post_tag'] );
+		$this->assertEmpty( $terms['post_tag'] );
+	}
+
+	/**
+	 * Test get_post_taxonomy_terms with custom taxonomy having no terms.
+	 */
+	public function test_get_post_taxonomy_terms_custom_taxonomy_no_terms() {
+		// Register a custom taxonomy.
+		register_taxonomy( 'custom_taxonomy', 'post', [ 'public' => true ] );
+
+		// Create a post without any custom taxonomy terms.
+		$post_id = $this->factory->post->create( [ 'post_title' => 'Test Post' ] );
+		$post = get_post( $post_id );
+
+		// Get taxonomy terms.
+		$terms = Taxonomy_Terms::get_post_taxonomy_terms( $post );
+
+		// Assert that custom taxonomy exists in the array as an empty array.
+		$this->assertArrayHasKey( 'custom_taxonomy', $terms );
+		$this->assertIsArray( $terms['custom_taxonomy'] );
+		$this->assertEmpty( $terms['custom_taxonomy'] );
+	}
 }
