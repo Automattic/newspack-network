@@ -1,3 +1,10 @@
+## [2.18.1](https://github.com/Automattic/newspack-network/compare/v2.18.0...v2.18.1) (2025-12-12)
+
+
+### Bug Fixes
+
+* handle empty tags (trigger release) ([a013da1](https://github.com/Automattic/newspack-network/commit/a013da10ea86ba2da3037915f25813d050a44614))
+
 # [2.18.0](https://github.com/Automattic/newspack-network/compare/v2.17.1...v2.18.0) (2025-11-24)
 
 
