@@ -615,7 +615,7 @@ class Incoming_Post {
 		}
 
 		$blocks = array_map(
-			[ Content_Distribution_Class::class, 'process_incoming_block' ],
+			[ Blocks::class, 'process_incoming_block' ],
 			parse_blocks( $post_data['raw_content'] )
 		);
 
