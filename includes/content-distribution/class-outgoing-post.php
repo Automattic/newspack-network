@@ -365,7 +365,7 @@ class Outgoing_Post {
 		}
 
 		$blocks = array_map(
-			[ Content_Distribution_Class::class, 'process_outgoing_block' ],
+			[ Blocks::class, 'process_outgoing_block' ],
 			parse_blocks( $this->post->post_content )
 		);
 
@@ -472,13 +472,20 @@ class Outgoing_Post {
 
 		$thumbnail_id = get_post_thumbnail_id( $this->post->ID );
 		if ( $thumbnail_id ) {
+			$metadata = wp_get_attachment_metadata( $thumbnail_id );
 			$attachment_data[ $thumbnail_id ] = [
-				'url'        => wp_get_attachment_image_src( $thumbnail_id, 'full' )[0],
-				'caption'    => wp_get_attachment_caption( $thumbnail_id ),
-				'credit'     => get_post_meta( $thumbnail_id, '_media_credit', true ),
-				'credit_url' => get_post_meta( $thumbnail_id, '_media_credit_url', true ),
-				'alt'        => get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true ),
-				'featured'   => true,
+				'title'       => get_the_title( $thumbnail_id ),
+				'description' => get_the_content( null, false, $thumbnail_id ),
+				'url'         => wp_get_attachment_url( $thumbnail_id ),
+				'metadata'    => $metadata,
+				'srcset'      => wp_get_attachment_image_srcset( $thumbnail_id ),
+				'width'       => $metadata['width'] ?? 'none',
+				'height'      => $metadata['height'] ?? 'none',
+				'caption'     => wp_get_attachment_caption( $thumbnail_id ),
+				'credit'      => get_post_meta( $thumbnail_id, '_media_credit', true ),
+				'credit_url'  => get_post_meta( $thumbnail_id, '_media_credit_url', true ),
+				'alt'         => get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true ),
+				'featured'    => true,
 			];
 		}
 
@@ -488,13 +495,20 @@ class Outgoing_Post {
 			if ( isset( $attachment_data[ $attachment->ID ] ) ) {
 				continue;
 			}
+			$metadata = wp_get_attachment_metadata( $attachment->ID );
 			$attachment_data[ $attachment->ID ] = [
-				'url'        => wp_get_attachment_image_src( $attachment->ID, 'full' )[0],
-				'caption'    => wp_get_attachment_caption( $attachment->ID ),
-				'credit'     => get_post_meta( $attachment->ID, '_media_credit', true ),
-				'credit_url' => get_post_meta( $attachment->ID, '_media_credit_url', true ),
-				'alt'        => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
-				'featured'   => false,
+				'title'       => get_the_title( $attachment->ID ),
+				'description' => get_the_content( null, false, $attachment->ID ),
+				'url'         => wp_get_attachment_url( $attachment->ID ),
+				'metadata'    => $metadata,
+				'srcset'      => wp_get_attachment_image_srcset( $attachment->ID ),
+				'width'       => $metadata['width'] ?? 'none',
+				'height'      => $metadata['height'] ?? 'none',
+				'caption'     => wp_get_attachment_caption( $attachment->ID ),
+				'credit'      => get_post_meta( $attachment->ID, '_media_credit', true ),
+				'credit_url'  => get_post_meta( $attachment->ID, '_media_credit_url', true ),
+				'alt'         => get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ),
+				'featured'    => false,
 			];
 		}
 

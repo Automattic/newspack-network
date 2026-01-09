@@ -7,7 +7,7 @@
 
 namespace Test\Content_Distribution;
 
-use Newspack_Network\Content_Distribution;
+use Newspack_Network\Content_Distribution\Blocks;
 use Newspack_Network\Content_Distribution\Block_Processor;
 use Newspack_Network\Content_Distribution\Outgoing_Post;
 use Newspack_Network\Content_Distribution\Incoming_Post;
@@ -21,7 +21,7 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		Content_Distribution::register_block_processor( 'core/paragraph', [ __CLASS__, 'process_outgoing_paragraph' ], [ __CLASS__, 'process_incoming_paragraph' ] );
+		Blocks::register_block_processor( 'core/paragraph', [ __CLASS__, 'process_outgoing_paragraph' ], [ __CLASS__, 'process_incoming_paragraph' ] );
 	}
 
 	/**
@@ -29,7 +29,7 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		parent::tear_down();
-		Content_Distribution::reset_block_processors( 'core/paragraph' );
+		Blocks::reset_block_processors( 'core/paragraph' );
 	}
 
 	/**
@@ -64,7 +64,7 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 * Test registering a block processor.
 	 */
 	public function test_register_block_processor() {
-		$block_processor = Content_Distribution::get_block_processors( 'core/paragraph' );
+		$block_processor = Blocks::get_block_processors( 'core/paragraph' );
 		$this->assertNotEmpty( $block_processor );
 		$this->assertCount( 1, $block_processor );
 		$this->assertInstanceOf( Block_Processor::class, $block_processor[0] );
@@ -75,7 +75,7 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 */
 	public function test_process_outgoing_block() {
 		$block = [ 'blockName' => 'core/paragraph' ];
-		$processed_block = Content_Distribution::process_outgoing_block( $block );
+		$processed_block = Blocks::process_outgoing_block( $block );
 		$this->assertEquals( 'test', $processed_block['attrs']['outgoing'] );
 		$this->assertEquals( '<p>Outgoing Processed</p>', $processed_block['innerHTML'] );
 		$this->assertEquals( [ '<p>Outgoing Processed</p>' ], $processed_block['innerContent'] );
@@ -86,7 +86,7 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 */
 	public function test_process_incoming_block() {
 		$block = [ 'blockName' => 'core/paragraph' ];
-		$processed_block = Content_Distribution::process_incoming_block( $block );
+		$processed_block = Blocks::process_incoming_block( $block );
 		$this->assertEquals( 'test', $processed_block['attrs']['incoming'] );
 		$this->assertEquals( '<p>Incoming Processed</p>', $processed_block['innerHTML'] );
 		$this->assertEquals( [ '<p>Incoming Processed</p>' ], $processed_block['innerContent'] );
@@ -97,8 +97,8 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 */
 	public function test_process_outgoing_and_incoming_block() {
 		$block = [ 'blockName' => 'core/paragraph' ];
-		$processed_block = Content_Distribution::process_outgoing_block( $block );
-		$processed_block = Content_Distribution::process_incoming_block( $processed_block );
+		$processed_block = Blocks::process_outgoing_block( $block );
+		$processed_block = Blocks::process_incoming_block( $processed_block );
 		$this->assertEquals( 'test', $processed_block['attrs']['outgoing'] );
 		$this->assertEquals( 'test', $processed_block['attrs']['incoming'] );
 	}
@@ -108,8 +108,8 @@ class TestBlockProcessor extends \WP_UnitTestCase {
 	 */
 	public function test_process_block_with_no_processors() {
 		$block = [ 'blockName' => 'core/heading' ];
-		$processed_block = Content_Distribution::process_outgoing_block( $block );
-		$processed_block = Content_Distribution::process_incoming_block( $processed_block );
+		$processed_block = Blocks::process_outgoing_block( $block );
+		$processed_block = Blocks::process_incoming_block( $processed_block );
 		$this->assertEquals( $block, $processed_block );
 	}
 
