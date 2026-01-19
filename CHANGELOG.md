@@ -1,3 +1,10 @@
+## [2.18.2](https://github.com/Automattic/newspack-network/compare/v2.18.1...v2.18.2) (2026-01-19)
+
+
+### Bug Fixes
+
+* **content-distribution:** Image block lightbox and Jetpack carousel support ([#285](https://github.com/Automattic/newspack-network/issues/285)) ([90a85ac](https://github.com/Automattic/newspack-network/commit/90a85ac77e3dba0712ad5880c0d3ac9a8322bcc4))
+
 ## [2.18.1](https://github.com/Automattic/newspack-network/compare/v2.18.0...v2.18.1) (2025-12-12)
 
 
