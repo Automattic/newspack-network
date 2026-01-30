@@ -80,7 +80,7 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 
 		// Update user role if changed.
 		$user_current_roles = $user->roles;
-		$user_new_roles     = $data->role ?? [];
+		$user_new_roles     = (array) ( $data->role ?? [] );
 		$remove_roles       = array_diff( $user_current_roles, $user_new_roles );
 		$add_roles          = array_diff( $user_new_roles, $user_current_roles );
 
