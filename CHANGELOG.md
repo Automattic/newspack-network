@@ -1,3 +1,10 @@
+## [2.18.3](https://github.com/Automattic/newspack-network/compare/v2.18.2...v2.18.3) (2026-01-30)
+
+
+### Bug Fixes
+
+* **sync:** cast role to array for backwards compatibility ([#292](https://github.com/Automattic/newspack-network/issues/292)) ([1f5f34f](https://github.com/Automattic/newspack-network/commit/1f5f34f71452216f331d22000997aa5ab3700779))
+
 ## [2.18.2](https://github.com/Automattic/newspack-network/compare/v2.18.1...v2.18.2) (2026-01-19)
 
 
