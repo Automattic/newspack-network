@@ -16,8 +16,8 @@ concurrency:
 
 jobs:
   build:
-    uses: Automattic/newspack-scripts/.github/workflows/reusable-build.yml@refactor/deprecate-circle-ci
+    uses: Automattic/newspack-scripts/.github/workflows/reusable-build.yml@trunk
 
   lint-js-scss:
     needs: build
-    uses: Automattic/newspack-scripts/.github/workflows/reusable-lint-js-scss.yml@refactor/deprecate-circle-ci
+    uses: Automattic/newspack-scripts/.github/workflows/reusable-lint-js-scss.yml@trunk
