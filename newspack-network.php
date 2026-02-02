@@ -15,12 +15,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Define NEWSPACK_NETWORK_PLUGIN_DIR.
+// Path to the Newspack Network plugin directory.
 if ( ! defined( 'NEWSPACK_NETWORK_PLUGIN_DIR' ) ) {
 	define( 'NEWSPACK_NETWORK_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 }
 
-// Define NEWSPACK_NETWORK_PLUGIN_FILE.
+// Path to the main Newspack Network plugin file.
 if ( ! defined( 'NEWSPACK_NETWORK_PLUGIN_FILE' ) ) {
 	define( 'NEWSPACK_NETWORK_PLUGIN_FILE', __FILE__ );
 }
