@@ -40,6 +40,10 @@ class Image_Block {
 				$incoming_post = new Incoming_Post( $post->ID );
 				self::$post_payload = $incoming_post->get_post_payload();
 			} catch ( \InvalidArgumentException $e ) {
+				// Treat an invalid incoming post as "not incoming": clear state and filters.
+				remove_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16 );
+				remove_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX );
+				self::$post_payload = null;
 				return;
 			}
 
