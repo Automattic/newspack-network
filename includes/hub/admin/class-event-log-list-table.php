@@ -119,7 +119,7 @@ class Event_Log_List_Table extends \WP_List_Table {
 		 * @example define( 'NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER', true );
 		 */
 		if ( defined( 'NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER' ) && NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER ) :
-		?>
+			?>
 		<select name="email" id="email">
 			<option value=""><?php _e( 'All users', 'newspack-network' ); ?></option>
 			<?php foreach ( $all_emails as $email ) : ?>
