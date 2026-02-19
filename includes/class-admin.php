@@ -199,6 +199,17 @@ class Admin {
 	 * @return bool True if experimental auditing features are enabled.
 	 */
 	public static function use_experimental_auditing_features() {
+		/**
+		 * Enables experimental content auditing features in the Network admin.
+		 * These features are under development and may change.
+		 *
+		 * @constant NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES
+		 * @type     bool
+		 * @default  Experimental auditing disabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES', true );
+		 */
 		return defined( 'NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES' ) ? NEWSPACK_NETWORK_EXPERIMENTAL_AUDITING_FEATURES : false;
 	}
 
