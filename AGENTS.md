@@ -2,6 +2,8 @@
 
 See `../../AGENTS.md` for shared workspace conventions (Docker, `n` script, coding standards, git rules, cross-repo workflow).
 
+See DEV_NOTES.md for additional guidelines.
+
 ## Gotchas
 
 - **Classmap autoloading, not PSR-4.** After adding, renaming, or moving any PHP class, you must run `composer dump-autoload` or the class will not be found at runtime.
