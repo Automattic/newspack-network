@@ -119,7 +119,7 @@ class TestIncomingPost extends \WP_UnitTestCase {
 		// Assert post meta.
 		$this->assertSame( 'value', get_post_meta( $post_id, 'single', true ) );
 		$this->assertSame( [ 'a' => 'b', 'c' => 'd' ], get_post_meta( $post_id, 'array', true ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
-		$this->assertSame( [ 'value 1', 'value 2' ], get_post_meta( $post_id, 'multiple' ) );
+		$this->assertSame( [ 'value 1', 'value 2' ], get_post_meta( $post_id, 'multiple', false ) );
 	}
 
 	/**
@@ -344,11 +344,11 @@ class TestIncomingPost extends \WP_UnitTestCase {
 
 		$payload['post_data']['post_meta']['multiple'] = [ 'value 2', 'value 3' ];
 		$this->incoming_post->insert( $payload );
-		$this->assertSame( [ 'value 2', 'value 3' ], get_post_meta( $post_id, 'multiple' ) );
+		$this->assertSame( [ 'value 2', 'value 3' ], get_post_meta( $post_id, 'multiple', false ) );
 
 		$payload['post_data']['post_meta']['multiple'] = [ 'value 3', 'value 3' ];
 		$this->incoming_post->insert( $payload );
-		$this->assertSame( [ 'value 3', 'value 3' ], get_post_meta( $post_id, 'multiple' ) );
+		$this->assertSame( [ 'value 3', 'value 3' ], get_post_meta( $post_id, 'multiple', false ) );
 	}
 
 	/**
