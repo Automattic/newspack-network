@@ -19,6 +19,17 @@ class Debugger {
 	 * @return void
 	 */
 	public static function log( $message ) {
+		/**
+		 * Enables debug logging for Newspack Network operations.
+		 * Logs are written to the error log.
+		 *
+		 * @constant NEWSPACK_NETWORK_DEBUG
+		 * @type     bool
+		 * @default  Debug logging disabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NETWORK_DEBUG', true );
+		 */
 		if ( ! defined( 'NEWSPACK_NETWORK_DEBUG' ) || ! NEWSPACK_NETWORK_DEBUG ) {
 			return;
 		}

@@ -30,8 +30,8 @@ class Yoast_Primary_Cat {
 	/**
 	 * Filter the outgoing post meta.
 	 *
-	 * @param array   $meta The post meta.
-	 * @param WP_Post $post The post object.
+	 * @param array    $meta The post meta.
+	 * @param \WP_Post $post The post object.
 	 * @return array
 	 */
 	public static function filter_outgoing_post( $meta, $post ) {

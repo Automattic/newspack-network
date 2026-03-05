@@ -106,7 +106,20 @@ class Event_Log_List_Table extends \WP_List_Table {
 			<?php endforeach; ?>
 		</select>
 
-		<?php if ( defined( 'NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER' ) && NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER ) : ?>
+		<?php
+		/**
+		 * Shows the users filter dropdown in the Network event log admin page.
+		 * May impact performance with large numbers of users.
+		 *
+		 * @constant NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER
+		 * @type     bool
+		 * @default  Users filter hidden
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER', true );
+		 */
+		if ( defined( 'NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER' ) && NEWSPACK_NETWORK_EVENT_LOG_SHOW_USERS_FILTER ) :
+			?>
 		<select name="email" id="email">
 			<option value=""><?php _e( 'All users', 'newspack-network' ); ?></option>
 			<?php foreach ( $all_emails as $email ) : ?>

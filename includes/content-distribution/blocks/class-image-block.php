@@ -36,8 +36,16 @@ class Image_Block {
 	 */
 	public static function hook_incoming_post_filters( $post ) {
 		if ( Content_Distribution_Class::is_post_incoming( $post ) ) {
-			$incoming_post = new Incoming_Post( $post->ID );
-			self::$post_payload = $incoming_post->get_post_payload();
+			try {
+				$incoming_post = new Incoming_Post( $post->ID );
+				self::$post_payload = $incoming_post->get_post_payload();
+			} catch ( \InvalidArgumentException $e ) {
+				// Treat an invalid incoming post as "not incoming": clear state and filters.
+				remove_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16 );
+				remove_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX );
+				self::$post_payload = null;
+				return;
+			}
 
 			add_filter( 'render_block_core/image', [ __CLASS__, 'render_lightbox' ], 16, 2 ); // 16 is right after the core filter.
 			add_filter( 'the_content', [ __CLASS__, 'filter_content_image_attributes' ], PHP_INT_MAX );
