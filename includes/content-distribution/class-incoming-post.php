@@ -683,8 +683,11 @@ class Incoming_Post {
 			 * Post status handling.
 			 *
 			 * If post is being published, use the incoming or stored
-			 * `status_on_publish` if available. Otherwise, use the post status from
-			 * the payload.
+			 * `status_on_publish` if available. If post is being scheduled
+			 * (future) and `status_on_publish` is a non-publish status, keep
+			 * the node post in that status. This prevents WP cron from
+			 * scheduling `publish_future_post` and auto-publishing the node
+			 * post. Otherwise, use the post status from the payload.
 			 */
 			if ( $post_data['post_status'] === 'publish' ) {
 				if ( $is_new_post ) {
@@ -694,6 +697,18 @@ class Incoming_Post {
 					if ( $status_on_publish ) {
 						$postarr['post_status'] = $status_on_publish;
 					}
+				}
+			} elseif ( $post_data['post_status'] === 'future' ) {
+				if ( $is_new_post ) {
+					$status_on_publish = $this->payload['status_on_publish'];
+				} else {
+					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
+				}
+				if ( $status_on_publish && 'publish' !== $status_on_publish ) {
+					$postarr['post_status'] = $status_on_publish;
+				} else {
+					// If status_on_publish is 'publish' or unset, mirror the hub's schedule.
+					$postarr['post_status'] = 'future';
 				}
 			} else {
 				$postarr['post_status'] = $post_data['post_status'];
