@@ -691,7 +691,7 @@ class Incoming_Post {
 			 */
 			if ( $post_data['post_status'] === 'publish' ) {
 				if ( $is_new_post ) {
-					$postarr['post_status'] = $this->payload['status_on_publish'];
+					$postarr['post_status'] = isset( $this->payload['status_on_publish'] ) ? $this->payload['status_on_publish'] : '';
 				} else {
 					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
 					if ( $status_on_publish ) {
@@ -700,10 +700,15 @@ class Incoming_Post {
 				}
 			} elseif ( $post_data['post_status'] === 'future' ) {
 				if ( $is_new_post ) {
-					$status_on_publish = $this->payload['status_on_publish'];
+					if ( isset( $this->payload['status_on_publish'] ) ) {
+						$status_on_publish = $this->payload['status_on_publish'];
+					} else {
+						$status_on_publish = '';
+					}
 				} else {
 					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
 				}
+
 				if ( $status_on_publish && 'publish' !== $status_on_publish ) {
 					$postarr['post_status'] = $status_on_publish;
 				} else {
