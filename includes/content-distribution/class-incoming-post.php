@@ -682,12 +682,15 @@ class Incoming_Post {
 			/**
 			 * Post status handling.
 			 *
-			 * If post is being published, use the incoming or stored
-			 * `status_on_publish` if available. If post is being scheduled
-			 * (future) and `status_on_publish` is a non-publish status, keep
-			 * the node post in that status. This prevents WP cron from
-			 * scheduling `publish_future_post` and auto-publishing the node
-			 * post. Otherwise, use the post status from the payload.
+			 * If post is being published, apply the stored `status_on_publish`
+			 * override if one exists. For new posts, use the incoming payload
+			 * value instead. If no override is configured, the post status is
+			 * left unchanged for existing posts and defaults to the incoming
+			 * status for new ones. If post is being scheduled (future) and
+			 * `status_on_publish` is a non-publish status, keep the node post
+			 * in that status. This prevents WP cron from scheduling
+			 * `publish_future_post` and auto-publishing the node post.
+			 * Otherwise, use the post status from the payload.
 			 */
 			if ( $post_data['post_status'] === 'publish' ) {
 				if ( $is_new_post ) {
