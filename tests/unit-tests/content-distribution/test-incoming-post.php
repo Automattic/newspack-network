@@ -588,7 +588,7 @@ class TestIncomingPost extends \WP_UnitTestCase {
 	 * node when status_on_publish is absent from the payload.
 	 *
 	 * The sample payload includes status_on_publish by default, so it is
-	 * explicitly unset here to simulate a payload that omits the key. 
+	 * explicitly unset here to simulate a payload that omits the key.
 	 * The node should fall back to mirroring the hub's future status.
 	 */
 	public function test_future_status_with_unset_status_on_publish() {
