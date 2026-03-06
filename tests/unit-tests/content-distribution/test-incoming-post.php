@@ -525,6 +525,92 @@ class TestIncomingPost extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that a scheduled (future) hub post does not auto-publish on the node
+	 * when status_on_publish is set to a non-publish status.
+	 *
+	 * Regression test for: hub distributes a draft, then schedules it shortly
+	 * after. The scheduling sync sends post_status='future' to the node. If the
+	 * node applies that status directly, WordPress cron will find a future-status
+	 * post and auto-publish it via wp_publish_post(), bypassing the
+	 * status_on_publish setting entirely.
+	 *
+	 * The node should keep the post in the status_on_publish state, such as draft,
+	 * so that WP cron never has a chance to publish it.
+	 */
+	public function test_future_status_with_non_publish_status_on_publish() {
+		$payload = $this->get_sample_payload();
+
+		// Simulate Event 1: hub distributes the post as a draft.
+		// status_on_publish='draft' means the node should never auto-publish.
+		$payload['post_data']['post_status'] = 'draft';
+		$payload['status_on_publish']        = 'draft';
+
+		$post_id = $this->incoming_post->insert( $payload );
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+
+		// Simulate Event 2: hub schedules the post, syncing post_status='future'.
+		// The node must not apply 'future', as a future-status post with a past date
+		// is auto-published by WP cron, bypassing status_on_publish entirely.
+		$payload['post_data']['post_status'] = 'future';
+		$this->incoming_post->insert( $payload );
+
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Test that a scheduled (future) hub post mirrors the future status on the
+	 * node when status_on_publish is 'publish'.
+	 *
+	 * When a publisher wants the node to publish in sync with the hub, the node
+	 * should mirror the 'future' status so that WP cron fires on both sites at
+	 * the same scheduled time.
+	 */
+	public function test_future_status_with_publish_status_on_publish() {
+		$payload = $this->get_sample_payload();
+
+		$payload['post_data']['post_status'] = 'draft';
+		$payload['status_on_publish']        = 'publish';
+
+		$post_id = $this->incoming_post->insert( $payload );
+
+		// Hub schedules the post. date_gmt must be in the future or WordPress
+		// will immediately publish the post rather than storing it as 'future'.
+		$payload['post_data']['post_status'] = 'future';
+		$payload['post_data']['date_gmt']    = gmdate( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
+		$this->incoming_post->insert( $payload );
+
+		// Node should mirror the hub's scheduled status so both publish together.
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Test that a scheduled (future) hub post mirrors the future status on the
+	 * node when status_on_publish is absent from the payload.
+	 *
+	 * The sample payload includes status_on_publish by default, so it is
+	 * explicitly unset here to simulate a payload that omits the key.
+	 * The node should fall back to mirroring the hub's future status.
+	 */
+	public function test_future_status_with_unset_status_on_publish() {
+		$payload = $this->get_sample_payload();
+
+		// Remove status_on_publish to simulate a payload that omits the key.
+		unset( $payload['status_on_publish'] );
+
+		$payload['post_data']['post_status'] = 'draft';
+		$post_id                             = $this->incoming_post->insert( $payload );
+
+		// Hub schedules the post. date_gmt must be in the future or WordPress
+		// will immediately publish the post rather than storing it as 'future'.
+		$payload['post_data']['post_status'] = 'future';
+		$payload['post_data']['date_gmt']    = gmdate( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
+		$this->incoming_post->insert( $payload );
+
+		// With no status_on_publish set, the node should mirror the hub's schedule.
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+	}
+
+	/**
 	 * Test that "status on publish" only applies once.
 	 */
 	public function test_status_on_publish_only_applies_once() {
