@@ -691,7 +691,7 @@ class Incoming_Post {
 			 */
 			if ( $post_data['post_status'] === 'publish' ) {
 				if ( $is_new_post ) {
-					$postarr['post_status'] = isset( $this->payload['status_on_publish'] ) ? $this->payload['status_on_publish'] : '';
+					$postarr['post_status'] = isset( $this->payload['status_on_publish'] ) ? $this->payload['status_on_publish'] : $post_data['post_status'];
 				} else {
 					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
 					if ( $status_on_publish ) {
@@ -763,11 +763,16 @@ class Incoming_Post {
 			// Handle `status_on_publish` meta.
 			if ( $post_data['post_status'] !== 'publish' && $is_new_post ) {
 				// Store the publish status for new posts.
-				update_post_meta(
-					$post_id,
-					self::STATUS_ON_PUBLISH_META,
-					$this->payload['status_on_publish']
-				);
+				if ( isset( $this->payload['status_on_publish'] ) ) {
+					// Only store the meta if the key is present. An absent status_on_publish
+					// means no override was configured — the node will fall back to safe
+					// defaults when the hub later sends 'publish' or 'future'.
+					update_post_meta(
+						$post_id,
+						self::STATUS_ON_PUBLISH_META,
+						$this->payload['status_on_publish']
+					);
+				}
 			} elseif ( $post_data['post_status'] === 'publish' && ! $is_new_post ) {
 				// Clean up the meta for published posts so it's not re-published after
 				// being unpublished.

@@ -584,6 +584,33 @@ class TestIncomingPost extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that a scheduled (future) hub post mirrors the future status on the
+	 * node when status_on_publish is absent from the payload.
+	 *
+	 * The sample payload includes status_on_publish by default, so it is
+	 * explicitly unset here to simulate a payload that omits the key. 
+	 * The node should fall back to mirroring the hub's future status.
+	 */
+	public function test_future_status_with_unset_status_on_publish() {
+		$payload = $this->get_sample_payload();
+
+		// Remove status_on_publish to simulate a payload that omits the key.
+		unset( $payload['status_on_publish'] );
+
+		$payload['post_data']['post_status'] = 'draft';
+		$post_id                             = $this->incoming_post->insert( $payload );
+
+		// Hub schedules the post. date_gmt must be in the future or WordPress
+		// will immediately publish the post rather than storing it as 'future'.
+		$payload['post_data']['post_status'] = 'future';
+		$payload['post_data']['date_gmt']    = gmdate( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
+		$this->incoming_post->insert( $payload );
+
+		// With no status_on_publish set, the node should mirror the hub's schedule.
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+	}
+
+	/**
 	 * Test that "status on publish" only applies once.
 	 */
 	public function test_status_on_publish_only_applies_once() {
