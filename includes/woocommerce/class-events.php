@@ -51,6 +51,9 @@ class Events {
 	 * @return array|void
 	 */
 	public static function product_updated( $product_id ) {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
 		$product = wc_get_product( $product_id );
 		if ( ! $product ) {
 			return;
