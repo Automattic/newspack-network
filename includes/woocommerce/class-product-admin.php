@@ -84,7 +84,6 @@ class Product_Admin {
 		}
 
 		$network_id = sanitize_text_field( wp_unslash( $_POST['newspack_network_product_id'] ?? '' ) );
-		$network_id = self::unique_network_id( $network_id, $post_id );
 
 		update_post_meta( $post_id, self::NETWORK_ID_META_KEY, $network_id );
 
@@ -94,37 +93,5 @@ class Product_Admin {
 		 * @param int $post_id The product post ID.
 		 */
 		do_action( 'newspack_network_save_product', $post_id );
-	}
-
-	/**
-	 * Given a network id, makes it unique among all products.
-	 *
-	 * @param string $network_id The network id to make unique.
-	 * @param int    $post_id The post ID that is being saved.
-	 * @return string The unique network id.
-	 */
-	private static function unique_network_id( $network_id, $post_id ) {
-		if ( empty( $network_id ) ) {
-			return '';
-		}
-		global $wpdb;
-		$network_id = sanitize_text_field( $network_id );
-		$query      = $wpdb->prepare(
-			"SELECT meta_value FROM $wpdb->postmeta WHERE meta_key = %s AND post_id != %d",
-			self::NETWORK_ID_META_KEY,
-			$post_id
-		);
-
-		$ids = $wpdb->get_col( $query ); // phpcs:ignore
-
-		$count               = 2;
-		$original_network_id = $network_id;
-
-		while ( in_array( $network_id, $ids, true ) ) {
-			$network_id = $original_network_id . '-' . $count;
-			$count++;
-		}
-
-		return $network_id;
 	}
 }
