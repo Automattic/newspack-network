@@ -317,18 +317,18 @@ class TestContentGateAccess extends WP_UnitTestCase {
 				'nonexistent',
 				false,
 			],
-			'pending-cancel sub, matching network ID'  => [
+			'pending-cancel sub, matching network ID' => [
 				'user_with_pending_cancel_sub',
 				'premium',
 				501,
 				'http://site2',
 			],
-			'cancelled sub, matching network ID'       => [
+			'cancelled sub, matching network ID'      => [
 				'user_with_cancelled_sub',
 				'premium',
 				false,
 			],
-			'no subs, matching network ID'             => [
+			'no subs, matching network ID'            => [
 				'user_without_subs',
 				'premium',
 				false,
