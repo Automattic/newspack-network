@@ -65,6 +65,11 @@ class Limit_Purchase {
 			return;
 		}
 
+		// Only restrict subscription products.
+		if ( ! $product->is_type( [ 'subscription', 'subscription_variation', 'variable-subscription' ] ) ) {
+			return;
+		}
+
 		$network_id = get_post_meta( $product->get_id(), Product_Admin::NETWORK_ID_META_KEY, true );
 		if ( empty( $network_id ) ) {
 			return;
