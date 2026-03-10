@@ -59,7 +59,7 @@ class Product_Updated extends Abstract_Incoming_Event {
 			'network_id' => $this->get_network_id(),
 		];
 
-		update_option( self::OPTION_NAME, $current_value );
+		update_option( self::OPTION_NAME, $current_value, false );
 	}
 
 	/**
