@@ -1,0 +1,130 @@
+<?php
+/**
+ * Newspack Network Admin customizations for WooCommerce products.
+ *
+ * @package Newspack
+ */
+
+namespace Newspack_Network\Woocommerce;
+
+/**
+ * Handles admin tweaks for WooCommerce products.
+ *
+ * Adds a metabox to the product edit screen to allow the user to add a network id metadata.
+ */
+class Product_Admin {
+
+	/**
+	 * The network id meta key.
+	 *
+	 * @var string
+	 */
+	const NETWORK_ID_META_KEY = '_newspack_network_product_id';
+
+	/**
+	 * Initializer.
+	 */
+	public static function init() {
+		add_action( 'add_meta_boxes', [ __CLASS__, 'add_meta_box' ] );
+		add_action( 'save_post', [ __CLASS__, 'save_meta_box' ] );
+	}
+
+	/**
+	 * Adds a meta box to the product edit screen.
+	 */
+	public static function add_meta_box() {
+		add_meta_box(
+			'newspack-network-product-meta-box',
+			__( 'Newspack Network', 'newspack-network' ),
+			[ __CLASS__, 'render_meta_box' ],
+			'product',
+			'side'
+		);
+	}
+
+	/**
+	 * Renders the meta box.
+	 *
+	 * @param \WP_Post $post The post object.
+	 */
+	public static function render_meta_box( $post ) {
+		$network_id = get_post_meta( $post->ID, self::NETWORK_ID_META_KEY, true );
+		wp_nonce_field( 'newspack_network_save_product', 'newspack_network_save_product_nonce' );
+		?>
+		<label for="newspack-network-product-id"><?php esc_html_e( 'Network ID', 'newspack-network' ); ?></label>
+		<input type="text" id="newspack-network-product-id" name="newspack_network_product_id" value="<?php echo esc_attr( $network_id ); ?>" style="width:100%;" />
+		<p class="description"><?php esc_html_e( 'If set, this product will be linked to products with the same Network ID on other sites in the network. Users with an active subscription to any linked product will be granted access across all sites.', 'newspack-network' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Saves the meta box.
+	 *
+	 * @param int $post_id The post ID.
+	 */
+	public static function save_meta_box( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( 'product' !== $post->post_type ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['newspack_network_save_product_nonce'] ) ||
+			! wp_verify_nonce( sanitize_text_field( $_POST['newspack_network_save_product_nonce'] ), 'newspack_network_save_product' )
+		) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		$network_id = sanitize_text_field( wp_unslash( $_POST['newspack_network_product_id'] ?? '' ) );
+		$network_id = self::unique_network_id( $network_id, $post_id );
+
+		update_post_meta( $post_id, self::NETWORK_ID_META_KEY, $network_id );
+
+		/**
+		 * Triggers an action when a product's network id is saved.
+		 *
+		 * @param int $post_id The product post ID.
+		 */
+		do_action( 'newspack_network_save_product', $post_id );
+	}
+
+	/**
+	 * Given a network id, makes it unique among all products.
+	 *
+	 * @param string $network_id The network id to make unique.
+	 * @param int    $post_id The post ID that is being saved.
+	 * @return string The unique network id.
+	 */
+	private static function unique_network_id( $network_id, $post_id ) {
+		if ( empty( $network_id ) ) {
+			return '';
+		}
+		global $wpdb;
+		$network_id = sanitize_text_field( $network_id );
+		$query      = $wpdb->prepare(
+			"SELECT meta_value FROM $wpdb->postmeta WHERE meta_key = %s AND post_id != %d",
+			self::NETWORK_ID_META_KEY,
+			$post_id
+		);
+
+		$ids = $wpdb->get_col( $query ); // phpcs:ignore
+
+		$count               = 2;
+		$original_network_id = $network_id;
+
+		while ( in_array( $network_id, $ids, true ) ) {
+			$network_id = $original_network_id . '-' . $count;
+			$count++;
+		}
+
+		return $network_id;
+	}
+}
