@@ -33,6 +33,10 @@ class Product_Updated extends Abstract_Backfiller {
 	 * @return \Newspack_Network\Incoming_Events\Abstract_Incoming_Event[] $events An array of events.
 	 */
 	public function get_events() {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return [];
+		}
+
 		$products = get_posts(
 			[
 				'post_type'   => 'product',
