@@ -67,7 +67,7 @@ class Access {
 			$site_products = $network_products[ $site ] ?? [];
 			foreach ( $subscriptions as $subscription ) {
 				foreach ( $subscription['products'] as $product ) {
-					$product_id        = $product['id'];
+					$product_id = $product['id'];
 					// Look up this product's Network ID from synced data.
 					$remote_network_id = $site_products[ $product_id ]['network_id'] ?? '';
 					if ( ! empty( $remote_network_id ) && in_array( $remote_network_id, $network_ids, true ) ) {
@@ -116,7 +116,7 @@ class Access {
 			$site_products = $network_products[ $site ] ?? [];
 			foreach ( $subscriptions as $subscription ) {
 				foreach ( $subscription['products'] as $product ) {
-					$product_id        = $product['id'];
+					$product_id = $product['id'];
 					$remote_network_id = $site_products[ $product_id ]['network_id'] ?? '';
 					if ( ! empty( $remote_network_id ) && $remote_network_id === $network_id ) {
 						return [
