@@ -127,6 +127,7 @@ class Limit_Purchase {
 				if ( $network_active_subscription ) {
 					$error_message = __( 'Oops! You already have a subscription on another site in this network that grants you access to this site as well. Please log in using the same email address.', 'newspack-network' );
 					$errors->add( 'network_subscription', $error_message );
+					break;
 				}
 			}
 		}
