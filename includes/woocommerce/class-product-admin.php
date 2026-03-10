@@ -33,6 +33,11 @@ class Product_Admin {
 	 * Adds a meta box to the product edit screen.
 	 */
 	public static function add_meta_box() {
+		global $post;
+		$product = wc_get_product( $post );
+		if ( ! $product || ! $product->is_type( [ 'subscription', 'variable-subscription' ] ) ) {
+			return;
+		}
 		add_meta_box(
 			'newspack-network-product-meta-box',
 			__( 'Newspack Network', 'newspack-network' ),
@@ -80,6 +85,11 @@ class Product_Admin {
 		}
 
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		$product = wc_get_product( $post_id );
+		if ( ! $product || ! $product->is_type( [ 'subscription', 'variable-subscription' ] ) ) {
 			return;
 		}
 
