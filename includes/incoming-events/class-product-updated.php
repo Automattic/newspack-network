@@ -21,7 +21,7 @@ class Product_Updated extends Abstract_Incoming_Event {
 	 *
 	 * @return void
 	 */
-	public function post_process_in_hub() {
+	public function always_process_in_hub() {
 		$this->update_option();
 	}
 
