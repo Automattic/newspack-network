@@ -26,13 +26,16 @@ class Product_Admin {
 	 */
 	public static function init() {
 		add_action( 'add_meta_boxes', [ __CLASS__, 'add_meta_box' ] );
-		add_action( 'save_post', [ __CLASS__, 'save_meta_box' ] );
+		add_action( 'save_post_product', [ __CLASS__, 'save_meta_box' ] );
 	}
 
 	/**
 	 * Adds a meta box to the product edit screen.
 	 */
 	public static function add_meta_box() {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
 		global $post;
 		$product = wc_get_product( $post );
 		if ( ! $product || ! $product->is_type( [ 'subscription', 'variable-subscription' ] ) ) {
@@ -68,12 +71,6 @@ class Product_Admin {
 	 * @param int $post_id The post ID.
 	 */
 	public static function save_meta_box( $post_id ) {
-		$post = get_post( $post_id );
-
-		if ( 'product' !== $post->post_type ) {
-			return;
-		}
-
 		if ( ! isset( $_POST['newspack_network_save_product_nonce'] ) ||
 			! wp_verify_nonce( sanitize_text_field( $_POST['newspack_network_save_product_nonce'] ), 'newspack_network_save_product' )
 		) {
