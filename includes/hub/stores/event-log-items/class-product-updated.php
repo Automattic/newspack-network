@@ -26,7 +26,7 @@ class Product_Updated extends Abstract_Event_Log_Item {
 			/* translators: 1: Product name 2: Network ID 3: site url */
 			__( 'Product "%1$s" (Network ID: %2$s) updated on %3$s', 'newspack-network' ),
 			$data->name ?? __( 'Unknown', 'newspack-network' ),
-			$data->network_id ?? __( 'none', 'newspack-network' ),
+			empty( $data->network_id ) ? __( 'none', 'newspack-network' ) : $data->network_id,
 			$url
 		);
 	}
