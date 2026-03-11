@@ -64,7 +64,7 @@ class Events {
 		];
 
 		// Include variation IDs so they are also mapped to this Network ID.
-		if ( $product->is_type( 'variable-subscription' ) && ! empty( $network_id ) ) {
+		if ( $product->is_type( 'variable-subscription' ) ) {
 			$result['variation_ids'] = $product->get_children();
 		}
 
