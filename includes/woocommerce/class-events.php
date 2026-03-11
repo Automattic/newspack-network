@@ -58,12 +58,21 @@ class Events {
 		if ( ! $product ) {
 			return;
 		}
-		return [
+		$network_id = get_post_meta( $product->get_id(), Product_Admin::NETWORK_ID_META_KEY, true );
+
+		$result = [
 			'id'         => $product->get_id(),
-			'network_id' => get_post_meta( $product->get_id(), Product_Admin::NETWORK_ID_META_KEY, true ),
+			'network_id' => $network_id,
 			'name'       => $product->get_name(),
 			'slug'       => $product->get_slug(),
 		];
+
+		// Include variation IDs so they are also mapped to this Network ID.
+		if ( $product->is_type( 'variable-subscription' ) && ! empty( $network_id ) ) {
+			$result['variation_ids'] = $product->get_children();
+		}
+
+		return $result;
 	}
 
 	/**
@@ -132,11 +141,16 @@ class Events {
 		$items = $item->get_items();
 		foreach ( $items as $item ) {
 			$product = $item->get_product();
-			$result['products'][ $product->get_id() ] = [
+			$product_data = [
 				'id'   => $product->get_id(),
 				'name' => $product->get_name(),
 				'slug' => $product->get_slug(),
 			];
+			// Include parent ID for variations so network matching can resolve the parent product.
+			if ( $product->get_parent_id() ) {
+				$product_data['parent_id'] = $product->get_parent_id();
+			}
+			$result['products'][ $product->get_id() ] = $product_data;
 		}
 
 		return $result;

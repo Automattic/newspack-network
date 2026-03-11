@@ -90,7 +90,7 @@ class Access {
 	public static function get_network_ids_for_products( $product_ids ) {
 		$network_ids = [];
 		foreach ( $product_ids as $product_id ) {
-			$network_id = get_post_meta( $product_id, Product_Admin::NETWORK_ID_META_KEY, true );
+			$network_id = Product_Admin::get_network_id( $product_id );
 			if ( ! empty( $network_id ) ) {
 				$network_ids[] = $network_id;
 			}

@@ -70,7 +70,7 @@ class Limit_Purchase {
 			return;
 		}
 
-		$network_id = get_post_meta( $product->get_id(), Product_Admin::NETWORK_ID_META_KEY, true );
+		$network_id = Product_Admin::get_network_id( $product->get_id() );
 		if ( empty( $network_id ) ) {
 			return;
 		}

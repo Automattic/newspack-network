@@ -59,6 +59,15 @@ class Product_Updated extends Abstract_Incoming_Event {
 			'network_id' => $this->get_network_id(),
 		];
 
+		// Also store entries for variations so that variation IDs resolve to the parent's Network ID.
+		$variation_ids = $this->get_variation_ids();
+		foreach ( $variation_ids as $variation_id ) {
+			$current_value[ $this->get_site() ][ $variation_id ] = [
+				'id'         => $variation_id,
+				'network_id' => $this->get_network_id(),
+			];
+		}
+
 		update_option( self::OPTION_NAME, $current_value, false );
 	}
 
@@ -96,5 +105,14 @@ class Product_Updated extends Abstract_Incoming_Event {
 	 */
 	public function get_network_id() {
 		return $this->data->network_id ?? null;
+	}
+
+	/**
+	 * Returns the variation IDs.
+	 *
+	 * @return array
+	 */
+	public function get_variation_ids() {
+		return $this->data->variation_ids ?? [];
 	}
 }

@@ -22,6 +22,30 @@ class Product_Admin {
 	const NETWORK_ID_META_KEY = '_newspack_network_product_id';
 
 	/**
+	 * Get the Network ID for a product, falling back to the parent product
+	 * for variations of a variable-subscription.
+	 *
+	 * @param int $product_id The product ID.
+	 * @return string The Network ID, or empty string if not set.
+	 */
+	public static function get_network_id( $product_id ) {
+		$network_id = get_post_meta( $product_id, self::NETWORK_ID_META_KEY, true );
+		if ( ! empty( $network_id ) ) {
+			return $network_id;
+		}
+
+		// If this is a variation, check the parent product.
+		if ( function_exists( 'wc_get_product' ) ) {
+			$product = wc_get_product( $product_id );
+			if ( $product && $product->get_parent_id() ) {
+				return get_post_meta( $product->get_parent_id(), self::NETWORK_ID_META_KEY, true );
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Initializer.
 	 */
 	public static function init() {
