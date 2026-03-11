@@ -37,11 +37,7 @@ class Events {
 
 		Data_Events::register_listener( 'woocommerce_order_status_changed', 'newspack_node_order_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'woocommerce_subscription_status_changed', 'newspack_node_subscription_changed', [ __CLASS__, 'subscription_changed' ] );
-		Data_Events::register_listener(
-			'newspack_network_save_product',
-			'newspack_network_product_updated',
-			[ __CLASS__, 'product_updated' ]
-		);
+		Data_Events::register_listener( 'newspack_network_save_product', 'newspack_network_product_updated', [ __CLASS__, 'product_updated' ] );
 	}
 
 	/**
@@ -141,16 +137,11 @@ class Events {
 		$items = $item->get_items();
 		foreach ( $items as $item ) {
 			$product = $item->get_product();
-			$product_data = [
+			$result['products'][ $product->get_id() ] = [
 				'id'   => $product->get_id(),
 				'name' => $product->get_name(),
 				'slug' => $product->get_slug(),
 			];
-			// Include parent ID for variations so network matching can resolve the parent product.
-			if ( $product->get_parent_id() ) {
-				$product_data['parent_id'] = $product->get_parent_id();
-			}
-			$result['products'][ $product->get_id() ] = $product_data;
 		}
 
 		return $result;
