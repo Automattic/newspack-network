@@ -51,6 +51,17 @@ class Pull_Endpoint {
 	 * @return int
 	 */
 	public static function get_pull_limit() {
+		/**
+		 * Maximum number of events to pull from the network hub per request.
+		 * Increase for faster sync, decrease to reduce server load.
+		 *
+		 * @constant NEWSPACK_NETWORK_EVENTS_PULL_LIMIT
+		 * @type     int
+		 * @default  40 events per pull
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_NETWORK_EVENTS_PULL_LIMIT', 100 );
+		 */
 		return defined( 'NEWSPACK_NETWORK_EVENTS_PULL_LIMIT' ) && is_numeric( NEWSPACK_NETWORK_EVENTS_PULL_LIMIT ) ? NEWSPACK_NETWORK_EVENTS_PULL_LIMIT : 40;
 	}
 
