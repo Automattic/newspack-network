@@ -1,3 +1,10 @@
+## [2.18.4](https://github.com/Automattic/newspack-network/compare/v2.18.3...v2.18.4) (2026-03-16)
+
+
+### Bug Fixes
+
+* **content-distribution:** handle exceptions in incoming post filter ([#294](https://github.com/Automattic/newspack-network/issues/294)) ([c4d354b](https://github.com/Automattic/newspack-network/commit/c4d354b609dae8d9e5c300cbbcaeb7728d23c17e))
+
 ## [2.18.3](https://github.com/Automattic/newspack-network/compare/v2.18.2...v2.18.3) (2026-01-30)
 
 
