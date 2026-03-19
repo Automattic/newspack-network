@@ -682,18 +682,41 @@ class Incoming_Post {
 			/**
 			 * Post status handling.
 			 *
-			 * If post is being published, use the incoming or stored
-			 * `status_on_publish` if available. Otherwise, use the post status from
-			 * the payload.
+			 * If post is being published, apply the stored `status_on_publish`
+			 * override if one exists. For new posts, use the incoming payload
+			 * value instead. If no override is configured, the post status is
+			 * left unchanged for existing posts and defaults to the incoming
+			 * status for new ones. If post is being scheduled (future) and
+			 * `status_on_publish` is a non-publish status, keep the node post
+			 * in that status. This prevents WP cron from scheduling
+			 * `publish_future_post` and auto-publishing the node post.
+			 * Otherwise, use the post status from the payload.
 			 */
 			if ( $post_data['post_status'] === 'publish' ) {
 				if ( $is_new_post ) {
-					$postarr['post_status'] = $this->payload['status_on_publish'];
+					$postarr['post_status'] = isset( $this->payload['status_on_publish'] ) ? $this->payload['status_on_publish'] : $post_data['post_status'];
 				} else {
 					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
 					if ( $status_on_publish ) {
 						$postarr['post_status'] = $status_on_publish;
 					}
+				}
+			} elseif ( $post_data['post_status'] === 'future' ) {
+				if ( $is_new_post ) {
+					if ( isset( $this->payload['status_on_publish'] ) ) {
+						$status_on_publish = $this->payload['status_on_publish'];
+					} else {
+						$status_on_publish = '';
+					}
+				} else {
+					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
+				}
+
+				if ( $status_on_publish && 'publish' !== $status_on_publish ) {
+					$postarr['post_status'] = $status_on_publish;
+				} else {
+					// If status_on_publish is 'publish' or unset, mirror the hub's schedule.
+					$postarr['post_status'] = 'future';
 				}
 			} else {
 				$postarr['post_status'] = $post_data['post_status'];
@@ -743,11 +766,16 @@ class Incoming_Post {
 			// Handle `status_on_publish` meta.
 			if ( $post_data['post_status'] !== 'publish' && $is_new_post ) {
 				// Store the publish status for new posts.
-				update_post_meta(
-					$post_id,
-					self::STATUS_ON_PUBLISH_META,
-					$this->payload['status_on_publish']
-				);
+				if ( isset( $this->payload['status_on_publish'] ) ) {
+					// Only store the meta if the key is present. An absent status_on_publish
+					// means no override was configured — the node will fall back to safe
+					// defaults when the hub later sends 'publish' or 'future'.
+					update_post_meta(
+						$post_id,
+						self::STATUS_ON_PUBLISH_META,
+						$this->payload['status_on_publish']
+					);
+				}
 			} elseif ( $post_data['post_status'] === 'publish' && ! $is_new_post ) {
 				// Clean up the meta for published posts so it's not re-published after
 				// being unpublished.

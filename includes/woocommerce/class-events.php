@@ -9,6 +9,7 @@ namespace Newspack_Network\Woocommerce;
 
 use Newspack\Data_Events;
 use Newspack_Network\Woocommerce_Memberships\Admin as Memberships_Admin;
+use Newspack_Network\Woocommerce\Product_Admin;
 
 /**
  * Class to register additional listeners to the Newspack Data Events API
@@ -36,6 +37,38 @@ class Events {
 
 		Data_Events::register_listener( 'woocommerce_order_status_changed', 'newspack_node_order_changed', [ __CLASS__, 'item_changed' ] );
 		Data_Events::register_listener( 'woocommerce_subscription_status_changed', 'newspack_node_subscription_changed', [ __CLASS__, 'subscription_changed' ] );
+		Data_Events::register_listener( 'newspack_network_save_product', 'newspack_network_product_updated', [ __CLASS__, 'product_updated' ] );
+	}
+
+	/**
+	 * Triggers a data event when a product's Network ID is updated.
+	 *
+	 * @param int $product_id The product post ID.
+	 * @return array|void
+	 */
+	public static function product_updated( $product_id ) {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
+		$product = wc_get_product( $product_id );
+		if ( ! $product ) {
+			return;
+		}
+		$network_id = get_post_meta( $product->get_id(), Product_Admin::NETWORK_ID_META_KEY, true );
+
+		$result = [
+			'id'         => $product->get_id(),
+			'network_id' => $network_id,
+			'name'       => $product->get_name(),
+			'slug'       => $product->get_slug(),
+		];
+
+		// Include variation IDs so they are also mapped to this Network ID.
+		if ( $product->is_type( 'variable-subscription' ) ) {
+			$result['variation_ids'] = $product->get_children();
+		}
+
+		return $result;
 	}
 
 	/**
