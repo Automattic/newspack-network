@@ -56,6 +56,20 @@ class Integrity_Check_Endpoints {
 
 		register_rest_route(
 			'newspack-network/v1',
+			'/integrity-check/managed-memberships',
+			[
+				[
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => [ __CLASS__, 'handle_managed_memberships_request' ],
+					'permission_callback' => function( $request ) {
+						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
+					},
+				],
+			]
+		);
+
+		register_rest_route(
+			'newspack-network/v1',
 			'/integrity-check/range-hash',
 			[
 				[
@@ -146,6 +160,55 @@ class Integrity_Check_Endpoints {
 				'count'       => count( $membership_data ),
 			]
 		);
+	}
+
+	/**
+	 * Handles the managed memberships request.
+	 *
+	 * Returns all network-managed memberships with their remote_id and remote_site_url.
+	 *
+	 * @param \WP_REST_Request $request The REST request object.
+	 */
+	public static function handle_managed_memberships_request( $request ) {
+		global $wpdb;
+
+		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT p.ID, p.post_status, p.post_modified,
+					u.user_email,
+					pm_remote.meta_value as remote_id,
+					pm_site.meta_value as remote_site_url,
+					pm_network.meta_value as network_id
+				FROM {$wpdb->posts} p
+				INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
+				INNER JOIN {$wpdb->postmeta} pm_managed ON p.ID = pm_managed.post_id AND pm_managed.meta_key = %s
+				LEFT JOIN {$wpdb->postmeta} pm_remote ON p.ID = pm_remote.post_id AND pm_remote.meta_key = %s
+				LEFT JOIN {$wpdb->postmeta} pm_site ON p.ID = pm_site.post_id AND pm_site.meta_key = %s
+				LEFT JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
+				WHERE p.post_type = 'wc_user_membership'",
+				'_managed_by_newspack_network',
+				'_remote_id',
+				'_remote_site_url',
+				\Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY
+			)
+		);
+
+		$memberships = [];
+		foreach ( $results as $row ) {
+			$memberships[] = [
+				'email'           => strtolower( $row->user_email ),
+				'status'          => $row->post_status,
+				'network_id'      => $row->network_id ?? '',
+				'remote_id'       => (int) $row->remote_id,
+				'remote_site_url' => $row->remote_site_url ?? '',
+				'post_modified'   => $row->post_modified,
+				'membership_id'   => (int) $row->ID,
+			];
+		}
+
+		return rest_ensure_response( [ 'memberships' => $memberships ] );
 	}
 
 	/**
