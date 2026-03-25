@@ -374,17 +374,19 @@ class Reconcile_Memberships {
 				$action = 'push_to_node';
 			} else {
 				// Node has fresher data – log and skip.
-				WP_CLI::warning(
-					sprintf(
-						'Status mismatch for %s (plan %s): hub=%s (%s), node=%s (%s) – node is newer, skipping.',
-						$email,
-						$network_id,
-						$hub_status,
-						$hub_modified,
-						$node_status,
-						$node_modified
-					)
-				);
+				if ( defined( 'WP_CLI' ) && WP_CLI ) {
+					WP_CLI::warning(
+						sprintf(
+							'Status mismatch for %s (plan %s): hub=%s (%s), node=%s (%s) – node is newer, skipping.',
+							$email,
+							$network_id,
+							$hub_status,
+							$hub_modified,
+							$node_status,
+							$node_modified
+						)
+					);
+				}
 				$action = 'skip';
 			}
 
