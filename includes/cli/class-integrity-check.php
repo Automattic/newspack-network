@@ -209,6 +209,12 @@ class Integrity_Check {
 							self::dispatch_to_node( $hub_item );
 							$total_dispatched++;
 						}
+					} elseif ( 'push_transfer' === $item['action'] ) {
+						$hub_item = $item['hub_data'] ?? null;
+						if ( $hub_item ) {
+							self::dispatch_to_node( $hub_item, $item['previous_email'] );
+							$total_dispatched++;
+						}
 					} else {
 						$total_skipped++;
 					}
@@ -611,6 +617,7 @@ class Integrity_Check {
 	 * Discrepancy types:
 	 *   - missing_on_node: Hub has the membership but the node does not → push_to_node.
 	 *   - missing_on_hub:  Node has the membership but the hub does not → skip.
+	 *   - transfer:        Node has it under old email, hub has it under new email → push_transfer.
 	 *   - status_mismatch: Both have it with different statuses.
 	 *       Hub timestamp newer (or node timestamp unavailable) → push_to_node.
 	 *       Node timestamp newer → skip.
@@ -712,6 +719,87 @@ class Integrity_Check {
 			];
 		}
 
+		// Detect transfers: a missing_on_hub + missing_on_node pair for the same network_id
+		// where the node's managed membership remote_id matches a hub membership_id.
+		$missing_on_hub_indices  = [];
+		$missing_on_node_indices = [];
+		foreach ( $discrepancies as $idx => $d ) {
+			if ( 'missing_on_hub' === $d['type'] ) {
+				$missing_on_hub_indices[ $d['network_id'] ][] = $idx;
+			} elseif ( 'missing_on_node' === $d['type'] ) {
+				$missing_on_node_indices[ $d['network_id'] ][] = $idx;
+			}
+		}
+
+		// Build a hub membership_id → key lookup for matching.
+		$hub_id_to_key = [];
+		foreach ( $hub_lookup as $key => $item ) {
+			if ( ! empty( $item['membership_id'] ) ) {
+				$hub_id_to_key[ (int) $item['membership_id'] ] = $key;
+			}
+		}
+
+		$indices_to_remove = [];
+		$transfers         = [];
+
+		foreach ( $missing_on_hub_indices as $network_id => $hub_indices ) {
+			if ( empty( $missing_on_node_indices[ $network_id ] ) ) {
+				continue;
+			}
+
+			foreach ( $hub_indices as $hub_idx ) {
+				$old_email       = $discrepancies[ $hub_idx ]['email'];
+				$managed_key     = $old_email . '::' . $network_id;
+				$managed_item    = $node_managed_lookup[ $managed_key ] ?? null;
+
+				if ( ! $managed_item || empty( $managed_item['remote_id'] ) ) {
+					continue;
+				}
+
+				$remote_id       = (int) $managed_item['remote_id'];
+				$hub_key_for_id  = $hub_id_to_key[ $remote_id ] ?? null;
+
+				if ( ! $hub_key_for_id ) {
+					continue;
+				}
+
+				$hub_item_for_transfer = $hub_lookup[ $hub_key_for_id ] ?? null;
+				if ( ! $hub_item_for_transfer ) {
+					continue;
+				}
+
+				$new_email = $hub_item_for_transfer['email'];
+
+				// Find the matching missing_on_node entry for the new email.
+				foreach ( $missing_on_node_indices[ $network_id ] as $node_idx ) {
+					if ( $discrepancies[ $node_idx ]['email'] === $new_email ) {
+						$indices_to_remove[] = $hub_idx;
+						$indices_to_remove[] = $node_idx;
+
+						$transfers[] = [
+							'email'          => $new_email,
+							'network_id'     => $network_id,
+							'type'           => 'transfer',
+							'hub_status'     => $hub_item_for_transfer['status'],
+							'node_status'    => $discrepancies[ $hub_idx ]['node_status'],
+							'action'         => 'push_transfer',
+							'previous_email' => $old_email,
+							'hub_data'       => $hub_item_for_transfer,
+						];
+						break;
+					}
+				}
+			}
+		}
+
+		// Remove matched pairs and add transfers.
+		if ( ! empty( $indices_to_remove ) ) {
+			foreach ( array_unique( $indices_to_remove ) as $idx ) {
+				unset( $discrepancies[ $idx ] );
+			}
+			$discrepancies = array_merge( array_values( $discrepancies ), $transfers );
+		}
+
 		return $discrepancies;
 	}
 
@@ -721,10 +809,11 @@ class Integrity_Check {
 	 * Creates an event and persists it to the hub's event log. Nodes will pull
 	 * it during their next sync cycle and update their local membership accordingly.
 	 *
-	 * @param array $hub_item A single hub membership record (email, status, network_id, membership_id).
+	 * @param array  $hub_item       A single hub membership record (email, status, network_id, membership_id).
+	 * @param string $previous_email Optional previous owner email for transfer events.
 	 * @return void
 	 */
-	private static function dispatch_to_node( $hub_item ) {
+	private static function dispatch_to_node( $hub_item, $previous_email = '' ) {
 		$event_data = [
 			'email'           => $hub_item['email'],
 			'user_id'         => 0,
@@ -732,6 +821,10 @@ class Integrity_Check {
 			'membership_id'   => $hub_item['membership_id'],
 			'new_status'      => str_replace( 'wcm-', '', $hub_item['status'] ),
 		];
+
+		if ( ! empty( $previous_email ) ) {
+			$event_data['previous_email'] = $previous_email;
+		}
 
 		$event = new \Newspack_Network\Incoming_Events\Woocommerce_Membership_Updated(
 			get_bloginfo( 'url' ),

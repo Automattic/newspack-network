@@ -328,4 +328,101 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 		// Jane matches exactly and must not appear in discrepancies.
 		$this->assertArrayNotHasKey( 'jane@example.com', $discrepancy_types_by_email );
 	}
+
+	/**
+	 * Test that a membership transfer is detected when missing_on_hub and missing_on_node
+	 * entries for the same network_id are linked by the node's managed membership remote_id.
+	 */
+	public function test_transfer_detected_via_remote_id() {
+		$classify_discrepancies_method = new ReflectionMethod( Integrity_Check::class, 'classify_discrepancies' );
+		$classify_discrepancies_method->setAccessible( true );
+
+		// Hub: membership 500 belongs to newowner@example.com (after transfer).
+		$hub_lookup = [
+			'newowner@example.com::plan-x' => [
+				'email'         => 'newowner@example.com',
+				'status'        => 'wcm-active',
+				'network_id'    => 'plan-x',
+				'post_modified' => '2024-06-01 12:00:00',
+				'membership_id' => 500,
+			],
+		];
+
+		// Node: still has it under the old owner.
+		$node_memberships = [
+			[
+				'email'      => 'oldowner@example.com',
+				'status'     => 'wcm-active',
+				'network_id' => 'plan-x',
+			],
+		];
+
+		// Node managed lookup: the old owner's membership points to remote_id 500.
+		$node_managed_lookup = [
+			'oldowner@example.com::plan-x' => [
+				'email'         => 'oldowner@example.com',
+				'status'        => 'wcm-active',
+				'network_id'    => 'plan-x',
+				'post_modified' => '2024-04-01 12:00:00',
+				'remote_id'     => 500,
+			],
+		];
+
+		$discrepancies = $classify_discrepancies_method->invoke( null, $hub_lookup, $node_memberships, $node_managed_lookup );
+
+		// Should be a single transfer, not two separate missing entries.
+		$this->assertCount( 1, $discrepancies );
+		$this->assertEquals( 'transfer', $discrepancies[0]['type'] );
+		$this->assertEquals( 'push_transfer', $discrepancies[0]['action'] );
+		$this->assertEquals( 'newowner@example.com', $discrepancies[0]['email'] );
+		$this->assertEquals( 'oldowner@example.com', $discrepancies[0]['previous_email'] );
+		$this->assertEquals( 'plan-x', $discrepancies[0]['network_id'] );
+	}
+
+	/**
+	 * Test that missing_on_hub entries without a matching remote_id are not converted to transfers.
+	 */
+	public function test_non_transfer_missing_on_hub_stays_as_skip() {
+		$classify_discrepancies_method = new ReflectionMethod( Integrity_Check::class, 'classify_discrepancies' );
+		$classify_discrepancies_method->setAccessible( true );
+
+		$hub_lookup = [
+			'alice@example.com::plan-y' => [
+				'email'         => 'alice@example.com',
+				'status'        => 'wcm-active',
+				'network_id'    => 'plan-y',
+				'post_modified' => '2024-06-01 12:00:00',
+				'membership_id' => 600,
+			],
+		];
+
+		// Node has a membership under a different email, same plan, but remote_id doesn't match.
+		$node_memberships = [
+			[
+				'email'      => 'bob@example.com',
+				'status'     => 'wcm-active',
+				'network_id' => 'plan-y',
+			],
+		];
+
+		$node_managed_lookup = [
+			'bob@example.com::plan-y' => [
+				'email'         => 'bob@example.com',
+				'status'        => 'wcm-active',
+				'network_id'    => 'plan-y',
+				'post_modified' => '2024-04-01 12:00:00',
+				'remote_id'     => 999, // Different from hub's membership_id 600.
+			],
+		];
+
+		$discrepancies = $classify_discrepancies_method->invoke( null, $hub_lookup, $node_memberships, $node_managed_lookup );
+
+		// Should be two separate entries, not a transfer.
+		$this->assertCount( 2, $discrepancies );
+
+		$types = array_column( $discrepancies, 'type' );
+		$this->assertContains( 'missing_on_node', $types );
+		$this->assertContains( 'missing_on_hub', $types );
+		$this->assertNotContains( 'transfer', $types );
+	}
 }
