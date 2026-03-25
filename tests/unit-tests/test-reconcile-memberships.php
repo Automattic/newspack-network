@@ -5,7 +5,7 @@
  * @package Newspack_Network
  */
 
-use Newspack_Network\CLI\Reconcile_Memberships;
+use Newspack_Network\CLI\Integrity_Check;
 
 /**
  * Test the Reconcile_Memberships::classify_discrepancies method.
@@ -20,7 +20,7 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 	 * @return ReflectionMethod
 	 */
 	private function get_classify_discrepancies_method() {
-		$classify_discrepancies_method = new ReflectionMethod( Reconcile_Memberships::class, 'classify_discrepancies' );
+		$classify_discrepancies_method = new ReflectionMethod( Integrity_Check::class, 'classify_discrepancies' );
 		$classify_discrepancies_method->setAccessible( true );
 		return $classify_discrepancies_method;
 	}
