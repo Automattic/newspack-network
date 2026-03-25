@@ -135,12 +135,17 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 				)
 				AND post_id IN (
 					SELECT ID FROM $wpdb->posts WHERE post_type = 'wc_user_membership' AND post_parent = %d
+				)
+				AND post_id IN (
+					SELECT post_id FROM $wpdb->postmeta
+					WHERE meta_key = %s
 				)",
 				Memberships_Admin::REMOTE_ID_META_KEY,
 				$remote_membership_id,
 				Memberships_Admin::SITE_URL_META_KEY,
 				$this->get_site(),
-				$local_plan_id
+				$local_plan_id,
+				Memberships_Admin::NETWORK_MANAGED_META_KEY
 			)
 		);
 
@@ -177,12 +182,19 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 		}
 
 		// Reassign the membership to the new owner.
-		wp_update_post(
+		$updated_post_id = wp_update_post(
 			[
 				'ID'          => $existing_membership_id,
 				'post_author' => $new_user->ID,
-			]
+			],
+			true
 		);
+
+		if ( is_wp_error( $updated_post_id ) || ! $updated_post_id ) {
+			$error_message = is_wp_error( $updated_post_id ) ? $updated_post_id->get_error_message() : 'Unknown error';
+			Debugger::log( 'Error transferring membership: failed to update post author. ' . $error_message );
+			return;
+		}
 
 		$user_membership = wc_memberships_get_user_membership( $existing_membership_id );
 

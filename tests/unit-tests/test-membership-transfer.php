@@ -150,10 +150,15 @@ class TestMembershipTransfer extends WP_UnitTestCase {
 	 * Test that Events::membership_transferred returns null when events are paused.
 	 */
 	public function test_events_listener_paused() {
-		Memberships_Events::$pause_events = true;
-		$result = Memberships_Events::membership_transferred( null, null, null );
-		$this->assertNull( $result );
-		Memberships_Events::$pause_events = false;
+		$previous_pause_events = Memberships_Events::$pause_events;
+
+		try {
+			Memberships_Events::$pause_events = true;
+			$result = Memberships_Events::membership_transferred( null, null, null );
+			$this->assertNull( $result );
+		} finally {
+			Memberships_Events::$pause_events = $previous_pause_events;
+		}
 	}
 
 	/**
