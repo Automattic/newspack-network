@@ -26,10 +26,12 @@ class Integrity_Check_Utils {
 
 		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 		$query = "
-			SELECT 
+			SELECT
 				u.user_email,
 				p.post_status as status,
-				pm_network.meta_value as network_id
+				pm_network.meta_value as network_id,
+				p.post_modified,
+				p.ID as membership_id
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
 			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
@@ -86,9 +88,11 @@ class Integrity_Check_Utils {
 		$membership_data = [];
 		foreach ( $results as $result ) {
 			$membership_data[] = [
-				'email'      => strtolower( $result->user_email ),
-				'status'     => $result->status,
-				'network_id' => $result->network_id,
+				'email'         => strtolower( $result->user_email ),
+				'status'        => $result->status,
+				'network_id'    => $result->network_id,
+				'post_modified' => $result->post_modified,
+				'membership_id' => (int) $result->membership_id,
 			];
 		}
 
