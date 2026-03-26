@@ -50,6 +50,11 @@ class Integrity_Check {
 	 *
 	 * [--fix]
 	 * : Fix discrepancies by dispatching membership update events.
+	 *   Checks node sync status first; if a node has unprocessed events,
+	 *   suggests running sync-all before --fix. Use --force to skip this check.
+	 *
+	 * [--force]
+	 * : Skip the sync lag check and dispatch events even if nodes have unprocessed events.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -57,6 +62,7 @@ class Integrity_Check {
 	 *     wp newspack-network integrity-check --verbose
 	 *     wp newspack-network integrity-check --max=50 --verbose
 	 *     wp newspack-network integrity-check --fix
+	 *     wp newspack-network integrity-check --fix --force
 	 *
 	 * @param array $args The command arguments.
 	 * @param array $assoc_args The command options.
@@ -66,6 +72,7 @@ class Integrity_Check {
 		$verbose     = isset( $assoc_args['verbose'] ) ? true : false;
 		$max_records = isset( $assoc_args['max'] ) ? intval( $assoc_args['max'] ) : null;
 		$fix         = isset( $assoc_args['fix'] );
+		$force       = isset( $assoc_args['force'] );
 
 		if ( $max_records ) {
 			WP_CLI::warning( sprintf( 'Using --max=%d for testing. Do not use --max in production as it may produce false positives.', $max_records ) );
@@ -165,6 +172,32 @@ class Integrity_Check {
 
 		if ( $fix ) {
 			WP_CLI::line( '' );
+
+			// Check if any nodes are behind on sync before creating new events.
+			if ( ! $force ) {
+				$hub_latest_id  = self::get_hub_latest_event_id();
+				$nodes_behind   = [];
+
+				foreach ( $discrepancies as $node ) {
+					$sync_status = self::get_node_sync_status( $node );
+					if ( null !== $sync_status && $sync_status < $hub_latest_id ) {
+						$pending = $hub_latest_id - $sync_status;
+						$nodes_behind[] = sprintf( '  %s: %d unprocessed events (last processed: %d, hub latest: %d)', $node->get_url(), $pending, $sync_status, $hub_latest_id );
+					}
+				}
+
+				if ( ! empty( $nodes_behind ) ) {
+					WP_CLI::warning( 'The following nodes have unprocessed events. Discrepancies may resolve after syncing:' );
+					foreach ( $nodes_behind as $line ) {
+						WP_CLI::line( $line );
+					}
+					WP_CLI::line( '' );
+					WP_CLI::line( 'Run `wp newspack-network sync-all` on these nodes first, then re-run the integrity check.' );
+					WP_CLI::line( 'Use --force to skip this check and dispatch events anyway.' );
+					return;
+				}
+			}
+
 			WP_CLI::line( 'Analyzing discrepancies for reconciliation...' );
 
 			$total_dispatched = 0;
@@ -200,6 +233,20 @@ class Integrity_Check {
 				$action_columns = [ 'email', 'network_id', 'type', 'hub_status', 'node_status', 'action' ];
 				WP_CLI\Utils\format_items( 'table', $classified, $action_columns );
 
+				// Count actionable items for progress.
+				$actionable = array_filter(
+					$classified,
+					function( $item ) {
+						return in_array( $item['action'], [ 'push_to_node', 'push_transfer' ], true );
+					}
+				);
+				$node_total = count( $actionable );
+				$node_done  = 0;
+
+				if ( $node_total > 0 ) {
+					$progress = WP_CLI\Utils\make_progress_bar( sprintf( 'Dispatching %d events', $node_total ), $node_total );
+				}
+
 				// Dispatch events.
 				foreach ( $classified as $item ) {
 					if ( 'push_to_node' === $item['action'] ) {
@@ -208,16 +255,24 @@ class Integrity_Check {
 						if ( $hub_item ) {
 							self::dispatch_to_node( $hub_item );
 							$total_dispatched++;
+							$node_done++;
+							$progress->tick();
 						}
 					} elseif ( 'push_transfer' === $item['action'] ) {
 						$hub_item = $item['hub_data'] ?? null;
 						if ( $hub_item ) {
 							self::dispatch_to_node( $hub_item, $item['previous_email'] );
 							$total_dispatched++;
+							$node_done++;
+							$progress->tick();
 						}
 					} else {
 						$total_skipped++;
 					}
+				}
+
+				if ( $node_total > 0 ) {
+					$progress->finish();
 				}
 			}
 
@@ -801,6 +856,44 @@ class Integrity_Check {
 		}
 
 		return $discrepancies;
+	}
+
+	/**
+	 * Get the latest event log ID from the hub.
+	 *
+	 * @return int The latest event ID, or 0 if the log is empty.
+	 */
+	private static function get_hub_latest_event_id() {
+		$events = \Newspack_Network\Hub\Stores\Event_Log::get( [], 1, 1, 'DESC' );
+		return ! empty( $events ) ? $events[0]->get_id() : 0;
+	}
+
+	/**
+	 * Query a node's last processed event ID via the sync-status endpoint.
+	 *
+	 * @param \Newspack_Network\Hub\Node $node The node to query.
+	 * @return int|null The last processed ID, or null on error.
+	 */
+	private static function get_node_sync_status( $node ) {
+		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/sync-status', $node->get_url() );
+		$endpoint = add_query_arg( [ '_t' => time() ], $endpoint );
+
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
+		$response = wp_remote_get(
+			$endpoint,
+			[
+				'headers' => $node->get_authorization_headers( 'integrity-check' ),
+				'timeout' => 15, // phpcs:ignore WordPressVIPMinimum.Performance.RemoteRequestTimeout.timeout_timeout
+			]
+		);
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			WP_CLI::warning( sprintf( 'Could not check sync status for %s, skipping sync lag check.', $node->get_url() ) );
+			return null;
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		return $data['last_processed_id'] ?? null;
 	}
 
 	/**

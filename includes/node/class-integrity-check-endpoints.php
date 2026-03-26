@@ -28,6 +28,20 @@ class Integrity_Check_Endpoints {
 	public static function register_routes() {
 		register_rest_route(
 			'newspack-network/v1',
+			'/integrity-check/sync-status',
+			[
+				[
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => [ __CLASS__, 'handle_sync_status_request' ],
+					'permission_callback' => function( $request ) {
+						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
+					},
+				],
+			]
+		);
+
+		register_rest_route(
+			'newspack-network/v1',
 			'/integrity-check/hash',
 			[
 				[
@@ -255,6 +269,19 @@ class Integrity_Check_Endpoints {
 				'start'       => $start_email,
 				'end'         => $end_email,
 				'count'       => count( $range_data ),
+			]
+		);
+	}
+
+	/**
+	 * Returns the node's last processed event ID for sync lag detection.
+	 *
+	 * @param \WP_REST_Request $request The REST request object.
+	 */
+	public static function handle_sync_status_request( $request ) {
+		return rest_ensure_response(
+			[
+				'last_processed_id' => (int) Pulling::get_last_processed_id(),
 			]
 		);
 	}
