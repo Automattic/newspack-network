@@ -178,29 +178,36 @@ class Integrity_Check {
 		if ( $fix ) {
 			WP_CLI::line( '' );
 
-			// Check if any nodes are behind on sync before creating new events.
-			if ( ! $force ) {
-				$hub_latest_id  = self::get_hub_latest_event_id();
-				$nodes_behind   = [];
+			// Query sync status and plan availability from all nodes.
+			$node_plan_ids  = []; // Keyed by node URL.
+			$nodes_behind   = [];
 
-				foreach ( $discrepancies as $node ) {
-					$sync_status = self::get_node_sync_status( $node );
-					if ( null !== $sync_status && $sync_status < $hub_latest_id ) {
-						$pending = $hub_latest_id - $sync_status;
-						$nodes_behind[] = sprintf( '  %s: %d unprocessed events (last processed: %d, hub latest: %d)', $node->get_url(), $pending, $sync_status, $hub_latest_id );
+			foreach ( $discrepancies as $node ) {
+				$sync_status = self::get_node_sync_status( $node );
+				if ( null === $sync_status ) {
+					continue;
+				}
+				$node_plan_ids[ $node->get_url() ] = $sync_status['plan_network_ids'];
+
+				if ( ! $force ) {
+					$hub_latest_id = self::get_hub_latest_event_id();
+					$last_id       = $sync_status['last_processed_id'];
+					if ( null !== $last_id && $last_id < $hub_latest_id ) {
+						$pending = $hub_latest_id - $last_id;
+						$nodes_behind[] = sprintf( '  %s: %d unprocessed events (last processed: %d, hub latest: %d)', $node->get_url(), $pending, $last_id, $hub_latest_id );
 					}
 				}
+			}
 
-				if ( ! empty( $nodes_behind ) ) {
-					WP_CLI::warning( 'The following nodes have unprocessed events. Discrepancies may resolve after syncing:' );
-					foreach ( $nodes_behind as $line ) {
-						WP_CLI::line( $line );
-					}
-					WP_CLI::line( '' );
-					WP_CLI::line( 'Run `wp newspack-network sync-all` on these nodes first, then re-run the integrity check.' );
-					WP_CLI::line( 'Use --force to skip this check and dispatch events anyway.' );
-					return;
+			if ( ! $force && ! empty( $nodes_behind ) ) {
+				WP_CLI::warning( 'The following nodes have unprocessed events. Discrepancies may resolve after syncing:' );
+				foreach ( $nodes_behind as $line ) {
+					WP_CLI::line( $line );
 				}
+				WP_CLI::line( '' );
+				WP_CLI::line( 'Run `wp newspack-network sync-all` on these nodes first, then re-run the integrity check.' );
+				WP_CLI::line( 'Use --force to skip this check and dispatch events anyway.' );
+				return;
 			}
 
 			WP_CLI::line( 'Analyzing discrepancies for reconciliation...' );
@@ -237,7 +244,8 @@ class Integrity_Check {
 				}
 
 				// Classify discrepancies.
-				$classified = self::classify_discrepancies( $hub_lookup, $node_data, $node_managed );
+				$available_plans = $node_plan_ids[ $node_url ] ?? [];
+				$classified = self::classify_discrepancies( $hub_lookup, $node_data, $node_managed, $available_plans );
 
 				if ( empty( $classified ) ) {
 					WP_CLI::line( '  No actionable discrepancies.' );
@@ -719,9 +727,10 @@ class Integrity_Check {
 	 * @param array $hub_lookup          Hub memberships keyed by email::network_id.
 	 * @param array $node_memberships    Raw node membership array (email, status, network_id).
 	 * @param array $node_managed_lookup Node managed memberships keyed by email::network_id (includes post_modified).
+	 * @param array $node_plan_ids       Plan network IDs available on the node (empty = no filtering).
 	 * @return array Array of discrepancy records.
 	 */
-	private static function classify_discrepancies( $hub_lookup, $node_memberships, $node_managed_lookup ) {
+	private static function classify_discrepancies( $hub_lookup, $node_memberships, $node_managed_lookup, $node_plan_ids = [] ) {
 		// Build node lookup keyed by email::network_id.
 		$node_lookup = [];
 		foreach ( $node_memberships as $item ) {
@@ -759,13 +768,18 @@ class Integrity_Check {
 
 			if ( null === $node_item ) {
 				// Hub has it, node does not.
+				// Skip if the node doesn't have the plan – can't create the membership.
+				$action = 'push_to_node';
+				if ( ! empty( $node_plan_ids ) && ! in_array( $network_id, $node_plan_ids, true ) ) {
+					$action = 'skip_no_plan';
+				}
 				$discrepancies[] = [
 					'email'       => $email,
 					'network_id'  => $network_id,
 					'type'        => 'missing_on_node',
 					'hub_status'  => $hub_status,
 					'node_status' => '',
-					'action'      => 'push_to_node',
+					'action'      => $action,
 				];
 				continue;
 			}
@@ -940,10 +954,10 @@ class Integrity_Check {
 	}
 
 	/**
-	 * Query a node's last processed event ID via the sync-status endpoint.
+	 * Query a node's sync status and plan availability via the sync-status endpoint.
 	 *
 	 * @param \Newspack_Network\Hub\Node $node The node to query.
-	 * @return int|null The last processed ID, or null on error.
+	 * @return array|null Array with 'last_processed_id' and 'plan_network_ids', or null on error.
 	 */
 	private static function get_node_sync_status( $node ) {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/sync-status', $node->get_url() );
@@ -959,12 +973,15 @@ class Integrity_Check {
 		);
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			WP_CLI::warning( sprintf( 'Could not check sync status for %s, skipping sync lag check.', $node->get_url() ) );
+			WP_CLI::warning( sprintf( 'Could not check sync status for %s.', $node->get_url() ) );
 			return null;
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
-		return $data['last_processed_id'] ?? null;
+		return [
+			'last_processed_id' => $data['last_processed_id'] ?? null,
+			'plan_network_ids'  => $data['plan_network_ids'] ?? [],
+		];
 	}
 
 	/**

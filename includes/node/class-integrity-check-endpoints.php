@@ -275,9 +275,25 @@ class Integrity_Check_Endpoints {
 	 * @param \WP_REST_Request $request The REST request object.
 	 */
 	public static function handle_sync_status_request( $request ) {
+		global $wpdb;
+
+		// Collect plan network IDs available on this node.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$plan_network_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT pm.meta_value FROM {$wpdb->postmeta} pm
+				INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+				WHERE p.post_type = %s AND pm.meta_key = %s
+				AND pm.meta_value IS NOT NULL AND pm.meta_value != ''",
+				\Newspack_Network\Woocommerce_Memberships\Admin::MEMBERSHIP_PLANS_CPT,
+				\Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY
+			)
+		);
+
 		return rest_ensure_response(
 			[
-				'last_processed_id' => (int) Pulling::get_last_processed_id(),
+				'last_processed_id'  => (int) Pulling::get_last_processed_id(),
+				'plan_network_ids'   => $plan_network_ids ?: [],
 			]
 		);
 	}
