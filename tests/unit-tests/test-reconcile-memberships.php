@@ -114,7 +114,8 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 		$this->assertEquals( 'missing_on_hub', $discrepancies[0]['type'] );
 		$this->assertEquals( '', $discrepancies[0]['hub_status'] );
 		$this->assertEquals( 'wcm-cancelled', $discrepancies[0]['node_status'] );
-		$this->assertEquals( 'skip', $discrepancies[0]['action'] );
+		$this->assertEquals( 'pull_to_hub', $discrepancies[0]['action'] );
+		$this->assertArrayHasKey( 'node_data', $discrepancies[0] );
 	}
 
 	/**
@@ -320,7 +321,7 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 		$this->assertEquals( 'push_to_node', $discrepancy_actions_by_email['grace@example.com'] );
 
 		$this->assertEquals( 'missing_on_hub', $discrepancy_types_by_email['henry@example.com'] );
-		$this->assertEquals( 'skip', $discrepancy_actions_by_email['henry@example.com'] );
+		$this->assertEquals( 'pull_to_hub', $discrepancy_actions_by_email['henry@example.com'] );
 
 		$this->assertEquals( 'status_mismatch', $discrepancy_types_by_email['iris@example.com'] );
 		$this->assertEquals( 'push_to_node', $discrepancy_actions_by_email['iris@example.com'] );

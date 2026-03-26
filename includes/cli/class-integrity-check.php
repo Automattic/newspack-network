@@ -252,7 +252,7 @@ class Integrity_Check {
 				$actionable = array_filter(
 					$classified,
 					function( $item ) {
-						return in_array( $item['action'], [ 'push_to_node', 'push_transfer' ], true );
+						return in_array( $item['action'], [ 'push_to_node', 'push_transfer', 'pull_to_hub' ], true );
 					}
 				);
 				$node_total = count( $actionable );
@@ -278,6 +278,14 @@ class Integrity_Check {
 							$hub_item = $item['hub_data'] ?? null;
 							if ( $hub_item ) {
 								self::dispatch_to_node( $hub_item, $item['previous_email'] );
+								$total_dispatched++;
+								$node_done++;
+								$progress->tick();
+							}
+						} elseif ( 'pull_to_hub' === $item['action'] ) {
+							$node_item_data = $item['node_data'] ?? null;
+							if ( $node_item_data && ! empty( $node_item_data['membership_id'] ) ) {
+								self::dispatch_to_hub( $node_item_data, $node_url );
 								$total_dispatched++;
 								$node_done++;
 								$progress->tick();
@@ -702,7 +710,7 @@ class Integrity_Check {
 	 *
 	 * Discrepancy types:
 	 *   - missing_on_node: Hub has the membership but the node does not → push_to_node.
-	 *   - missing_on_hub:  Node has the membership but the hub does not → skip.
+	 *   - missing_on_hub:  Node has the membership but the hub does not → pull_to_hub.
 	 *   - transfer:        Node has it under old email, hub has it under new email → push_transfer.
 	 *   - status_mismatch: Both have it with different statuses.
 	 *       Hub timestamp newer (or node timestamp unavailable) → push_to_node.
@@ -736,14 +744,15 @@ class Integrity_Check {
 			$node_status = $node_item ? $node_item['status'] : '';
 
 			if ( null === $hub_item ) {
-				// Node has it, hub does not.
+				// Node has it, hub does not – pull from node to hub.
 				$discrepancies[] = [
 					'email'       => $email,
 					'network_id'  => $network_id,
 					'type'        => 'missing_on_hub',
 					'hub_status'  => '',
 					'node_status' => $node_status,
-					'action'      => 'skip',
+					'action'      => 'pull_to_hub',
+					'node_data'   => $node_item,
 				];
 				continue;
 			}
@@ -964,6 +973,39 @@ class Integrity_Check {
 		}
 		$dt = \DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $date_string, new \DateTimeZone( 'UTC' ) );
 		return $dt ? $dt->getTimestamp() : false;
+	}
+
+	/**
+	 * Dispatch a membership_updated event from node data to create the membership on the hub.
+	 *
+	 * Used for missing_on_hub discrepancies: the node has a membership that the hub doesn't.
+	 * Creates an event attributed to the node so the hub processes it locally.
+	 *
+	 * @param array  $node_item A node membership record (email, status, network_id, membership_id).
+	 * @param string $node_url  The node's URL (used as the event's originating site).
+	 * @return void
+	 */
+	private static function dispatch_to_hub( $node_item, $node_url ) {
+		$event_data = [
+			'email'           => $node_item['email'],
+			'user_id'         => 0,
+			'plan_network_id' => $node_item['network_id'],
+			'membership_id'   => $node_item['membership_id'] ?? 0,
+			'new_status'      => str_replace( 'wcm-', '', $node_item['status'] ),
+		];
+
+		$timestamp = ! empty( $node_item['post_modified'] ) ? self::parse_gmt_timestamp( $node_item['post_modified'] ) : false;
+		if ( ! $timestamp ) {
+			$timestamp = time();
+		}
+
+		$event = new \Newspack_Network\Incoming_Events\Woocommerce_Membership_Updated(
+			$node_url,
+			$event_data,
+			$timestamp
+		);
+
+		$event->process_in_hub();
 	}
 
 	/**
