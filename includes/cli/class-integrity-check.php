@@ -922,12 +922,20 @@ class Integrity_Check {
 	}
 
 	/**
-	 * Get the latest event log ID from the hub.
+	 * Get the latest pullable event log ID from the hub.
+	 *
+	 * Only considers event types that nodes actually pull (ACTIONS_THAT_NODES_PULL),
+	 * avoiding false positives from non-pullable events like order_changed.
 	 *
 	 * @return int The latest event ID, or 0 if the log is empty.
 	 */
 	private static function get_hub_latest_event_id() {
-		$events = \Newspack_Network\Hub\Stores\Event_Log::get( [], 1, 1, 'DESC' );
+		$events = \Newspack_Network\Hub\Stores\Event_Log::get(
+			[ 'action_name_in' => \Newspack_Network\Accepted_Actions::ACTIONS_THAT_NODES_PULL ],
+			1,
+			1,
+			'DESC'
+		);
 		return ! empty( $events ) ? $events[0]->get_id() : 0;
 	}
 
