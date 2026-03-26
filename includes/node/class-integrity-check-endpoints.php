@@ -292,8 +292,8 @@ class Integrity_Check_Endpoints {
 
 		return rest_ensure_response(
 			[
-				'last_processed_id'  => (int) Pulling::get_last_processed_id(),
-				'plan_network_ids'   => $plan_network_ids ?: [],
+				'last_processed_id' => (int) Pulling::get_last_processed_id(),
+				'plan_network_ids'  => ! empty( $plan_network_ids ) ? $plan_network_ids : [],
 			]
 		);
 	}
