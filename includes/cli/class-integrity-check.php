@@ -218,6 +218,11 @@ class Integrity_Check {
 				// Get managed memberships from node for timestamp comparison.
 				$node_managed = self::get_node_managed_memberships( $node );
 
+				if ( null === $node_managed ) {
+					WP_CLI::warning( sprintf( 'Skipping reconciliation for %s – could not fetch managed memberships.', $node_url ) );
+					continue;
+				}
+
 				// Get full node membership data.
 				$node_data = self::get_node_membership_data( $node );
 
@@ -735,7 +740,7 @@ class Integrity_Check {
 				continue;
 			}
 
-			// Status mismatch: compare timestamps to decide direction.
+			// Status mismatch: compare timestamps (GMT) to decide direction.
 			$hub_modified  = $hub_item['post_modified'] ?? '';
 			$node_modified = '';
 
@@ -743,25 +748,48 @@ class Integrity_Check {
 				$node_modified = $node_managed_lookup[ $key ]['post_modified'] ?? '';
 			}
 
-			// Hub is authoritative when node timestamp is unavailable or hub is newer.
-			if ( empty( $node_modified ) || $hub_modified >= $node_modified ) {
+			// Hub is authoritative when node timestamp is unavailable.
+			if ( empty( $node_modified ) ) {
 				$action = 'push_to_node';
 			} else {
-				// Node has fresher data – log and skip.
-				if ( defined( 'WP_CLI' ) && WP_CLI ) {
-					WP_CLI::warning(
-						sprintf(
-							'Status mismatch for %s (plan %s): hub=%s (%s), node=%s (%s) – node is newer, skipping.',
-							$email,
-							$network_id,
-							$hub_status,
-							$hub_modified,
-							$node_status,
-							$node_modified
-						)
-					);
+				$hub_timestamp  = $hub_modified ? strtotime( $hub_modified ) : false;
+				$node_timestamp = $node_modified ? strtotime( $node_modified ) : false;
+
+				if ( false !== $hub_timestamp && false !== $node_timestamp ) {
+					if ( $hub_timestamp >= $node_timestamp ) {
+						$action = 'push_to_node';
+					} else {
+						// Node has fresher data – log and skip.
+						if ( defined( 'WP_CLI' ) && WP_CLI ) {
+							WP_CLI::warning(
+								sprintf(
+									'Status mismatch for %s (plan %s): hub=%s (%s), node=%s (%s) – node is newer, skipping.',
+									$email,
+									$network_id,
+									$hub_status,
+									$hub_modified,
+									$node_status,
+									$node_modified
+								)
+							);
+						}
+						$action = 'skip';
+					}
+				} else {
+					// Timestamp parse failure – default to hub as authoritative.
+					if ( defined( 'WP_CLI' ) && WP_CLI ) {
+						WP_CLI::warning(
+							sprintf(
+								'Unable to parse timestamps for %s (plan %s): hub=%s, node=%s – defaulting to hub.',
+								$email,
+								$network_id,
+								$hub_modified,
+								$node_modified
+							)
+						);
+					}
+					$action = 'push_to_node';
 				}
-				$action = 'skip';
 			}
 
 			$discrepancies[] = [
@@ -919,10 +947,16 @@ class Integrity_Check {
 			$event_data['previous_email'] = $previous_email;
 		}
 
+		// Use the hub membership's modification time for idempotent dispatch.
+		$timestamp = ! empty( $hub_item['post_modified'] ) ? strtotime( $hub_item['post_modified'] ) : false;
+		if ( ! $timestamp ) {
+			$timestamp = time();
+		}
+
 		$event = new \Newspack_Network\Incoming_Events\Woocommerce_Membership_Updated(
 			get_bloginfo( 'url' ),
 			$event_data,
-			time()
+			$timestamp
 		);
 
 		$event->process_in_hub();

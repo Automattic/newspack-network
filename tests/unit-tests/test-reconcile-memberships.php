@@ -8,7 +8,7 @@
 use Newspack_Network\CLI\Integrity_Check;
 
 /**
- * Test the Reconcile_Memberships::classify_discrepancies method.
+ * Test the Newspack_Network\CLI\Integrity_Check::classify_discrepancies method.
  *
  * @group reconcile
  */

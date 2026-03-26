@@ -177,9 +177,10 @@ class Integrity_Check_Endpoints {
 	}
 
 	/**
-	 * Handles the managed memberships request.
+	 * Returns all network-managed memberships.
 	 *
-	 * Returns all network-managed memberships with their remote_id and remote_site_url.
+	 * Each membership entry includes: email, status, network_id, remote_id,
+	 * remote_site_url, post_modified (GMT), and membership_id.
 	 *
 	 * @param \WP_REST_Request $request The REST request object.
 	 */
@@ -190,7 +191,7 @@ class Integrity_Check_Endpoints {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT p.ID, p.post_status, p.post_modified,
+				"SELECT p.ID, p.post_status, p.post_modified_gmt as post_modified,
 					u.user_email,
 					pm_remote.meta_value as remote_id,
 					pm_site.meta_value as remote_site_url,
@@ -202,9 +203,9 @@ class Integrity_Check_Endpoints {
 				LEFT JOIN {$wpdb->postmeta} pm_site ON p.ID = pm_site.post_id AND pm_site.meta_key = %s
 				LEFT JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
 				WHERE p.post_type = 'wc_user_membership'",
-				'_managed_by_newspack_network',
-				'_remote_id',
-				'_remote_site_url',
+				\Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_MANAGED_META_KEY,
+				\Newspack_Network\Woocommerce_Memberships\Admin::REMOTE_ID_META_KEY,
+				\Newspack_Network\Woocommerce_Memberships\Admin::SITE_URL_META_KEY,
 				\Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY
 			)
 		);

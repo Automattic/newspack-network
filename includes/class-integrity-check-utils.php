@@ -30,7 +30,7 @@ class Integrity_Check_Utils {
 				u.user_email,
 				p.post_status as status,
 				pm_network.meta_value as network_id,
-				p.post_modified,
+				p.post_modified_gmt as post_modified,
 				p.ID as membership_id
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
