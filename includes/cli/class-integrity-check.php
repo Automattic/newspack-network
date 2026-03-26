@@ -52,6 +52,7 @@ class Integrity_Check {
 	 * : Fix discrepancies by dispatching membership update events.
 	 *   Checks node sync status first; if a node has unprocessed events,
 	 *   suggests running sync-all before --fix. Use --force to skip this check.
+	 *   For a dry run, omit --fix: the command will report discrepancies without dispatching.
 	 *
 	 * [--force]
 	 * : Skip the sync lag check and dispatch events even if nodes have unprocessed events.
@@ -97,6 +98,10 @@ class Integrity_Check {
 
 		foreach ( $nodes as $node ) {
 			$node_hash = self::get_node_hash( $node, $max_records );
+
+			if ( null === $node_hash ) {
+				continue; // Warning already logged.
+			}
 
 			if ( $verbose ) {
 				WP_CLI::line( sprintf( 'Node %s hash: %s', $node->get_url(), $node_hash ) );
@@ -226,6 +231,11 @@ class Integrity_Check {
 				// Get full node membership data.
 				$node_data = self::get_node_membership_data( $node );
 
+				if ( null === $node_data ) {
+					WP_CLI::warning( sprintf( 'Skipping reconciliation for %s – could not fetch membership data.', $node_url ) );
+					continue;
+				}
+
 				// Classify discrepancies.
 				$classified = self::classify_discrepancies( $hub_lookup, $node_data, $node_managed );
 
@@ -253,31 +263,33 @@ class Integrity_Check {
 				}
 
 				// Dispatch events.
-				foreach ( $classified as $item ) {
-					if ( 'push_to_node' === $item['action'] ) {
-						$key      = $item['email'] . '::' . $item['network_id'];
-						$hub_item = $hub_lookup[ $key ] ?? null;
-						if ( $hub_item ) {
-							self::dispatch_to_node( $hub_item );
-							$total_dispatched++;
-							$node_done++;
-							$progress->tick();
+				try {
+					foreach ( $classified as $item ) {
+						if ( 'push_to_node' === $item['action'] ) {
+							$key      = $item['email'] . '::' . $item['network_id'];
+							$hub_item = $hub_lookup[ $key ] ?? null;
+							if ( $hub_item ) {
+								self::dispatch_to_node( $hub_item );
+								$total_dispatched++;
+								$node_done++;
+								$progress->tick();
+							}
+						} elseif ( 'push_transfer' === $item['action'] ) {
+							$hub_item = $item['hub_data'] ?? null;
+							if ( $hub_item ) {
+								self::dispatch_to_node( $hub_item, $item['previous_email'] );
+								$total_dispatched++;
+								$node_done++;
+								$progress->tick();
+							}
+						} else {
+							$total_skipped++;
 						}
-					} elseif ( 'push_transfer' === $item['action'] ) {
-						$hub_item = $item['hub_data'] ?? null;
-						if ( $hub_item ) {
-							self::dispatch_to_node( $hub_item, $item['previous_email'] );
-							$total_dispatched++;
-							$node_done++;
-							$progress->tick();
-						}
-					} else {
-						$total_skipped++;
 					}
-				}
-
-				if ( $node_total > 0 ) {
-					$progress->finish();
+				} finally {
+					if ( $node_total > 0 ) {
+						$progress->finish();
+					}
 				}
 			}
 
@@ -306,7 +318,8 @@ class Integrity_Check {
 		);
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			WP_CLI::error( sprintf( 'Failed to get membership data from node: %s', $node->get_url() ) );
+			WP_CLI::warning( sprintf( 'Failed to get membership data from node: %s', $node->get_url() ) );
+			return null;
 		}
 
 		$body = wp_remote_retrieve_body( $response );
@@ -341,7 +354,8 @@ class Integrity_Check {
 		);
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			WP_CLI::error( sprintf( 'Failed to get hash from node: %s', $node->get_url() ) );
+			WP_CLI::warning( sprintf( 'Failed to get hash from node: %s', $node->get_url() ) );
+			return null;
 		}
 
 		$body = wp_remote_retrieve_body( $response );
@@ -385,6 +399,11 @@ class Integrity_Check {
 
 			// Get corresponding chunk hash from node using range.
 			$node_chunk_hash = self::get_node_range_hash( $node, $range['start'], $range['end'], $max_records );
+
+			if ( null === $node_chunk_hash ) {
+				// Treat unreachable chunk as a full mismatch.
+				$node_chunk_hash = '';
+			}
 
 			if ( $verbose ) {
 				WP_CLI::line(
@@ -567,8 +586,8 @@ class Integrity_Check {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/%s', $node->get_url(), $endpoint_type );
 
 		$query_args = [
-			'start' => strtolower( $start_email ),
-			'end'   => strtolower( $end_email ),
+			'start' => rawurlencode( strtolower( $start_email ) ),
+			'end'   => rawurlencode( strtolower( $end_email ) ),
 			'_t'    => time(), // Cache-busting parameter.
 		];
 
@@ -587,7 +606,8 @@ class Integrity_Check {
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			$error_type = str_replace( '-', ' ', $endpoint_type );
-			WP_CLI::error( sprintf( 'Failed to get %s from node: %s', $error_type, $node->get_url() ) );
+			WP_CLI::warning( sprintf( 'Failed to get %s from node: %s', $error_type, $node->get_url() ) );
+			return null;
 		}
 
 		$body = wp_remote_retrieve_body( $response );
@@ -605,6 +625,9 @@ class Integrity_Check {
 	 */
 	private static function get_node_range_hash( $node, $start_email, $end_email, $max_records = null ) {
 		$data = self::get_node_range_request( $node, 'range-hash', $start_email, $end_email, $max_records );
+		if ( null === $data ) {
+			return null;
+		}
 		return $data['hash'] ?? '';
 	}
 
@@ -619,6 +642,9 @@ class Integrity_Check {
 	 */
 	private static function get_node_range_data( $node, $start_email, $end_email, $max_records = null ) {
 		$data = self::get_node_range_request( $node, 'range-data', $start_email, $end_email, $max_records );
+		if ( null === $data ) {
+			return [];
+		}
 		return $data['memberships'] ?? [];
 	}
 	/**
@@ -752,8 +778,8 @@ class Integrity_Check {
 			if ( empty( $node_modified ) ) {
 				$action = 'push_to_node';
 			} else {
-				$hub_timestamp  = $hub_modified ? strtotime( $hub_modified ) : false;
-				$node_timestamp = $node_modified ? strtotime( $node_modified ) : false;
+				$hub_timestamp  = self::parse_gmt_timestamp( $hub_modified );
+				$node_timestamp = self::parse_gmt_timestamp( $node_modified );
 
 				if ( false !== $hub_timestamp && false !== $node_timestamp ) {
 					if ( $hub_timestamp >= $node_timestamp ) {
@@ -925,6 +951,22 @@ class Integrity_Check {
 	}
 
 	/**
+	 * Parse a GMT timestamp string into a Unix timestamp.
+	 *
+	 * Uses explicit UTC timezone to avoid dependence on the server's default timezone.
+	 *
+	 * @param string $date_string A date string in 'Y-m-d H:i:s' format (GMT).
+	 * @return int|false Unix timestamp, or false on parse failure.
+	 */
+	private static function parse_gmt_timestamp( $date_string ) {
+		if ( empty( $date_string ) ) {
+			return false;
+		}
+		$dt = \DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $date_string, new \DateTimeZone( 'UTC' ) );
+		return $dt ? $dt->getTimestamp() : false;
+	}
+
+	/**
 	 * Dispatch a membership_updated event for the given hub membership item.
 	 *
 	 * Creates an event and persists it to the hub's event log. Nodes will pull
@@ -948,7 +990,7 @@ class Integrity_Check {
 		}
 
 		// Use the hub membership's modification time for idempotent dispatch.
-		$timestamp = ! empty( $hub_item['post_modified'] ) ? strtotime( $hub_item['post_modified'] ) : false;
+		$timestamp = ! empty( $hub_item['post_modified'] ) ? self::parse_gmt_timestamp( $hub_item['post_modified'] ) : false;
 		if ( ! $timestamp ) {
 			$timestamp = time();
 		}

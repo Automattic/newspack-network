@@ -36,20 +36,22 @@ class Integrity_Check_Utils {
 			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
 			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
 			INNER JOIN (
-				SELECT 
+				SELECT
 					p2.post_author,
 					pm2.meta_value,
-					MAX(p2.post_date) as max_date
+					MAX(p2.post_modified_gmt) as max_modified
 				FROM {$wpdb->posts} p2
 				INNER JOIN {$wpdb->postmeta} pm2 ON p2.post_parent = pm2.post_id AND pm2.meta_key = %s
 				WHERE p2.post_type = 'wc_user_membership'
+				AND p2.post_status != 'trash'
 				AND pm2.meta_value IS NOT NULL
 				AND pm2.meta_value != ''
 				GROUP BY p2.post_author, pm2.meta_value
-			) latest ON p.post_author = latest.post_author 
-				AND pm_network.meta_value = latest.meta_value 
-				AND p.post_date = latest.max_date
+			) latest ON p.post_author = latest.post_author
+				AND pm_network.meta_value = latest.meta_value
+				AND p.post_modified_gmt = latest.max_modified
 			WHERE p.post_type = 'wc_user_membership'
+			AND p.post_status != 'trash'
 			AND pm_network.meta_value IS NOT NULL
 			AND pm_network.meta_value != ''";
 

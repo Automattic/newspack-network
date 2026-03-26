@@ -33,9 +33,7 @@ class Integrity_Check_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_sync_status_request' ],
-					'permission_callback' => function( $request ) {
-						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
-					},
+					'permission_callback' => [ __CLASS__, 'check_permission' ],
 				],
 			]
 		);
@@ -47,9 +45,7 @@ class Integrity_Check_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_hash_request' ],
-					'permission_callback' => function( $request ) {
-						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
-					},
+					'permission_callback' => [ __CLASS__, 'check_permission' ],
 				],
 			]
 		);
@@ -61,9 +57,7 @@ class Integrity_Check_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_memberships_request' ],
-					'permission_callback' => function( $request ) {
-						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
-					},
+					'permission_callback' => [ __CLASS__, 'check_permission' ],
 				],
 			]
 		);
@@ -75,9 +69,7 @@ class Integrity_Check_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_managed_memberships_request' ],
-					'permission_callback' => function( $request ) {
-						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
-					},
+					'permission_callback' => [ __CLASS__, 'check_permission' ],
 				],
 			]
 		);
@@ -89,21 +81,22 @@ class Integrity_Check_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_range_hash_request' ],
-					'permission_callback' => function( $request ) {
-						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
-					},
+					'permission_callback' => [ __CLASS__, 'check_permission' ],
 					'args'                => [
 						'start' => [
-							'required' => true,
-							'type'     => 'string',
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
 						],
 						'end'   => [
-							'required' => true,
-							'type'     => 'string',
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
 						],
 						'max'   => [
-							'required' => false,
-							'type'     => 'integer',
+							'required'          => false,
+							'type'              => 'integer',
+							'sanitize_callback' => 'absint',
 						],
 					],
 				],
@@ -117,21 +110,22 @@ class Integrity_Check_Endpoints {
 				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ __CLASS__, 'handle_range_data_request' ],
-					'permission_callback' => function( $request ) {
-						return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
-					},
+					'permission_callback' => [ __CLASS__, 'check_permission' ],
 					'args'                => [
 						'start' => [
-							'required' => true,
-							'type'     => 'string',
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
 						],
 						'end'   => [
-							'required' => true,
-							'type'     => 'string',
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
 						],
 						'max'   => [
-							'required' => false,
-							'type'     => 'integer',
+							'required'          => false,
+							'type'              => 'integer',
+							'sanitize_callback' => 'absint',
 						],
 					],
 				],
@@ -202,7 +196,8 @@ class Integrity_Check_Endpoints {
 				LEFT JOIN {$wpdb->postmeta} pm_remote ON p.ID = pm_remote.post_id AND pm_remote.meta_key = %s
 				LEFT JOIN {$wpdb->postmeta} pm_site ON p.ID = pm_site.post_id AND pm_site.meta_key = %s
 				LEFT JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
-				WHERE p.post_type = 'wc_user_membership'",
+				WHERE p.post_type = 'wc_user_membership'
+				AND p.post_status != 'trash'",
 				\Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_MANAGED_META_KEY,
 				\Newspack_Network\Woocommerce_Memberships\Admin::REMOTE_ID_META_KEY,
 				\Newspack_Network\Woocommerce_Memberships\Admin::SITE_URL_META_KEY,
@@ -285,5 +280,15 @@ class Integrity_Check_Endpoints {
 				'last_processed_id' => (int) Pulling::get_last_processed_id(),
 			]
 		);
+	}
+
+	/**
+	 * Permission callback for all integrity check endpoints.
+	 *
+	 * @param \WP_REST_Request $request The REST request object.
+	 * @return bool
+	 */
+	public static function check_permission( $request ) {
+		return \Newspack_Network\Rest_Authenticaton::verify_signature( $request, 'integrity-check', Settings::get_secret_key() );
 	}
 }
