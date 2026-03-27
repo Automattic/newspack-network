@@ -89,9 +89,9 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 
 	/**
 	 * When the node has a membership the hub doesn't, it is classified as
-	 * missing_on_hub with action skip.
+	 * missing_on_hub with action pull_to_hub.
 	 */
-	public function test_missing_on_hub_results_in_skip_action() {
+	public function test_missing_on_hub_results_in_pull_to_hub_action() {
 		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
 
 		$hub_lookup = [];

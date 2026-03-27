@@ -264,7 +264,6 @@ class Integrity_Check {
 					}
 				);
 				$node_total = count( $actionable );
-				$node_done  = 0;
 
 				if ( $node_total > 0 ) {
 					$progress = WP_CLI\Utils\make_progress_bar( sprintf( 'Dispatching %d events', $node_total ), $node_total );
@@ -279,7 +278,6 @@ class Integrity_Check {
 							if ( $hub_item ) {
 								self::dispatch_to_node( $hub_item );
 								$total_dispatched++;
-								$node_done++;
 								$progress->tick();
 							}
 						} elseif ( 'push_transfer' === $item['action'] ) {
@@ -287,7 +285,6 @@ class Integrity_Check {
 							if ( $hub_item ) {
 								self::dispatch_to_node( $hub_item, $item['previous_email'] );
 								$total_dispatched++;
-								$node_done++;
 								$progress->tick();
 							}
 						} elseif ( 'pull_to_hub' === $item['action'] ) {
@@ -295,7 +292,6 @@ class Integrity_Check {
 							if ( $node_item_data && ! empty( $node_item_data['membership_id'] ) ) {
 								self::dispatch_to_hub( $node_item_data, $node_url );
 								$total_dispatched++;
-								$node_done++;
 								$progress->tick();
 							}
 						} else {
@@ -602,8 +598,8 @@ class Integrity_Check {
 		$endpoint = sprintf( '%s/wp-json/newspack-network/v1/integrity-check/%s', $node->get_url(), $endpoint_type );
 
 		$query_args = [
-			'start' => rawurlencode( strtolower( $start_email ) ),
-			'end'   => rawurlencode( strtolower( $end_email ) ),
+			'start' => strtolower( $start_email ),
+			'end'   => strtolower( $end_email ),
 			'_t'    => time(), // Cache-busting parameter.
 		];
 
