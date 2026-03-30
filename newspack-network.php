@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Newspack Network
  * Description: The Newspack Network plugin.
- * Version: 2.18.4
+ * Version: 2.19.0
  * Author: Automattic
  * Author URI: https://newspack.com/
  * License: GPL3
