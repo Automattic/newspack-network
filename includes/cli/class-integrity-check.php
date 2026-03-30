@@ -717,8 +717,8 @@ class Integrity_Check {
 	 *   - missing_on_hub:  Node has the membership but the hub does not → pull_to_hub.
 	 *   - transfer:        Node has it under old email, hub has it under new email → push_transfer.
 	 *   - status_mismatch: Both have it with different statuses.
-	 *       Hub timestamp newer (or node timestamp unavailable) → push_to_node.
-	 *       Node timestamp newer → skip.
+	 *       Side with a subscription attached is authoritative.
+	 *       If neither has a subscription, hub wins by default.
 	 *
 	 * @param array $hub_lookup          Hub memberships keyed by email::network_id.
 	 * @param array $node_memberships    Raw node membership array (email, status, network_id).
@@ -785,59 +785,22 @@ class Integrity_Check {
 				continue;
 			}
 
-			// Status mismatch: compare timestamps (GMT) to decide direction.
-			$hub_modified  = $hub_item['post_modified'] ?? '';
-			$node_modified = '';
+			// Status mismatch: the side with a subscription attached is authoritative.
+			// A subscription (any status) is the source of truth for membership status.
+			$hub_has_sub  = ! empty( $hub_item['has_subscription'] );
+			$node_has_sub = ! empty( $node_item['has_subscription'] );
 
-			if ( isset( $node_managed_lookup[ $key ] ) ) {
-				$node_modified = $node_managed_lookup[ $key ]['post_modified'] ?? '';
-			}
-
-			// Hub is authoritative when node timestamp is unavailable.
-			if ( empty( $node_modified ) ) {
+			if ( $hub_has_sub && ! $node_has_sub ) {
 				$action = 'push_to_node';
+			} elseif ( ! $hub_has_sub && $node_has_sub ) {
+				// Node has a subscription, hub does not – node is authoritative.
+				$action = 'pull_to_hub';
 			} else {
-				$hub_timestamp  = self::parse_gmt_timestamp( $hub_modified );
-				$node_timestamp = self::parse_gmt_timestamp( $node_modified );
-
-				if ( false !== $hub_timestamp && false !== $node_timestamp ) {
-					if ( $hub_timestamp >= $node_timestamp ) {
-						$action = 'push_to_node';
-					} else {
-						// Node has fresher data – log and skip.
-						if ( defined( 'WP_CLI' ) && WP_CLI ) {
-							WP_CLI::warning(
-								sprintf(
-									'Status mismatch for %s (plan %s): hub=%s (%s), node=%s (%s) – node is newer, skipping.',
-									$email,
-									$network_id,
-									$hub_status,
-									$hub_modified,
-									$node_status,
-									$node_modified
-								)
-							);
-						}
-						$action = 'skip';
-					}
-				} else {
-					// Timestamp parse failure – default to hub as authoritative.
-					if ( defined( 'WP_CLI' ) && WP_CLI ) {
-						WP_CLI::warning(
-							sprintf(
-								'Unable to parse timestamps for %s (plan %s): hub=%s, node=%s – defaulting to hub.',
-								$email,
-								$network_id,
-								$hub_modified,
-								$node_modified
-							)
-						);
-					}
-					$action = 'push_to_node';
-				}
+				// Both or neither have a subscription – default to hub.
+				$action = 'push_to_node';
 			}
 
-			$discrepancies[] = [
+			$discrepancy = [
 				'email'       => $email,
 				'network_id'  => $network_id,
 				'type'        => 'status_mismatch',
@@ -845,6 +808,10 @@ class Integrity_Check {
 				'node_status' => $node_status,
 				'action'      => $action,
 			];
+			if ( 'pull_to_hub' === $action ) {
+				$discrepancy['node_data'] = $node_item;
+			}
+			$discrepancies[] = $discrepancy;
 		}
 
 		// Detect transfers: a missing_on_hub + missing_on_node pair for the same network_id

@@ -31,10 +31,12 @@ class Integrity_Check_Utils {
 				p.post_status as status,
 				pm_network.meta_value as network_id,
 				p.post_modified_gmt as post_modified,
-				p.ID as membership_id
+				p.ID as membership_id,
+				CASE WHEN pm_sub.meta_value IS NOT NULL AND pm_sub.meta_value != '' THEN 1 ELSE 0 END as has_subscription
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
 			INNER JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
+			LEFT JOIN {$wpdb->postmeta} pm_sub ON p.ID = pm_sub.post_id AND pm_sub.meta_key = '_subscription_id'
 			INNER JOIN (
 				SELECT
 					p2.post_author,
@@ -90,11 +92,12 @@ class Integrity_Check_Utils {
 		$membership_data = [];
 		foreach ( $results as $result ) {
 			$membership_data[] = [
-				'email'         => strtolower( $result->user_email ),
-				'status'        => $result->status,
-				'network_id'    => $result->network_id,
-				'post_modified' => $result->post_modified,
-				'membership_id' => (int) $result->membership_id,
+				'email'            => strtolower( $result->user_email ),
+				'status'           => $result->status,
+				'network_id'       => $result->network_id,
+				'post_modified'    => $result->post_modified,
+				'membership_id'    => (int) $result->membership_id,
+				'has_subscription' => (bool) ( $result->has_subscription ?? false ),
 			];
 		}
 

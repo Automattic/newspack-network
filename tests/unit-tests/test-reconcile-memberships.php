@@ -119,40 +119,32 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 	}
 
 	/**
-	 * When there is a status mismatch and the hub's post_modified is later than
-	 * the node's, the hub is authoritative and the action is push_to_node.
+	 * Status mismatch where hub has a subscription: hub is authoritative, push to node.
 	 */
-	public function test_status_mismatch_hub_newer_results_in_push_to_node() {
+	public function test_status_mismatch_hub_has_subscription_results_in_push_to_node() {
 		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
 
 		$hub_lookup = [
 			'dan@example.com::plan-d' => [
-				'email'         => 'dan@example.com',
-				'status'        => 'wcm-active',
-				'network_id'    => 'plan-d',
-				'post_modified' => '2024-06-20 09:00:00',
-				'membership_id' => 303,
+				'email'            => 'dan@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-d',
+				'post_modified'    => '2024-06-20 09:00:00',
+				'membership_id'    => 303,
+				'has_subscription' => true,
 			],
 		];
 
 		$node_memberships = [
 			[
-				'email'      => 'dan@example.com',
-				'status'     => 'wcm-cancelled',
-				'network_id' => 'plan-d',
+				'email'            => 'dan@example.com',
+				'status'           => 'wcm-cancelled',
+				'network_id'       => 'plan-d',
+				'has_subscription' => false,
 			],
 		];
 
-		// Node managed lookup has an older timestamp than the hub.
-		$node_managed_lookup = [
-			'dan@example.com::plan-d' => [
-				'email'         => 'dan@example.com',
-				'status'        => 'wcm-cancelled',
-				'network_id'    => 'plan-d',
-				'post_modified' => '2024-06-10 08:00:00',
-				'remote_id'     => 303,
-			],
-		];
+		$node_managed_lookup = [];
 
 		$discrepancies = $classify_discrepancies_method->invoke( null, $hub_lookup, $node_memberships, $node_managed_lookup );
 
@@ -164,75 +156,68 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 	}
 
 	/**
-	 * When there is a status mismatch and the node's post_modified is later than
-	 * the hub's, the node is treated as having fresher data and the action is skip.
+	 * Status mismatch where node has a subscription but hub does not:
+	 * node is authoritative, pull to hub.
 	 */
-	public function test_status_mismatch_node_newer_results_in_skip() {
+	public function test_status_mismatch_node_has_subscription_results_in_pull_to_hub() {
 		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
 
 		$hub_lookup = [
 			'eve@example.com::plan-e' => [
-				'email'         => 'eve@example.com',
-				'status'        => 'wcm-cancelled',
-				'network_id'    => 'plan-e',
-				'post_modified' => '2024-03-01 07:00:00',
-				'membership_id' => 404,
+				'email'            => 'eve@example.com',
+				'status'           => 'wcm-expired',
+				'network_id'       => 'plan-e',
+				'post_modified'    => '2024-03-01 07:00:00',
+				'membership_id'    => 404,
+				'has_subscription' => false,
 			],
 		];
 
 		$node_memberships = [
 			[
-				'email'      => 'eve@example.com',
-				'status'     => 'wcm-active',
-				'network_id' => 'plan-e',
+				'email'            => 'eve@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-e',
+				'has_subscription' => true,
 			],
 		];
 
-		// Node managed lookup has a newer timestamp than the hub.
-		$node_managed_lookup = [
-			'eve@example.com::plan-e' => [
-				'email'         => 'eve@example.com',
-				'status'        => 'wcm-active',
-				'network_id'    => 'plan-e',
-				'post_modified' => '2024-03-15 14:00:00',
-				'remote_id'     => 404,
-			],
-		];
+		$node_managed_lookup = [];
 
 		$discrepancies = $classify_discrepancies_method->invoke( null, $hub_lookup, $node_memberships, $node_managed_lookup );
 
 		$this->assertCount( 1, $discrepancies );
 		$this->assertEquals( 'status_mismatch', $discrepancies[0]['type'] );
-		$this->assertEquals( 'skip', $discrepancies[0]['action'] );
+		$this->assertEquals( 'pull_to_hub', $discrepancies[0]['action'] );
+		$this->assertArrayHasKey( 'node_data', $discrepancies[0] );
 	}
 
 	/**
-	 * When there is a status mismatch but the membership is absent from the node
-	 * managed lookup, the hub is treated as authoritative and action is push_to_node.
+	 * Status mismatch where neither side has a subscription: hub wins by default.
 	 */
-	public function test_status_mismatch_no_node_timestamp_defaults_to_hub_authoritative() {
+	public function test_status_mismatch_no_subscriptions_defaults_to_hub() {
 		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
 
 		$hub_lookup = [
 			'frank@example.com::plan-f' => [
-				'email'         => 'frank@example.com',
-				'status'        => 'wcm-active',
-				'network_id'    => 'plan-f',
-				'post_modified' => '2024-04-05 11:00:00',
-				'membership_id' => 505,
+				'email'            => 'frank@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-f',
+				'post_modified'    => '2024-04-05 11:00:00',
+				'membership_id'    => 505,
+				'has_subscription' => false,
 			],
 		];
 
 		$node_memberships = [
 			[
-				'email'      => 'frank@example.com',
-				'status'     => 'wcm-paused',
-				'network_id' => 'plan-f',
+				'email'            => 'frank@example.com',
+				'status'           => 'wcm-paused',
+				'network_id'       => 'plan-f',
+				'has_subscription' => false,
 			],
 		];
 
-		// Node has the membership but it is not in the managed lookup, so no
-		// timestamp is available for comparison.
 		$node_managed_lookup = [];
 
 		$discrepancies = $classify_discrepancies_method->invoke( null, $hub_lookup, $node_memberships, $node_managed_lookup );
@@ -251,60 +236,58 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
 
 		// Grace is on hub only → missing_on_node / push_to_node.
-		// Henry is on node only → missing_on_hub / skip.
-		// Iris has a status mismatch with hub newer → status_mismatch / push_to_node.
+		// Henry is on node only → missing_on_hub / pull_to_hub.
+		// Iris has a status mismatch, hub has subscription → status_mismatch / push_to_node.
 		// Jane matches → no discrepancy.
 		$hub_lookup = [
 			'grace@example.com::plan-g' => [
-				'email'         => 'grace@example.com',
-				'status'        => 'wcm-active',
-				'network_id'    => 'plan-g',
-				'post_modified' => '2024-05-01 10:00:00',
-				'membership_id' => 601,
+				'email'            => 'grace@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-g',
+				'post_modified'    => '2024-05-01 10:00:00',
+				'membership_id'    => 601,
+				'has_subscription' => true,
 			],
 			'iris@example.com::plan-i'  => [
-				'email'         => 'iris@example.com',
-				'status'        => 'wcm-active',
-				'network_id'    => 'plan-i',
-				'post_modified' => '2024-05-10 10:00:00',
-				'membership_id' => 603,
+				'email'            => 'iris@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-i',
+				'post_modified'    => '2024-05-10 10:00:00',
+				'membership_id'    => 603,
+				'has_subscription' => true,
 			],
 			'jane@example.com::plan-j'  => [
-				'email'         => 'jane@example.com',
-				'status'        => 'wcm-active',
-				'network_id'    => 'plan-j',
-				'post_modified' => '2024-05-12 10:00:00',
-				'membership_id' => 604,
+				'email'            => 'jane@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-j',
+				'post_modified'    => '2024-05-12 10:00:00',
+				'membership_id'    => 604,
+				'has_subscription' => true,
 			],
 		];
 
 		$node_memberships = [
 			[
-				'email'      => 'henry@example.com',
-				'status'     => 'wcm-cancelled',
-				'network_id' => 'plan-h',
+				'email'            => 'henry@example.com',
+				'status'           => 'wcm-cancelled',
+				'network_id'       => 'plan-h',
+				'has_subscription' => false,
 			],
 			[
-				'email'      => 'iris@example.com',
-				'status'     => 'wcm-cancelled',
-				'network_id' => 'plan-i',
+				'email'            => 'iris@example.com',
+				'status'           => 'wcm-cancelled',
+				'network_id'       => 'plan-i',
+				'has_subscription' => false,
 			],
 			[
-				'email'      => 'jane@example.com',
-				'status'     => 'wcm-active',
-				'network_id' => 'plan-j',
+				'email'            => 'jane@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-j',
+				'has_subscription' => false,
 			],
 		];
 
-		$node_managed_lookup = [
-			'iris@example.com::plan-i' => [
-				'email'         => 'iris@example.com',
-				'status'        => 'wcm-cancelled',
-				'network_id'    => 'plan-i',
-				'post_modified' => '2024-05-08 08:00:00',
-				'remote_id'     => 603,
-			],
-		];
+		$node_managed_lookup = [];
 
 		$discrepancies = $classify_discrepancies_method->invoke( null, $hub_lookup, $node_memberships, $node_managed_lookup );
 
