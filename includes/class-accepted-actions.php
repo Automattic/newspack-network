@@ -45,6 +45,7 @@ class Accepted_Actions {
 		'network_incoming_post_deleted'            => 'Network_Incoming_Post_Deleted',
 		'newspack_network_distributor_migrate_incoming_posts' => 'Distributor_Migrate_Incoming_Posts',
 		'network_hub_name_updated'                 => 'Hub_Name_Updated',
+		'newspack_network_product_updated'         => 'Product_Updated',
 	];
 
 	/**
@@ -71,5 +72,6 @@ class Accepted_Actions {
 		'network_incoming_post_deleted',
 		'newspack_network_distributor_migrate_incoming_posts',
 		'network_hub_name_updated',
+		'newspack_network_product_updated',
 	];
 }
