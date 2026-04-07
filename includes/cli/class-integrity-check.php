@@ -175,6 +175,62 @@ class Integrity_Check {
 			WP_CLI\Utils\format_items( 'table', $table_data, $node_columns );
 		}
 
+		// Circular link detection: managed memberships that have a local subscription
+		// are incorrectly marked as managed – they should be the source.
+		$circular_links = [];
+
+		// Check hub.
+		$hub_circulars = self::get_local_circular_links();
+		if ( ! empty( $hub_circulars ) ) {
+			$circular_links[ get_option( 'siteurl' ) ] = $hub_circulars;
+		}
+
+		// Check nodes.
+		foreach ( $nodes as $node ) {
+			$node_managed = self::get_node_managed_memberships( $node );
+			if ( null === $node_managed ) {
+				continue;
+			}
+			$node_circulars = [];
+			foreach ( $node_managed as $item ) {
+				if ( ! empty( $item['has_subscription'] ) ) {
+					$node_circulars[] = $item;
+				}
+			}
+			if ( ! empty( $node_circulars ) ) {
+				$circular_links[ $node->get_url() ] = $node_circulars;
+			}
+		}
+
+		if ( ! empty( $circular_links ) ) {
+			WP_CLI::line( '' );
+			$total_circular = array_sum( array_map( 'count', $circular_links ) );
+			WP_CLI::warning( sprintf( 'Found %d circular links (managed memberships with local subscriptions):', $total_circular ) );
+			foreach ( $circular_links as $site_url => $items ) {
+				WP_CLI::line( sprintf( '  %s: %d', $site_url, count( $items ) ) );
+				if ( $verbose ) {
+					foreach ( array_slice( $items, 0, 5 ) as $item ) {
+						WP_CLI::line(
+							sprintf(
+								'    %s (%s) #%d – has subscription but marked as managed, pointing to %s #%d',
+								$item['email'],
+								$item['network_id'],
+								$item['membership_id'],
+								$item['remote_site_url'] ?? '?',
+								$item['remote_id'] ?? 0
+							) 
+						);
+					}
+					if ( count( $items ) > 5 ) {
+						WP_CLI::line( sprintf( '    ... and %d more', count( $items ) - 5 ) );
+					}
+				}
+			}
+			WP_CLI::line( '' );
+			WP_CLI::line( 'These memberships are sources (they have a local subscription) but are incorrectly marked as network-managed.' );
+			WP_CLI::line( 'To fix: remove _managed_by_newspack_network, _remote_id, and _remote_site_url meta from these memberships.' );
+		}
+
 		if ( $fix ) {
 			WP_CLI::line( '' );
 
@@ -902,6 +958,60 @@ class Integrity_Check {
 	 * Get the latest pullable event log ID from the hub.
 	 *
 	 * Only considers event types that nodes actually pull (ACTIONS_THAT_NODES_PULL),
+	 * Find managed memberships on the local site that have a subscription.
+	 * These are circular links: the membership is the source but incorrectly marked as managed.
+	 *
+	 * @return array Array of membership data with circular link issues.
+	 */
+	private static function get_local_circular_links() {
+		global $wpdb;
+
+		$managed_key   = \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_MANAGED_META_KEY;
+		$remote_id_key = \Newspack_Network\Woocommerce_Memberships\Admin::REMOTE_ID_META_KEY;
+		$site_url_key  = \Newspack_Network\Woocommerce_Memberships\Admin::SITE_URL_META_KEY;
+		$network_key   = \Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_ID_META_KEY;
+
+		// phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT p.ID as membership_id, LOWER(u.user_email) as email,
+					pm_network.meta_value as network_id,
+					pm_remote.meta_value as remote_id,
+					pm_site.meta_value as remote_site_url
+				FROM {$wpdb->posts} p
+				INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
+				INNER JOIN {$wpdb->postmeta} pm_managed ON p.ID = pm_managed.post_id AND pm_managed.meta_key = %s
+				INNER JOIN {$wpdb->postmeta} pm_sub ON p.ID = pm_sub.post_id AND pm_sub.meta_key = '_subscription_id' AND pm_sub.meta_value != ''
+				LEFT JOIN {$wpdb->postmeta} pm_remote ON p.ID = pm_remote.post_id AND pm_remote.meta_key = %s
+				LEFT JOIN {$wpdb->postmeta} pm_site ON p.ID = pm_site.post_id AND pm_site.meta_key = %s
+				LEFT JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
+				WHERE p.post_type = 'wc_user_membership' AND p.post_status != 'trash'",
+				$managed_key,
+				$remote_id_key,
+				$site_url_key,
+				$network_key
+			)
+		);
+		// phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+
+		$circulars = [];
+		foreach ( $results as $row ) {
+			$circulars[] = [
+				'email'            => $row->email,
+				'network_id'       => $row->network_id ?? '',
+				'membership_id'    => (int) $row->membership_id,
+				'remote_id'        => (int) $row->remote_id,
+				'remote_site_url'  => $row->remote_site_url ?? '',
+				'has_subscription' => true,
+			];
+		}
+
+		return $circulars;
+	}
+
+	/**
+	 * Get the latest pullable event ID from the hub event log,
 	 * avoiding false positives from non-pullable events like order_changed.
 	 *
 	 * @return int The latest event ID, or 0 if the log is empty.

@@ -189,13 +189,15 @@ class Integrity_Check_Endpoints {
 					u.user_email,
 					pm_remote.meta_value as remote_id,
 					pm_site.meta_value as remote_site_url,
-					pm_network.meta_value as network_id
+					pm_network.meta_value as network_id,
+					CASE WHEN pm_sub.meta_value IS NOT NULL AND pm_sub.meta_value != '' THEN 1 ELSE 0 END as has_subscription
 				FROM {$wpdb->posts} p
 				INNER JOIN {$wpdb->users} u ON p.post_author = u.ID
 				INNER JOIN {$wpdb->postmeta} pm_managed ON p.ID = pm_managed.post_id AND pm_managed.meta_key = %s
 				LEFT JOIN {$wpdb->postmeta} pm_remote ON p.ID = pm_remote.post_id AND pm_remote.meta_key = %s
 				LEFT JOIN {$wpdb->postmeta} pm_site ON p.ID = pm_site.post_id AND pm_site.meta_key = %s
 				LEFT JOIN {$wpdb->postmeta} pm_network ON p.post_parent = pm_network.post_id AND pm_network.meta_key = %s
+				LEFT JOIN {$wpdb->postmeta} pm_sub ON p.ID = pm_sub.post_id AND pm_sub.meta_key = '_subscription_id'
 				WHERE p.post_type = 'wc_user_membership'
 				AND p.post_status != 'trash'",
 				\Newspack_Network\Woocommerce_Memberships\Admin::NETWORK_MANAGED_META_KEY,
@@ -208,13 +210,14 @@ class Integrity_Check_Endpoints {
 		$memberships = [];
 		foreach ( $results as $row ) {
 			$memberships[] = [
-				'email'           => strtolower( $row->user_email ),
-				'status'          => $row->post_status,
-				'network_id'      => $row->network_id ?? '',
-				'remote_id'       => (int) $row->remote_id,
-				'remote_site_url' => $row->remote_site_url ?? '',
-				'post_modified'   => $row->post_modified,
-				'membership_id'   => (int) $row->ID,
+				'email'            => strtolower( $row->user_email ),
+				'status'           => $row->post_status,
+				'network_id'       => $row->network_id ?? '',
+				'remote_id'        => (int) $row->remote_id,
+				'remote_site_url'  => $row->remote_site_url ?? '',
+				'post_modified'    => $row->post_modified,
+				'membership_id'    => (int) $row->ID,
+				'has_subscription' => (bool) $row->has_subscription,
 			];
 		}
 
