@@ -79,7 +79,13 @@ class Events {
 			return;
 		}
 		$user_email = $user->user_email;
-		$plan_id    = $user_membership->get_plan()->get_id();
+
+		// Plan post may have been deleted; skip rather than fatal on ->get_id().
+		$plan = $user_membership->get_plan();
+		if ( ! $plan ) {
+			return;
+		}
+		$plan_id = $plan->get_id();
 
 		$plan_network_id = get_post_meta( $plan_id, Admin::NETWORK_ID_META_KEY, true );
 		if ( ! $plan_network_id ) {
@@ -112,7 +118,13 @@ class Events {
 			return;
 		}
 		$user_email = $user->user_email;
-		$plan_id    = $user_membership->get_plan()->get_id();
+
+		// Plan post may have been deleted; skip rather than fatal on ->get_id().
+		$plan = $user_membership->get_plan();
+		if ( ! $plan ) {
+			return;
+		}
+		$plan_id = $plan->get_id();
 
 		$plan_network_id = get_post_meta( $plan_id, Admin::NETWORK_ID_META_KEY, true );
 		if ( ! $plan_network_id ) {
