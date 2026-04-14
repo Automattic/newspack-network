@@ -185,7 +185,6 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 		// the linked subscription's `_customer_user`, and team_member user meta – rewriting only
 		// `post_author` here would silently desync all of those and break renewal dispatch.
 		// Team ownership transfers must be handled at the team level, not the user_membership level.
-		// See https://linear.app/a8c/issue/NPPM-2741.
 		$team_id = get_post_meta( $existing_membership_id, '_team_id', true );
 		if ( ! empty( $team_id ) ) {
 			Debugger::log(
