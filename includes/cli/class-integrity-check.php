@@ -145,10 +145,10 @@ class Integrity_Check {
 			// Prepare table data with node columns.
 			$table_data = [];
 			foreach ( $all_discrepancies as $discrepancy ) {
-				// Fill in missing node statuses with empty string.
+				// Fill in missing node statuses with the hub status (node is in sync with hub).
 				foreach ( $node_columns as $column ) {
 					if ( ! isset( $discrepancy[ $column ] ) && ! in_array( $column, [ 'email', 'network_id', 'hub_status' ] ) ) {
-						$discrepancy[ $column ] = '';
+						$discrepancy[ $column ] = $discrepancy['hub_status'];
 					}
 				}
 				$table_data[] = $discrepancy;

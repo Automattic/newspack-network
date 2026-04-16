@@ -2,14 +2,14 @@
 # This file is distributed under the GPL3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Network 2.18.3\n"
+"Project-Id-Version: Newspack Network 2.19.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/newspack-network\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-11T20:28:17+00:00\n"
+"POT-Creation-Date: 2026-04-09T07:26:06+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-network\n"
@@ -992,14 +992,20 @@ msgstr ""
 msgid "User %1$s profile has been updated on %2$s"
 msgstr ""
 
+#. translators: 1: previous owner email, 2: new owner email, 3: site URL.
+#: includes/incoming-events/class-woocommerce-membership-updated.php:209
+#, php-format
+msgid "Membership transferred from %1$s to %2$s via Newspack Network. Propagated from %3$s."
+msgstr ""
+
 #. translators: %s is the site URL.
-#: includes/incoming-events/class-woocommerce-membership-updated.php:115
+#: includes/incoming-events/class-woocommerce-membership-updated.php:244
 #, php-format
 msgid "Membership has been unlinked via Newspack Network. Unlinked from %s"
 msgstr ""
 
 #. translators: 1: membership status, 2: site URL.
-#: includes/incoming-events/class-woocommerce-membership-updated.php:131
+#: includes/incoming-events/class-woocommerce-membership-updated.php:260
 #, php-format
 msgid "Membership status updated to %1$s via Newspack Network. Propagated from %2$s."
 msgstr ""
