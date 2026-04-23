@@ -212,4 +212,59 @@ class TestMembershipTransfer extends WP_UnitTestCase {
 		// Verify the membership was transferred.
 		$this->assertEquals( $new_user_id, (int) get_post( $membership_id )->post_author );
 	}
+
+	/**
+	 * Team-owned memberships (those with a `_team_id` meta) must not be transferred via
+	 * post_author rewrite. Their ownership lives on the team's `_member_id`, the linked
+	 * subscription's `_customer_user`, and team_member user meta. See NPPM-2741.
+	 */
+	public function test_transfer_skips_team_owned_membership() {
+		$old_user_id = $this->factory->user->create( [ 'user_email' => 'teamold@example.com' ] );
+		$new_user_id = $this->factory->user->create( [ 'user_email' => 'teamnew@example.com' ] );
+
+		$plan_id = $this->factory->post->create(
+			[
+				'post_type'   => Memberships_Admin::MEMBERSHIP_PLANS_CPT,
+				'post_status' => 'publish',
+			]
+		);
+		update_post_meta( $plan_id, Memberships_Admin::NETWORK_ID_META_KEY, 'test-team-plan' );
+
+		$membership_id = $this->factory->post->create(
+			[
+				'post_type'   => 'wc_user_membership',
+				'post_status' => 'wcm-active',
+				'post_author' => $old_user_id,
+				'post_parent' => $plan_id,
+			]
+		);
+		update_post_meta( $membership_id, Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
+		update_post_meta( $membership_id, Memberships_Admin::REMOTE_ID_META_KEY, 555 );
+		update_post_meta( $membership_id, Memberships_Admin::SITE_URL_META_KEY, 'https://hub.example.com' );
+		// Mark as team-owned.
+		update_post_meta( $membership_id, '_team_id', 42 );
+
+		$transfer_event = new Woocommerce_Membership_Updated(
+			'https://hub.example.com',
+			[
+				'email'           => 'teamnew@example.com',
+				'user_id'         => $new_user_id,
+				'plan_network_id' => 'test-team-plan',
+				'membership_id'   => 555,
+				'new_status'      => 'active',
+				'end_date'        => null,
+				'previous_email'  => 'teamold@example.com',
+			],
+			time()
+		);
+
+		$transfer_method = new ReflectionMethod( Woocommerce_Membership_Updated::class, 'transfer_membership' );
+		$transfer_method->setAccessible( true );
+
+		$new_user = get_user_by( 'id', $new_user_id );
+		$transfer_method->invoke( $transfer_event, $new_user, $plan_id, 'teamold@example.com' );
+
+		// post_author must remain unchanged for team-owned memberships.
+		$this->assertEquals( $old_user_id, (int) get_post( $membership_id )->post_author );
+	}
 }
