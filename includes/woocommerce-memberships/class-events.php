@@ -48,6 +48,7 @@ class Events {
 		Data_Events::register_listener( 'wc_memberships_user_membership_status_changed', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_status_changed' ] );
 		Data_Events::register_listener( 'wc_memberships_user_membership_saved', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_saved' ] );
 		Data_Events::register_listener( 'wc_memberships_user_membership_deleted', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_deleted' ] );
+		Data_Events::register_listener( 'wc_memberships_user_membership_transferred', 'newspack_network_woo_membership_updated', [ __CLASS__, 'membership_transferred' ] );
 		Data_Events::register_listener( 'newspack_network_save_membership_plan', 'newspack_network_membership_plan_updated', [ __CLASS__, 'membership_plan_updated' ] );
 	}
 
@@ -184,6 +185,37 @@ class Events {
 			'membership_id'   => $user_membership->get_id(),
 			'new_status'      => $user_membership->get_status(),
 			'end_date'        => $user_membership->get_end_date(),
+		];
+	}
+
+	/**
+	 * Transforms the data of the wc_memberships_user_membership_transferred hook to trigger the newspack_network_woo_membership_updated data event
+	 *
+	 * @param \WC_Memberships_User_Membership $user_membership The User Membership object that was transferred.
+	 * @param \WP_User                        $new_owner The new owner of the membership.
+	 * @param \WP_User                        $previous_owner The previous owner of the membership.
+	 * @return array|void
+	 */
+	public static function membership_transferred( $user_membership, $new_owner, $previous_owner ) {
+		if ( self::$pause_events ) {
+			return;
+		}
+
+		$plan_id = $user_membership->get_plan()->get_id();
+
+		$plan_network_id = get_post_meta( $plan_id, Admin::NETWORK_ID_META_KEY, true );
+		if ( ! $plan_network_id ) {
+			return;
+		}
+
+		return [
+			'email'           => $new_owner->user_email,
+			'user_id'         => $new_owner->ID,
+			'plan_network_id' => $plan_network_id,
+			'membership_id'   => $user_membership->get_id(),
+			'new_status'      => $user_membership->get_status(),
+			'end_date'        => $user_membership->get_end_date(),
+			'previous_email'  => $previous_owner->user_email,
 		];
 	}
 

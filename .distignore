@@ -23,12 +23,21 @@ webpack.config.js
 *.tar.gz
 *.zip
 node_modules
+.phpunit.result.cache
+.travis.yml
+AGENTS.md
+CLAUDE.md
+DEV_NOTES.md
+TESTING_SCENARIOS.md
+bun.lockb
 
 # directories
 .cache
+.claude
 .git
 .github
 .circleci
+/src
 /tests
 /bin
 /release

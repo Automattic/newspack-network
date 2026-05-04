@@ -74,6 +74,13 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 
 		$user = User_Utils::get_or_create_user_by_email( $email, $this->get_site(), $this->data->user_id ?? '' );
 
+		// Handle membership ownership transfer.
+		$previous_email = $this->get_previous_email();
+		if ( $previous_email ) {
+			$this->transfer_membership( $user, $local_plan_id, $previous_email );
+			return;
+		}
+
 		$user_membership = wc_memberships_get_user_membership( $user->ID, $local_plan_id );
 
 		if ( null === $user_membership ) {
@@ -96,6 +103,128 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
+		$this->apply_membership_update( $user_membership );
+	}
+
+	/**
+	 * Transfer a managed membership from the previous owner to the new owner.
+	 *
+	 * Finds the existing membership by remote_id and reassigns it.
+	 * Falls back to creating a new membership if the existing one can't be found.
+	 *
+	 * @param \WP_User $new_user The new owner.
+	 * @param int      $local_plan_id The local plan ID.
+	 * @param string   $previous_email The previous owner's email.
+	 * @return void
+	 */
+	private function transfer_membership( $new_user, $local_plan_id, $previous_email ) {
+		global $wpdb;
+
+		Debugger::log( 'Processing membership transfer from ' . $previous_email . ' to ' . $new_user->user_email );
+
+		$remote_membership_id = $this->get_membership_id();
+
+		// Find the existing managed membership by remote_id.
+		$existing_membership_id = $wpdb->get_var( // phpcs:ignore
+			$wpdb->prepare(
+				"SELECT post_id FROM $wpdb->postmeta
+				WHERE meta_key = %s AND meta_value = %s
+				AND post_id IN (
+					SELECT post_id FROM $wpdb->postmeta
+					WHERE meta_key = %s AND meta_value = %s
+				)
+				AND post_id IN (
+					SELECT ID FROM $wpdb->posts WHERE post_type = 'wc_user_membership' AND post_parent = %d
+				)
+				AND post_id IN (
+					SELECT post_id FROM $wpdb->postmeta
+					WHERE meta_key = %s
+				)",
+				Memberships_Admin::REMOTE_ID_META_KEY,
+				$remote_membership_id,
+				Memberships_Admin::SITE_URL_META_KEY,
+				$this->get_site(),
+				$local_plan_id,
+				Memberships_Admin::NETWORK_MANAGED_META_KEY
+			)
+		);
+
+		if ( ! $existing_membership_id ) {
+			Debugger::log( 'Managed membership not found by remote_id, falling back to previous owner lookup.' );
+
+			// Try finding by previous owner + plan.
+			$previous_user = get_user_by( 'email', $previous_email );
+			if ( $previous_user ) {
+				$previous_membership = wc_memberships_get_user_membership( $previous_user->ID, $local_plan_id );
+				if ( $previous_membership ) {
+					$existing_membership_id = $previous_membership->get_id();
+				}
+			}
+		}
+
+		if ( ! $existing_membership_id ) {
+			Debugger::log( 'No existing membership found to transfer, creating new one.' );
+
+			$user_membership = wc_memberships_create_user_membership(
+				[
+					'plan_id' => $local_plan_id,
+					'user_id' => $new_user->ID,
+				]
+			);
+
+			if ( is_wp_error( $user_membership ) || ! $user_membership instanceof WC_Memberships_User_Membership ) {
+				Debugger::log( 'Error creating membership for transfer.' );
+				return;
+			}
+
+			$this->apply_membership_update( $user_membership );
+			return;
+		}
+
+		// Reassign the membership to the new owner.
+		$updated_post_id = wp_update_post(
+			[
+				'ID'          => $existing_membership_id,
+				'post_author' => $new_user->ID,
+			],
+			true
+		);
+
+		if ( is_wp_error( $updated_post_id ) || ! $updated_post_id ) {
+			$error_message = is_wp_error( $updated_post_id ) ? $updated_post_id->get_error_message() : 'Unknown error';
+			Debugger::log( 'Error transferring membership: failed to update post author. ' . $error_message );
+			return;
+		}
+
+		$user_membership = wc_memberships_get_user_membership( $existing_membership_id );
+
+		if ( ! $user_membership instanceof WC_Memberships_User_Membership ) {
+			Debugger::log( 'Error retrieving membership after transfer.' );
+			return;
+		}
+
+		$user_membership->add_note(
+			sprintf(
+				// translators: 1: previous owner email, 2: new owner email, 3: site URL.
+				__( 'Membership transferred from %1$s to %2$s via Newspack Network. Propagated from %3$s.', 'newspack-network' ),
+				$previous_email,
+				$new_user->user_email,
+				$this->get_site()
+			)
+		);
+
+		$this->apply_membership_update( $user_membership );
+
+		Debugger::log( 'Membership transferred successfully.' );
+	}
+
+	/**
+	 * Apply status, end date, and managed meta to a membership.
+	 *
+	 * @param WC_Memberships_User_Membership $user_membership The membership to update.
+	 * @return void
+	 */
+	private function apply_membership_update( $user_membership ) {
 		$status     = $this->get_new_status();
 		$is_managed = get_post_meta( $user_membership->get_id(), Memberships_Admin::NETWORK_MANAGED_META_KEY, true );
 
@@ -171,5 +300,14 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 	 */
 	public function get_end_date() {
 		return $this->data->end_date ?? null;
+	}
+
+	/**
+	 * Get the previous owner's email (set during ownership transfers).
+	 *
+	 * @return ?string
+	 */
+	public function get_previous_email() {
+		return $this->data->previous_email ?? null;
 	}
 }
