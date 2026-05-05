@@ -40,6 +40,12 @@ The migrator converts existing 10up Distributor subscriptions into native distri
 
 While migration is running, distributed posts on target sites are temporarily locked from editing for 10 minutes (`MIGRATION_LOCK_TRANSIENT_NAME`) to avoid conflicts.
 
+### Where to run it
+
+Run the command **only on origin sites** — sites that pushed posts via Distributor (i.e. have `dt_subscription` posts). Target sites are converted automatically: the origin dispatches `newspack_network_distributor_migrate_incoming_posts` and each target's incoming event handler rewrites its existing Distributor copies in place.
+
+In a typical Hub/Node setup where only the Hub pushes content, run it on the Hub. If multiple sites pushed via Distributor, run it on each of them.
+
 ### Command
 
 ```
