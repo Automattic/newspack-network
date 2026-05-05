@@ -18,6 +18,7 @@ use Newspack_Network\Content_Distribution\Editor;
 use Newspack_Network\Content_Distribution\Incoming_Post;
 use Newspack_Network\Content_Distribution\Outgoing_Post;
 use Newspack_Network\Content_Distribution\Yoast_Primary_Cat;
+use Newspack_Network\Content_Distribution\Blocks;
 use WP_Post;
 
 /**
@@ -40,14 +41,6 @@ class Content_Distribution {
 	 * @return void
 	 */
 	public static function init() {
-		// Place content distribution behind a constant but run under unit tests.
-		if (
-			! ( defined( 'IS_TEST_ENV' ) && IS_TEST_ENV ) &&
-			( ! defined( 'NEWPACK_NETWORK_CONTENT_DISTRIBUTION' ) || ! NEWPACK_NETWORK_CONTENT_DISTRIBUTION )
-		) {
-			return;
-		}
-
 		add_action( 'init', [ __CLASS__, 'register_data_event_actions' ] );
 		add_action( 'shutdown', [ __CLASS__, 'distribute_queued_posts' ] );
 		add_filter( 'newspack_webhooks_request_priority', [ __CLASS__, 'webhooks_request_priority' ], 10, 2 );
@@ -69,6 +62,7 @@ class Content_Distribution {
 		Distributor_Migrator::init();
 		Cap_Authors::init();
 		Yoast_Primary_Cat::init();
+		Blocks::init();
 	}
 
 	/**

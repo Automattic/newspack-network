@@ -90,7 +90,7 @@ class Taxonomy_Terms {
 			}
 			$terms = get_the_terms( $post->ID, $taxonomy->name );
 			if ( ! $terms ) {
-				continue;
+				$terms = [];
 			}
 
 			$data[ $taxonomy->name ] = array_map(

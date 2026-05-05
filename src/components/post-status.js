@@ -1,3 +1,5 @@
+/* eslint @wordpress/no-unsafe-wp-apis: 0 */
+
 /**
  * WordPress dependencies
  */
@@ -41,7 +43,13 @@ const STATUS_OPTIONS = [
 	},
 ];
 
-export default function PostStatus( { label, description, status, onChange, disabled } ) {
+export default function PostStatus( {
+	label,
+	description,
+	status,
+	onChange,
+	disabled,
+} ) {
 	const [ popoverAnchor, setPopoverAnchor ] = useState( null );
 	// Memoize popoverProps to avoid returning a new object every time.
 	const popoverProps = useMemo(
@@ -59,7 +67,11 @@ export default function PostStatus( { label, description, status, onChange, disa
 	);
 
 	return (
-		<PostPanelRow label={ __( 'Status' ) } description={ description } ref={ setPopoverAnchor }>
+		<PostPanelRow
+			label={ __( 'Status' ) }
+			description={ description }
+			ref={ setPopoverAnchor }
+		>
 			<Dropdown
 				className="editor-post-status"
 				contentClassName="editor-change-status__content"
@@ -86,7 +98,9 @@ export default function PostStatus( { label, description, status, onChange, disa
 				renderContent={ ( { onClose } ) => (
 					<>
 						<InspectorPopoverHeader
-							title={ label ? label : __( 'Status & visibility' ) }
+							title={
+								label ? label : __( 'Status & visibility' )
+							}
 							onClose={ onClose }
 						/>
 						{ description && <p>{ description }</p> }

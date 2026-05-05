@@ -433,17 +433,32 @@ class Incoming_Post {
 	 * Upload the thumbnail for a linked post.
 	 */
 	protected function upload_thumbnail() {
-		$thumbnail_url        = $this->payload['post_data']['thumbnail_url'];
-		$payload              = $this->get_post_payload();
-		$current_thumbnail_id = get_post_thumbnail_id( $this->ID );
+		$thumbnail_url         = $this->payload['post_data']['thumbnail_url'];
+		$payload               = $this->get_post_payload();
+		$current_thumbnail_id  = get_post_thumbnail_id( $this->ID );
+		$current_thumbnail_url = $payload ? $payload['post_data']['thumbnail_url'] : '';
 
 		// Bail if the post has a thumbnail and the thumbnail URL is the same.
 		if (
 			$current_thumbnail_id &&
 			$payload &&
-			$payload['post_data']['thumbnail_url'] === $thumbnail_url
+			$current_thumbnail_url === $thumbnail_url
 		) {
 			return;
+		}
+
+		// Handle Jetpack Photon URLs so we can compare the underlying image URLs.
+		$photon_pattern = '/^https:\/\/i[0-9]\.wp\.com\/([^?]+)(\?.*)?$/';
+		if ( preg_match( $photon_pattern, $thumbnail_url ) || preg_match( $photon_pattern, $current_thumbnail_url ) ) {
+			$strip_photon = function( $url ) use ( $photon_pattern ) {
+				if ( preg_match( $photon_pattern, $url, $matches ) ) {
+					return 'https://' . $matches[1];
+				}
+				return $url;
+			};
+			if ( $strip_photon( $thumbnail_url ) === $strip_photon( $current_thumbnail_url ) ) {
+				return;
+			}
 		}
 
 		if ( ! function_exists( 'media_sideload_image' ) ) {
@@ -459,6 +474,38 @@ class Incoming_Post {
 			return;
 		}
 
+		/**
+		 * Update the attachment post meta.
+		 */
+		$media_data = $this->payload['post_data']['media_data'];
+		if ( ! empty( $media_data ) ) {
+			$meta = array_filter(
+				$media_data,
+				function( $media_item ) {
+					return $media_item['featured'];
+				}
+			);
+			if ( ! empty( $meta ) ) {
+				$meta = array_shift( $meta );
+				if ( ! empty( $meta['caption'] ) ) {
+					wp_update_post(
+						[
+							'ID'           => $attachment_id,
+							'post_excerpt' => $meta['caption'],
+						]
+					);
+				}
+				if ( ! empty( $meta['alt'] ) ) {
+					update_post_meta( $attachment_id, '_wp_attachment_image_alt', $meta['alt'] );
+				}
+				if ( ! empty( $meta['credit'] ) ) {
+					update_post_meta( $attachment_id, '_media_credit', $meta['credit'] );
+				}
+				if ( ! empty( $meta['credit_url'] ) ) {
+					update_post_meta( $attachment_id, '_media_credit_url', $meta['credit_url'] );
+				}
+			}
+		}
 		update_post_meta( $attachment_id, self::ATTACHMENT_META, true );
 
 		set_post_thumbnail( $this->ID, $attachment_id );
@@ -490,6 +537,9 @@ class Incoming_Post {
 				if ( is_wp_error( $result ) ) {
 					self::log( 'Failed to set terms for taxonomy ' . $taxonomy . ' with message: ' . $result->get_error_message() );
 				}
+			} elseif ( empty( $terms ) ) {
+				// If there are no terms, remove all terms from the taxonomy.
+				wp_set_object_terms( $this->ID, [], $taxonomy );
 			}
 		}
 	}
@@ -548,6 +598,31 @@ class Incoming_Post {
 	}
 
 	/**
+	 * Get the post content for insertion.
+	 *
+	 * @return string The post content.
+	 */
+	protected function get_post_content() {
+		$post_data = $this->payload['post_data'];
+		$post_type = $post_data['post_type'];
+
+		if ( ! use_block_editor_for_post_type( $post_type ) ) {
+			return $post_data['content'];
+		}
+
+		if ( ! has_blocks( $post_data['raw_content'] ) ) {
+			return $post_data['content'];
+		}
+
+		$blocks = array_map(
+			[ Blocks::class, 'process_incoming_block' ],
+			parse_blocks( $post_data['raw_content'] )
+		);
+
+		return serialize_blocks( $blocks );
+	}
+
+	/**
 	 * Insert the incoming post.
 	 *
 	 * This will create or update an existing post and the stored payload.
@@ -592,9 +667,7 @@ class Incoming_Post {
 			'post_date_gmt'  => $post_data['date_gmt'],
 			'post_title'     => $post_data['title'],
 			'post_name'      => $post_data['slug'],
-			'post_content'   => use_block_editor_for_post_type( $post_type ) ?
-				$post_data['raw_content'] :
-				$post_data['content'],
+			'post_content'   => $this->get_post_content(),
 			'post_excerpt'   => $post_data['excerpt'],
 			'post_type'      => $post_type,
 			'comment_status' => $post_data['comment_status'],
@@ -609,18 +682,41 @@ class Incoming_Post {
 			/**
 			 * Post status handling.
 			 *
-			 * If post is being published, use the incoming or stored
-			 * `status_on_publish` if available. Otherwise, use the post status from
-			 * the payload.
+			 * If post is being published, apply the stored `status_on_publish`
+			 * override if one exists. For new posts, use the incoming payload
+			 * value instead. If no override is configured, the post status is
+			 * left unchanged for existing posts and defaults to the incoming
+			 * status for new ones. If post is being scheduled (future) and
+			 * `status_on_publish` is a non-publish status, keep the node post
+			 * in that status. This prevents WP cron from scheduling
+			 * `publish_future_post` and auto-publishing the node post.
+			 * Otherwise, use the post status from the payload.
 			 */
 			if ( $post_data['post_status'] === 'publish' ) {
 				if ( $is_new_post ) {
-					$postarr['post_status'] = $this->payload['status_on_publish'];
+					$postarr['post_status'] = isset( $this->payload['status_on_publish'] ) ? $this->payload['status_on_publish'] : $post_data['post_status'];
 				} else {
 					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
 					if ( $status_on_publish ) {
 						$postarr['post_status'] = $status_on_publish;
 					}
+				}
+			} elseif ( $post_data['post_status'] === 'future' ) {
+				if ( $is_new_post ) {
+					if ( isset( $this->payload['status_on_publish'] ) ) {
+						$status_on_publish = $this->payload['status_on_publish'];
+					} else {
+						$status_on_publish = '';
+					}
+				} else {
+					$status_on_publish = get_post_meta( $this->ID, self::STATUS_ON_PUBLISH_META, true );
+				}
+
+				if ( $status_on_publish && 'publish' !== $status_on_publish ) {
+					$postarr['post_status'] = $status_on_publish;
+				} else {
+					// If status_on_publish is 'publish' or unset, mirror the hub's schedule.
+					$postarr['post_status'] = 'future';
 				}
 			} else {
 				$postarr['post_status'] = $post_data['post_status'];
@@ -670,11 +766,16 @@ class Incoming_Post {
 			// Handle `status_on_publish` meta.
 			if ( $post_data['post_status'] !== 'publish' && $is_new_post ) {
 				// Store the publish status for new posts.
-				update_post_meta(
-					$post_id,
-					self::STATUS_ON_PUBLISH_META,
-					$this->payload['status_on_publish']
-				);
+				if ( isset( $this->payload['status_on_publish'] ) ) {
+					// Only store the meta if the key is present. An absent status_on_publish
+					// means no override was configured — the node will fall back to safe
+					// defaults when the hub later sends 'publish' or 'future'.
+					update_post_meta(
+						$post_id,
+						self::STATUS_ON_PUBLISH_META,
+						$this->payload['status_on_publish']
+					);
+				}
 			} elseif ( $post_data['post_status'] === 'publish' && ! $is_new_post ) {
 				// Clean up the meta for published posts so it's not re-published after
 				// being unpublished.

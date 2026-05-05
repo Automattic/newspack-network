@@ -41,8 +41,18 @@ class Cap_Authors {
 
 		add_filter( 'newspack_network_outgoing_payload_post_data', [ __CLASS__, 'add_co_authors_to_payload_post_data' ], 10, 2 );
 
+		/**
+		 * Enables Co-Authors Plus Guest Authors support in content distribution.
+		 * When enabled, guest author data is synced across the network.
+		 *
+		 * @constant NEWSPACK_ENABLE_CAP_GUEST_AUTHORS
+		 * @type     bool
+		 * @default  Guest authors support disabled
+		 * @status   draft
+		 *
+		 * @example define( 'NEWSPACK_ENABLE_CAP_GUEST_AUTHORS', true );
+		 */
 		if ( defined( 'NEWSPACK_ENABLE_CAP_GUEST_AUTHORS' ) && NEWSPACK_ENABLE_CAP_GUEST_AUTHORS ) {
-			// Support CAP Guest Authors.
 			Cap_Guest_Authors::init();
 		}
 	}
@@ -162,7 +172,7 @@ class Cap_Authors {
 			}
 		}
 
-		do_action( 'newspack_network_incoming_cap_guest_authors', $post->ID, $guest_authors );
+		do_action( 'newspack_network_incoming_cap_guest_authors', $post->ID, $guest_authors, $cap_authors_from_payload );
 
 		global $coauthors_plus;
 		$coauthors_plus->add_coauthors( $post->ID, $guest_contributors );

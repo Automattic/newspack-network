@@ -36,6 +36,10 @@ class Data_Listeners {
 		Data_Events::register_listener( 'newspack_network_user_updated', 'network_user_updated', [ __CLASS__, 'user_updated' ] );
 		Data_Events::register_listener( 'delete_user', 'network_user_deleted', [ __CLASS__, 'user_deleted' ] );
 		Data_Events::register_listener( 'newspack_network_nodes_synced', 'network_nodes_synced', [ __CLASS__, 'nodes_synced' ] );
+
+		if ( Site_Role::is_hub() ) {
+			Data_Events::register_listener( 'update_option_blogname', 'network_hub_name_updated', [ __CLASS__, 'hub_name_updated' ] );
+		}
 	}
 
 	/**
@@ -78,5 +82,16 @@ class Data_Listeners {
 	 */
 	public static function nodes_synced( $nodes_data ) {
 		return [ 'nodes_data' => $nodes_data ];
+	}
+
+	/**
+	 * Filters the blogname data for the event being triggered
+	 *
+	 * @param string $old_value The old blogname.
+	 * @param string $value     The new blogname.
+	 * @return array
+	 */
+	public static function hub_name_updated( $old_value, $value ) {
+		return [ 'name' => $value ];
 	}
 }
