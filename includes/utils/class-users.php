@@ -131,7 +131,7 @@ class Users {
 			$user_data = (array) $user_data;
 		}
 
-		if ( array_key_exists( $avatar_meta_key, $user_data ) && ! empty( $user_data[ $avatar_meta_key ]['full'] ) ) {
+		if ( array_key_exists( $avatar_meta_key, $user_data ) && is_array( $user_data[ $avatar_meta_key ] ) && ! empty( $user_data[ $avatar_meta_key ]['full'] ) ) {
 			$avatar_url = $user_data[ $avatar_meta_key ]['full'];
 
 			// The avatar URL comes from the network event payload and is fetched server-side

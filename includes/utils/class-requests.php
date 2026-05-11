@@ -61,7 +61,7 @@ class Requests {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return array|WP_Error The verified request parameters, or WP_Error if verification failed.
 	 */
-	public static function get_request_to_hub_errors( $request ) {
+	public static function verify_request_to_hub( $request ) {
 		$site      = $request['site'];
 		$signature = $request['signature'];
 		$nonce     = $request['nonce'];

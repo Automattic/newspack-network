@@ -73,7 +73,7 @@ class Pull_Endpoint {
 	 * @return WP_REST_Response
 	 */
 	public static function handle_pull( $request ) {
-		$verified_params = \Newspack_Network\Utils\Requests::get_request_to_hub_errors( $request );
+		$verified_params = \Newspack_Network\Utils\Requests::verify_request_to_hub( $request );
 		if ( \is_wp_error( $verified_params ) ) {
 			return new WP_REST_Response( [ 'error' => $verified_params->get_error_message() ], 403 );
 		}
@@ -133,8 +133,13 @@ class Pull_Endpoint {
 		// so a man-in-the-middle can't inject events into it. Older Nodes don't set the flag
 		// and get the body unencrypted, as before.
 		if ( $signed_response ) {
-			$response_nonce  = Crypto::generate_nonce();
-			$encrypted_body  = Crypto::encrypt_message( wp_json_encode( $response_body ), $node->get_secret_key(), $response_nonce );
+			$response_json = wp_json_encode( $response_body );
+			if ( false === $response_json ) {
+				Debugger::log( 'Could not encode the pull response.' );
+				return new WP_REST_Response( [ 'error' => 'Could not encode response.' ], 500 );
+			}
+			$response_nonce = Crypto::generate_nonce();
+			$encrypted_body = Crypto::encrypt_message( $response_json, $node->get_secret_key(), $response_nonce );
 			if ( is_wp_error( $encrypted_body ) || ! is_string( $encrypted_body ) ) {
 				Debugger::log( 'Could not sign the pull response.' );
 				return new WP_REST_Response( [ 'error' => 'Could not sign response.' ], 500 );
