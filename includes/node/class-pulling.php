@@ -141,6 +141,7 @@ class Pulling {
 			'last_processed_id' => self::get_last_processed_id(),
 			'actions'           => Accepted_Actions::ACTIONS_THAT_NODES_PULL,
 			'site'              => get_bloginfo( 'url' ),
+			'signed_response'   => true,
 		];
 		$response = \Newspack_Network\Utils\Requests::request_to_hub( 'wp-json/newspack-network/v1/pull', $params );
 		if ( is_wp_error( $response ) ) {
@@ -226,7 +227,24 @@ class Pulling {
 			update_option( self::LAST_ERROR_OPTION_NAME, '' );
 		}
 		$response = json_decode( $response, true );
-		if ( ! is_array( $response['data'] ) ) {
+
+		// We always ask the Hub for a signed response (see make_request()), so the body must
+		// be the encrypted envelope: a nonce plus the ciphertext under the shared secret.
+		// Anything else (a plaintext body) is either a Hub that needs updating or a tampered
+		// response, and must not be processed.
+		if ( ! is_array( $response ) || empty( $response['nonce'] ) || ! isset( $response['data'] ) || ! is_string( $response['data'] ) ) {
+			self::handle_error( new \WP_Error( 'newspack-network-node-pull-unsigned-response', __( 'The Hub returned an unsigned pull response. Make sure the Hub is up to date.', 'newspack-network' ) ) );
+			return;
+		}
+
+		$verified = Crypto::decrypt_message( $response['data'], Settings::get_secret_key(), $response['nonce'] );
+		if ( false === $verified ) {
+			self::handle_error( new \WP_Error( 'newspack-network-node-pull-signature', __( 'Could not verify the Hub pull response signature.', 'newspack-network' ) ) );
+			return;
+		}
+
+		$response = json_decode( $verified, true );
+		if ( ! isset( $response['data'] ) || ! is_array( $response['data'] ) ) {
 			return;
 		}
 		self::process_pulled_data( $response['data'] );
