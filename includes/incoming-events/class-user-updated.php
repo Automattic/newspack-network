@@ -43,7 +43,7 @@ class User_Updated extends Abstract_Incoming_Event {
 	 */
 	public function maybe_update_user() {
 		$email = $this->get_email();
-		Debugger::log( 'Processing user_updated with email: ' . $email );
+		Debugger::log( sprintf( 'Processing user_updated for %s from %s.', $email, $this->get_site() ) );
 		if ( ! $email ) {
 			return;
 		}

@@ -44,7 +44,7 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 	 */
 	public function maybe_sync_user() {
 		$email = $this->get_email();
-		Debugger::log( 'Processing user_manually_synced with email: ' . $email );
+		Debugger::log( sprintf( 'Processing user_manually_synced for %s from %s.', $email, $this->get_site() ) );
 		if ( ! $email ) {
 			return;
 		}
