@@ -72,14 +72,6 @@ class User_Updated extends Abstract_Incoming_Event {
 					$update_array[ $prop_key ] = $incoming_props[ $prop_key ];
 				}
 			}
-			// A background sync event must not change the email address of a staff account:
-			// the email is the password-reset target, so a peer site could otherwise take
-			// over the account. Reader emails still sync (email is the reader's identity);
-			// a staff email change can still be pushed via manual sync.
-			if ( isset( $update_array['user_email'] ) && ! \Newspack\Reader_Activation::is_user_reader( $existing_user ) ) {
-				Debugger::log( sprintf( 'Ignoring email change for non-reader user %d via network sync.', $existing_user->ID ) );
-				unset( $update_array['user_email'] );
-			}
 			// Only update if at least one allowed prop is present; $update_array always has 'ID'.
 			if ( count( $update_array ) > 1 ) {
 				Debugger::log( 'Updating user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
