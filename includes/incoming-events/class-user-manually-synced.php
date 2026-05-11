@@ -118,8 +118,11 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 					$update_array[ $prop_key ] = $incoming_props[ $prop_key ];
 				}
 			}
-			Debugger::log( 'Manually syncing user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
-			wp_update_user( $update_array );
+			// Only update if at least one allowed prop is present; $update_array always has 'ID'.
+			if ( count( $update_array ) > 1 ) {
+				Debugger::log( 'Manually syncing user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+				wp_update_user( $update_array );
+			}
 		}
 
 		// Loop through user meta and update.
