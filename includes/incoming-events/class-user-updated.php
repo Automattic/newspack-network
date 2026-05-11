@@ -58,12 +58,19 @@ class User_Updated extends Abstract_Incoming_Event {
 
 		$data = $this->get_data();
 
+		// Only the fixed set of profile fields and meta keys that the user sync tracks are
+		// applied. The incoming payload is signed by the sending site but not otherwise
+		// validated, so an arbitrary key (e.g. user_pass, role, wp_capabilities,
+		// _application_passwords) must never reach wp_update_user() / update_user_meta().
 		if ( isset( $data->prop ) ) {
-			$update_array = [
+			$incoming_props = (array) $data->prop;
+			$update_array   = [
 				'ID' => $existing_user->ID,
 			];
-			foreach ( $data->prop as $prop_key => $prop_value ) {
-				$update_array[ $prop_key ] = $prop_value;
+			foreach ( User_Update_Watcher::$user_props as $prop_key ) {
+				if ( isset( $incoming_props[ $prop_key ] ) ) {
+					$update_array[ $prop_key ] = $incoming_props[ $prop_key ];
+				}
 			}
 			Debugger::log( 'Updating user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 
@@ -71,9 +78,12 @@ class User_Updated extends Abstract_Incoming_Event {
 		}
 
 		if ( isset( $data->meta ) ) {
-			foreach ( $data->meta as $meta_key => $meta_value ) {
-				Debugger::log( 'Updating user meta: ' . $meta_key );
-				update_user_meta( $existing_user->ID, $meta_key, $meta_value );
+			$incoming_meta = (array) $data->meta;
+			foreach ( User_Update_Watcher::get_writable_meta() as $meta_key ) {
+				if ( isset( $incoming_meta[ $meta_key ] ) ) {
+					Debugger::log( 'Updating user meta: ' . $meta_key );
+					update_user_meta( $existing_user->ID, $meta_key, $incoming_meta[ $meta_key ] );
+				}
 			}
 
 			User_Utils::maybe_sideload_avatar( $existing_user->ID, $data->meta, true );

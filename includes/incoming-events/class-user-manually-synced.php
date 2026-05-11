@@ -104,13 +104,19 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 			}
 		}
 
-		// Loop through user props and update.
+		// Loop through user props and update. Roles are synced above via $data->role; the
+		// props and meta below are restricted to the fixed set of fields the user sync
+		// tracks, so an incoming payload can't write arbitrary props (user_pass, ...) or
+		// meta (_application_passwords, wp_capabilities, ...).
 		if ( isset( $data->prop ) ) {
-			$update_array = [
+			$incoming_props = (array) $data->prop;
+			$update_array   = [
 				'ID' => $user->ID,
 			];
-			foreach ( $data->prop as $prop_key => $prop_value ) {
-				$update_array[ $prop_key ] = $prop_value;
+			foreach ( User_Update_Watcher::$user_props as $prop_key ) {
+				if ( isset( $incoming_props[ $prop_key ] ) ) {
+					$update_array[ $prop_key ] = $incoming_props[ $prop_key ];
+				}
 			}
 			Debugger::log( 'Manually syncing user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 			wp_update_user( $update_array );
@@ -118,9 +124,12 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 
 		// Loop through user meta and update.
 		if ( isset( $data->meta ) ) {
-			foreach ( $data->meta as $meta_key => $meta_value ) {
-				Debugger::log( 'Manually syncing user meta: ' . $meta_key );
-				update_user_meta( $user->ID, $meta_key, $meta_value );
+			$incoming_meta = (array) $data->meta;
+			foreach ( User_Update_Watcher::get_writable_meta() as $meta_key ) {
+				if ( isset( $incoming_meta[ $meta_key ] ) ) {
+					Debugger::log( 'Manually syncing user meta: ' . $meta_key );
+					update_user_meta( $user->ID, $meta_key, $incoming_meta[ $meta_key ] );
+				}
 			}
 
 			User_Utils::maybe_sideload_avatar( $user->ID, $data->meta, true );
