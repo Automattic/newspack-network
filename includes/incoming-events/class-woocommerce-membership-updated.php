@@ -181,6 +181,24 @@ class Woocommerce_Membership_Updated extends Abstract_Incoming_Event {
 			return;
 		}
 
+		// Skip team-owned memberships: their ownership lives on the team post's `_member_id`,
+		// the linked subscription's `_customer_user`, and team_member user meta – rewriting only
+		// `post_author` here would silently desync all of those and break renewal dispatch.
+		// Team ownership transfers must be handled at the team level, not the user_membership level.
+		$team_id = get_post_meta( $existing_membership_id, '_team_id', true );
+		if ( ! empty( $team_id ) ) {
+			Debugger::log(
+				sprintf(
+					'Skipping transfer of team-owned membership #%d (team #%s) from %s to %s. Team memberships cannot be transferred via post_author alone.',
+					$existing_membership_id,
+					$team_id,
+					$previous_email,
+					$new_user->user_email
+				)
+			);
+			return;
+		}
+
 		// Reassign the membership to the new owner.
 		$updated_post_id = wp_update_post(
 			[
