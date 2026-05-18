@@ -39,7 +39,7 @@ class User_Deleted extends Abstract_Incoming_Event {
 	 */
 	public function process_user_deleted() {
 		$email = $this->get_email();
-		Debugger::log( 'Processing user deletion with email: ' . $email );
+		Debugger::log( sprintf( 'Processing user deletion for %s from %s.', $email, $this->get_site() ) );
 		if ( ! $email ) {
 			return;
 		}

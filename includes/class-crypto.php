@@ -23,21 +23,31 @@ class Crypto {
 	}
 
 	/**
+	 * Whether a value is a non-empty, even-length hexadecimal string (i.e. safe for hex2bin()).
+	 *
+	 * @param mixed $value The value to check.
+	 * @return bool
+	 */
+	private static function is_hex( $value ) {
+		return is_string( $value ) && '' !== $value && 0 === strlen( $value ) % 2 && ctype_xdigit( $value );
+	}
+
+	/**
 	 * Decrypts a message
 	 *
-	 * @param string $message The message to be decrypted.
+	 * @param string $message The hex-encoded message to be decrypted.
 	 * @param string $secret_key The secret key to verify the message with.
 	 * @param string $nonce The nonce to verify the message with, generated with Crypto::generate_nonce().
 	 * @return string|false The decrypted message or false if the message could not be decrypted.
 	 */
 	public static function decrypt_message( $message, $secret_key, $nonce ) {
-		if ( ! $secret_key || ! is_string( $secret_key ) || ! $nonce || ! is_string( $nonce ) || ! is_string( $message ) ) {
+		if ( ! self::is_hex( $message ) || ! self::is_hex( $secret_key ) || ! self::is_hex( $nonce ) ) {
 			return false;
 		}
 
 		try {
 			$decrypted = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt( hex2bin( $message ), '', hex2bin( $nonce ), hex2bin( $secret_key ) );
-		} catch ( \Exception $e ) {
+		} catch ( \Throwable $e ) {
 			return false;
 		}
 
@@ -50,17 +60,17 @@ class Crypto {
 	 * @param string $message The message to be encrypted.
 	 * @param string $secret_key The secret key to encrypt the message with.
 	 * @param string $nonce The nonce to verify the message with, generated with Crypto::generate_nonce().
-	 * @return string|WP_Error The encrypted message or WP_Error if the message could not be encrypted.
+	 * @return string|false|WP_Error The encrypted message, false on invalid arguments, or WP_Error if encryption failed.
 	 */
 	public static function encrypt_message( $message, $secret_key, $nonce ) {
-		if ( ! $secret_key || ! is_string( $secret_key ) || ! $nonce || ! is_string( $nonce ) ) {
+		if ( ! is_string( $message ) || ! self::is_hex( $secret_key ) || ! self::is_hex( $nonce ) ) {
 			return false;
 		}
 
 		try {
 			$encrypted = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt( $message, '', hex2bin( $nonce ), hex2bin( $secret_key ) );
 			return bin2hex( $encrypted );
-		} catch ( \Exception $e ) {
+		} catch ( \Throwable $e ) {
 			return new \WP_Error( 'newspack-network-node-webhook-encrypting-error', $e->getMessage() );
 		}
 	}

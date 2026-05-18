@@ -131,9 +131,19 @@ class Users {
 			$user_data = (array) $user_data;
 		}
 
-		if ( array_key_exists( $avatar_meta_key, $user_data ) && ! empty( $user_data[ $avatar_meta_key ]['full'] ) ) {
-			Debugger::log( 'Updating user avatar' );
+		if ( array_key_exists( $avatar_meta_key, $user_data ) && is_array( $user_data[ $avatar_meta_key ] ) && ! empty( $user_data[ $avatar_meta_key ]['full'] ) ) {
 			$avatar_url = $user_data[ $avatar_meta_key ]['full'];
+
+			// The avatar URL comes from the network event payload and is fetched server-side
+			// (media_sideload_image -> download_url -> wp_remote_get, which does not block
+			// private/reserved hosts), so a peer could otherwise make this site request an
+			// internal address (SSRF). Reject anything that isn't a valid external URL.
+			if ( ! is_string( $avatar_url ) || ! wp_http_validate_url( $avatar_url ) ) {
+				Debugger::log( 'Avatar URL is not a valid external URL, skipping sideload' );
+				return false;
+			}
+
+			Debugger::log( 'Updating user avatar' );
 
 			if ( ! function_exists( 'media_sideload_image' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/media.php';
