@@ -40,6 +40,14 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 	/**
 	 * Maybe updates a new WP user based on this event
 	 *
+	 * Unlike the background `User_Updated` receiver, this handler intentionally accepts
+	 * `$data->role` (including `administrator`) and `$data->user_login` without sanitization
+	 * or allowlisting. Manual sync is the documented way an admin on one site propagates an
+	 * admin role across the network, and the trust model assumes every Node in the network
+	 * is operated by the same operator. If that model ever changes, both fields must be
+	 * constrained here (sanitize `user_login` via `sanitize_user()`, restrict `role` to a
+	 * safe set).
+	 *
 	 * @return void
 	 */
 	public function maybe_sync_user() {

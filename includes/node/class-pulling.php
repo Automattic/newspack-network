@@ -185,6 +185,12 @@ class Pulling {
 	 * @param array $events The events to process.
 	 */
 	public static function process_pulled_data( $events ) {
+		// Track the highest ID processed in this batch so the stored cursor only ever moves
+		// forward. AEAD on the pull response prevents forgery, but a previously-captured
+		// envelope can be replayed; clamping the cursor monotonically means a replay can't
+		// roll it backward and force re-fetching old events.
+		$last_processed_id = (int) self::get_last_processed_id();
+		$highest_id        = $last_processed_id;
 		foreach ( $events as $event ) {
 			$action    = $event['action'] ?? false;
 			$site      = $event['site'] ?? false;
@@ -193,6 +199,11 @@ class Pulling {
 			$id        = $event['id'] ?? false;
 
 			if ( ! $action || ! $id || ! $data || ! $timestamp ) {
+				continue;
+			}
+
+			// Skip events the cursor has already passed.
+			if ( (int) $id <= $last_processed_id ) {
 				continue;
 			}
 
@@ -206,7 +217,13 @@ class Pulling {
 
 			$incoming_event->process_in_node();
 
-			self::set_last_processed_id( $id );
+			if ( (int) $id > $highest_id ) {
+				$highest_id = (int) $id;
+			}
+		}
+
+		if ( $highest_id > $last_processed_id ) {
+			self::set_last_processed_id( $highest_id );
 		}
 	}
 
@@ -244,7 +261,8 @@ class Pulling {
 		}
 
 		$response = json_decode( $verified, true );
-		if ( ! isset( $response['data'] ) || ! is_array( $response['data'] ) ) {
+		if ( ! is_array( $response ) || ! isset( $response['data'] ) || ! is_array( $response['data'] ) ) {
+			self::handle_error( new \WP_Error( 'newspack-network-node-pull-malformed-response', __( 'The Hub returned a signed pull response with an unexpected structure.', 'newspack-network' ) ) );
 			return;
 		}
 		self::process_pulled_data( $response['data'] );

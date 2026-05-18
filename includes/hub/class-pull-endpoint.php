@@ -87,6 +87,12 @@ class Pull_Endpoint {
 		$actions           = (array) ( $verified_params['actions'] ?? [] );
 		$signed_response   = ! empty( $verified_params['signed_response'] );
 
+		// Defense-in-depth: cross-check the plaintext 'site' against the signed copy so a
+		// mismatch is rejected even if a future change makes the lookup tolerant of either.
+		if ( isset( $verified_params['site'] ) && $verified_params['site'] !== $site ) {
+			return new WP_REST_Response( [ 'error' => 'Site mismatch.' ], 403 );
+		}
+
 		Debugger::log( sprintf( 'Pull request received from site %s, with last processed ID %d, for actions: %s.', $site, $last_processed_id, implode( ', ', $actions ) ) );
 
 		if ( empty( $actions ) ) {
