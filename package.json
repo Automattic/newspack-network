@@ -1,6 +1,6 @@
 {
 	"name": "newspack-network",
-	"version": "2.18.4",
+	"version": "2.20.0",
 	"description": "The Newspack Network plugin.",
 	"license": "GPL-3.0",
 	"repository": {
@@ -42,6 +42,6 @@
 		"*.php": "npm run lint:php:staged"
 	},
 	"devDependencies": {
-		"newspack-scripts": "^5.9.5"
+		"newspack-scripts": "^5.9.7"
 	}
 }

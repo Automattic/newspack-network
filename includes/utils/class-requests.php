@@ -52,12 +52,16 @@ class Requests {
 	}
 
 	/**
-	 * Validate a request.
+	 * Validate a request to the Hub and return its authenticated parameters.
+	 *
+	 * The signature is verified against the requesting Node's secret key; on success the
+	 * decrypted request parameters are returned so callers can use those instead of the
+	 * plaintext copies (which a man-in-the-middle could tamper with).
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return bool|WP_Error True if the request is valid, WP_Error otherwise.
+	 * @return array|WP_Error The verified request parameters, or WP_Error if verification failed.
 	 */
-	public static function get_request_to_hub_errors( $request ) {
+	public static function verify_request_to_hub( $request ) {
 		$site      = $request['site'];
 		$signature = $request['signature'];
 		$nonce     = $request['nonce'];
@@ -76,13 +80,13 @@ class Requests {
 			return new WP_Error( 'newspack_network_bad_request_node_not_found', __( 'Bad request. Site not registered in this Hub', 'newspack-network' ) );
 		}
 
-		$verified         = $node->decrypt_message( $signature, $nonce );
-		$verified_message = json_decode( $verified );
-		if ( ! $verified || ! is_object( $verified_message ) ) {
+		$verified = $node->decrypt_message( $signature, $nonce );
+		$params   = is_string( $verified ) ? json_decode( $verified, true ) : null;
+		if ( ! is_array( $params ) ) {
 			\Newspack_Network\Debugger::log( 'Signature check failed' );
 			return new WP_Error( 'newspack_network_bad_request_signature', __( 'Bad request. Invalid signature.', 'newspack-network' ) );
 		}
 
-		return true;
+		return $params;
 	}
 }

@@ -8,6 +8,7 @@
 namespace Newspack_Network\Hub;
 
 use Newspack_Network\Accepted_Actions;
+use Newspack_Network\Crypto;
 use Newspack_Network\Debugger;
 use Newspack_Network\Hub\Stores\Event_Log;
 use WP_REST_Response;
@@ -72,14 +73,25 @@ class Pull_Endpoint {
 	 * @return WP_REST_Response
 	 */
 	public static function handle_pull( $request ) {
-		$request_error = \Newspack_Network\Utils\Requests::get_request_to_hub_errors( $request );
-		if ( \is_wp_error( $request_error ) ) {
-			return new WP_REST_Response( [ 'error' => $request_error->get_error_message() ], 403 );
+		$verified_params = \Newspack_Network\Utils\Requests::verify_request_to_hub( $request );
+		if ( \is_wp_error( $verified_params ) ) {
+			return new WP_REST_Response( [ 'error' => $verified_params->get_error_message() ], 403 );
 		}
 
+		// Read the request parameters from the verified (signed) payload, not the plaintext
+		// copies, so a man-in-the-middle can't tamper with the action list, the cursor, or
+		// the signed-response flag. The plaintext 'site' is fine to use for the Node lookup:
+		// it selected the secret that decrypted the signature, so it identifies the sender.
 		$site              = $request['site'];
-		$last_processed_id = $request['last_processed_id'];
-		$actions           = $request['actions'];
+		$last_processed_id = (int) ( $verified_params['last_processed_id'] ?? 0 );
+		$actions           = (array) ( $verified_params['actions'] ?? [] );
+		$signed_response   = ! empty( $verified_params['signed_response'] );
+
+		// Defense-in-depth: cross-check the plaintext 'site' against the signed copy so a
+		// mismatch is rejected even if a future change makes the lookup tolerant of either.
+		if ( isset( $verified_params['site'] ) && $verified_params['site'] !== $site ) {
+			return new WP_REST_Response( [ 'error' => 'Site mismatch.' ], 403 );
+		}
 
 		Debugger::log( sprintf( 'Pull request received from site %s, with last processed ID %d, for actions: %s.', $site, $last_processed_id, implode( ', ', $actions ) ) );
 
@@ -122,6 +134,30 @@ class Pull_Endpoint {
 			'data'  => $events_formatted,
 			'total' => $total_events,
 		];
+
+		// When the Node asked for a signed response, encrypt the body with the shared secret
+		// so a man-in-the-middle can't inject events into it. Older Nodes don't set the flag
+		// and get the body unencrypted, as before.
+		if ( $signed_response ) {
+			$response_json = wp_json_encode( $response_body );
+			if ( false === $response_json ) {
+				Debugger::log( 'Could not encode the pull response.' );
+				return new WP_REST_Response( [ 'error' => 'Could not encode response.' ], 500 );
+			}
+			$response_nonce = Crypto::generate_nonce();
+			$encrypted_body = Crypto::encrypt_message( $response_json, $node->get_secret_key(), $response_nonce );
+			if ( is_wp_error( $encrypted_body ) || ! is_string( $encrypted_body ) ) {
+				Debugger::log( 'Could not sign the pull response.' );
+				return new WP_REST_Response( [ 'error' => 'Could not sign response.' ], 500 );
+			}
+			return new WP_REST_Response(
+				[
+					'nonce' => $response_nonce,
+					'data'  => $encrypted_body,
+				]
+			);
+		}
+
 		return new WP_REST_Response( $response_body );
 	}
 }
