@@ -1,3 +1,10 @@
+## [2.20.1](https://github.com/Automattic/newspack-network/compare/v2.20.0...v2.20.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* **memberships:** skip team-owned memberships in transfer_membership ([#314](https://github.com/Automattic/newspack-network/issues/314)) ([9f9d2aa](https://github.com/Automattic/newspack-network/commit/9f9d2aab16befe33a1c0bf360676eb92434d60ff))
+
 # [2.20.0](https://github.com/Automattic/newspack-network/compare/v2.19.0...v2.20.0) (2026-05-04)
 
 
