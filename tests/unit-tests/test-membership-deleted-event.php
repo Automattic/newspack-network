@@ -19,13 +19,12 @@ class TestMembershipDeletedEvent extends WP_UnitTestCase {
 	/**
 	 * Calling membership_deleted() with a membership whose plan has been deleted must not fatal.
 	 *
-	 * Reproduces the production fatal observed at v2.20.0 of newspack-network:
+	 * Reproduces the production fatal:
 	 *   Uncaught Error: Call to a member function get_id() on false
-	 *   in includes/woocommerce-memberships/class-events.php:116
 	 * Triggered when `wp_delete_auto_drafts` cascades into membership deletion after the
 	 * parent plan post is already gone, so `$user_membership->get_plan()` returns false.
 	 */
-	public function test_does_not_fatal_when_plan_is_null() {
+	public function test_does_not_fatal_when_plan_is_missing() {
 		$user_id   = $this->factory->user->create( [ 'user_email' => 'stub@example.com' ] );
 		$test_user = get_user_by( 'id', $user_id );
 
