@@ -30,7 +30,7 @@ Registered as Data Events on the origin site and consumed via incoming events on
 1. A user picks target sites in the editor sidebar (or a CLI/REST call sets them). This writes `newspack_network_distributed_sites` on the origin post.
 2. Any subsequent `wp_after_insert_post`, `set_object_terms`, or post-meta change on a distributed post calls `queue_post_distribution()`, which records the post ID (or a partial-update key like `post_meta`) in a static array.
 3. On `shutdown`, `distribute_queued_posts()` runs each queued post through `Outgoing_Post::get_payload()` and dispatches `network_post_updated`. The payload hash is stored in `_newspack_network_payload_hash` to skip no-op redistributions.
-4. Each target site receives the event, instantiates `Incoming_Post`, and inserts or updates the local copy. The local copy keeps `newspack_network_post_id`, the full `newspack_network_post_payload`, and an unlinked flag that lets editors override the synced content locally.
+4. Each target site receives the event, instantiates `Incoming_Post`, and inserts or updates the local copy. The local copy keeps `newspack_network_post_id`, the full `newspack_network_post_payload`, and a `newspack_network_post_unlinked` flag that lets editors override the synced content locally.
 
 Allowed post types come from the `newspack_network_distributed_post_types` filter (defaults: `post`, `page`, plus the Newspack Listings post types).
 
