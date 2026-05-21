@@ -141,6 +141,7 @@ class Pulling {
 			'last_processed_id' => self::get_last_processed_id(),
 			'actions'           => Accepted_Actions::ACTIONS_THAT_NODES_PULL,
 			'site'              => get_bloginfo( 'url' ),
+			'signed_response'   => true,
 		];
 		$response = \Newspack_Network\Utils\Requests::request_to_hub( 'wp-json/newspack-network/v1/pull', $params );
 		if ( is_wp_error( $response ) ) {
@@ -184,6 +185,12 @@ class Pulling {
 	 * @param array $events The events to process.
 	 */
 	public static function process_pulled_data( $events ) {
+		// Track the highest ID processed in this batch so the stored cursor only ever moves
+		// forward. AEAD on the pull response prevents forgery, but a previously-captured
+		// envelope can be replayed; clamping the cursor monotonically means a replay can't
+		// roll it backward and force re-fetching old events.
+		$last_processed_id = (int) self::get_last_processed_id();
+		$highest_id        = $last_processed_id;
 		foreach ( $events as $event ) {
 			$action    = $event['action'] ?? false;
 			$site      = $event['site'] ?? false;
@@ -192,6 +199,11 @@ class Pulling {
 			$id        = $event['id'] ?? false;
 
 			if ( ! $action || ! $id || ! $data || ! $timestamp ) {
+				continue;
+			}
+
+			// Skip events the cursor has already passed.
+			if ( (int) $id <= $last_processed_id ) {
 				continue;
 			}
 
@@ -205,7 +217,13 @@ class Pulling {
 
 			$incoming_event->process_in_node();
 
-			self::set_last_processed_id( $id );
+			if ( (int) $id > $highest_id ) {
+				$highest_id = (int) $id;
+			}
+		}
+
+		if ( $highest_id > $last_processed_id ) {
+			self::set_last_processed_id( $highest_id );
 		}
 	}
 
@@ -226,7 +244,25 @@ class Pulling {
 			update_option( self::LAST_ERROR_OPTION_NAME, '' );
 		}
 		$response = json_decode( $response, true );
-		if ( ! is_array( $response['data'] ) ) {
+
+		// We always ask the Hub for a signed response (see make_request()), so the body must
+		// be the encrypted envelope: a nonce plus the ciphertext under the shared secret.
+		// Anything else (a plaintext body) is either a Hub that needs updating or a tampered
+		// response, and must not be processed.
+		if ( ! is_array( $response ) || empty( $response['nonce'] ) || ! isset( $response['data'] ) || ! is_string( $response['data'] ) ) {
+			self::handle_error( new \WP_Error( 'newspack-network-node-pull-unsigned-response', __( 'The Hub returned an unsigned pull response. Make sure the Hub is up to date.', 'newspack-network' ) ) );
+			return;
+		}
+
+		$verified = Crypto::decrypt_message( $response['data'], Settings::get_secret_key(), $response['nonce'] );
+		if ( false === $verified ) {
+			self::handle_error( new \WP_Error( 'newspack-network-node-pull-signature', __( 'Could not verify the Hub pull response signature.', 'newspack-network' ) ) );
+			return;
+		}
+
+		$response = json_decode( $verified, true );
+		if ( ! is_array( $response ) || ! isset( $response['data'] ) || ! is_array( $response['data'] ) ) {
+			self::handle_error( new \WP_Error( 'newspack-network-node-pull-malformed-response', __( 'The Hub returned a signed pull response with an unexpected structure.', 'newspack-network' ) ) );
 			return;
 		}
 		self::process_pulled_data( $response['data'] );

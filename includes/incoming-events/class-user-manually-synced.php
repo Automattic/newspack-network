@@ -40,11 +40,19 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 	/**
 	 * Maybe updates a new WP user based on this event
 	 *
+	 * Unlike the background `User_Updated` receiver, this handler intentionally accepts
+	 * `$data->role` (including `administrator`) and `$data->user_login` without sanitization
+	 * or allowlisting. Manual sync is the documented way an admin on one site propagates an
+	 * admin role across the network, and the trust model assumes every Node in the network
+	 * is operated by the same operator. If that model ever changes, both fields must be
+	 * constrained here (sanitize `user_login` via `sanitize_user()`, restrict `role` to a
+	 * safe set).
+	 *
 	 * @return void
 	 */
 	public function maybe_sync_user() {
 		$email = $this->get_email();
-		Debugger::log( 'Processing user_manually_synced with email: ' . $email );
+		Debugger::log( sprintf( 'Processing user_manually_synced for %s from %s.', $email, $this->get_site() ) );
 		if ( ! $email ) {
 			return;
 		}
@@ -104,23 +112,35 @@ class User_Manually_Synced extends Abstract_Incoming_Event {
 			}
 		}
 
-		// Loop through user props and update.
+		// Loop through user props and update. Roles are synced above via $data->role; the
+		// props and meta below are restricted to the fixed set of fields the user sync
+		// tracks, so an incoming payload can't write arbitrary props (user_pass, ...) or
+		// meta (_application_passwords, wp_capabilities, ...).
 		if ( isset( $data->prop ) ) {
-			$update_array = [
+			$incoming_props = (array) $data->prop;
+			$update_array   = [
 				'ID' => $user->ID,
 			];
-			foreach ( $data->prop as $prop_key => $prop_value ) {
-				$update_array[ $prop_key ] = $prop_value;
+			foreach ( User_Update_Watcher::$user_props as $prop_key ) {
+				if ( isset( $incoming_props[ $prop_key ] ) ) {
+					$update_array[ $prop_key ] = $incoming_props[ $prop_key ];
+				}
 			}
-			Debugger::log( 'Manually syncing user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
-			wp_update_user( $update_array );
+			// Only update if at least one allowed prop is present; $update_array always has 'ID'.
+			if ( count( $update_array ) > 1 ) {
+				Debugger::log( 'Manually syncing user with data: ' . print_r( $update_array, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+				wp_update_user( $update_array );
+			}
 		}
 
 		// Loop through user meta and update.
 		if ( isset( $data->meta ) ) {
-			foreach ( $data->meta as $meta_key => $meta_value ) {
-				Debugger::log( 'Manually syncing user meta: ' . $meta_key );
-				update_user_meta( $user->ID, $meta_key, $meta_value );
+			$incoming_meta = (array) $data->meta;
+			foreach ( User_Update_Watcher::get_writable_meta() as $meta_key ) {
+				if ( isset( $incoming_meta[ $meta_key ] ) ) {
+					Debugger::log( 'Manually syncing user meta: ' . $meta_key );
+					update_user_meta( $user->ID, $meta_key, $incoming_meta[ $meta_key ] );
+				}
 			}
 
 			User_Utils::maybe_sideload_avatar( $user->ID, $data->meta, true );

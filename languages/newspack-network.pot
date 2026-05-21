@@ -2,14 +2,14 @@
 # This file is distributed under the GPL3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Newspack Network 2.19.0\n"
+"Project-Id-Version: Newspack Network 2.20.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/newspack-network\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-23T07:27:58+00:00\n"
+"POT-Creation-Date: 2026-05-19T02:58:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: newspack-network\n"
@@ -1020,6 +1020,18 @@ msgstr ""
 msgid "Latest data pulled successfully."
 msgstr ""
 
+#: includes/node/class-pulling.php:253
+msgid "The Hub returned an unsigned pull response. Make sure the Hub is up to date."
+msgstr ""
+
+#: includes/node/class-pulling.php:259
+msgid "Could not verify the Hub pull response signature."
+msgstr ""
+
+#: includes/node/class-pulling.php:265
+msgid "The Hub returned a signed pull response with an unexpected structure."
+msgstr ""
+
 #: includes/node/class-settings.php:81
 msgid "Node Settings"
 msgstr ""
@@ -1134,15 +1146,15 @@ msgstr ""
 msgid "Error connecting the site"
 msgstr ""
 
-#: includes/utils/class-requests.php:69
+#: includes/utils/class-requests.php:73
 msgid "Bad request."
 msgstr ""
 
-#: includes/utils/class-requests.php:76
+#: includes/utils/class-requests.php:80
 msgid "Bad request. Site not registered in this Hub"
 msgstr ""
 
-#: includes/utils/class-requests.php:83
+#: includes/utils/class-requests.php:87
 msgid "Bad request. Invalid signature."
 msgstr ""
 
