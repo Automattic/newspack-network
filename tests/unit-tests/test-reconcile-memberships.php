@@ -88,19 +88,20 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 	}
 
 	/**
-	 * When the node has a membership the hub doesn't, it is classified as
-	 * missing_on_hub with action pull_to_hub.
+	 * When the node has a subscription-backed membership the hub doesn't, it is classified as
+	 * missing_on_hub with action pull_to_hub (the node is an authoritative source).
 	 */
-	public function test_missing_on_hub_results_in_pull_to_hub_action() {
+	public function test_missing_on_hub_with_subscription_results_in_pull_to_hub_action() {
 		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
 
 		$hub_lookup = [];
 
 		$node_memberships = [
 			[
-				'email'      => 'carol@example.com',
-				'status'     => 'wcm-cancelled',
-				'network_id' => 'plan-c',
+				'email'            => 'carol@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-c',
+				'has_subscription' => true,
 			],
 		];
 
@@ -113,9 +114,38 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 		$this->assertEquals( 'plan-c', $discrepancies[0]['network_id'] );
 		$this->assertEquals( 'missing_on_hub', $discrepancies[0]['type'] );
 		$this->assertEquals( '', $discrepancies[0]['hub_status'] );
-		$this->assertEquals( 'wcm-cancelled', $discrepancies[0]['node_status'] );
+		$this->assertEquals( 'wcm-active', $discrepancies[0]['node_status'] );
 		$this->assertEquals( 'pull_to_hub', $discrepancies[0]['action'] );
 		$this->assertArrayHasKey( 'node_data', $discrepancies[0] );
+	}
+
+	/**
+	 * A node-only membership with no local subscription is NOT pulled to the hub: it may be a stale
+	 * managed mirror (cancelled elsewhere and never synced), and pulling it would resurrect the
+	 * membership across the whole network. It is flagged as skip_no_subscription for manual review.
+	 */
+	public function test_missing_on_hub_without_subscription_is_skipped() {
+		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
+
+		$hub_lookup = [];
+
+		$node_memberships = [
+			[
+				'email'            => 'carol@example.com',
+				'status'           => 'wcm-active',
+				'network_id'       => 'plan-c',
+				'has_subscription' => false,
+			],
+		];
+
+		$node_managed_lookup = [];
+
+		$discrepancies = $classify_discrepancies_method->invoke( null, $hub_lookup, $node_memberships, $node_managed_lookup );
+
+		$this->assertCount( 1, $discrepancies );
+		$this->assertEquals( 'carol@example.com', $discrepancies[0]['email'] );
+		$this->assertEquals( 'missing_on_hub', $discrepancies[0]['type'] );
+		$this->assertEquals( 'skip_no_subscription', $discrepancies[0]['action'] );
 	}
 
 	/**
@@ -236,7 +266,7 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 		$classify_discrepancies_method = $this->get_classify_discrepancies_method();
 
 		// Grace is on hub only → missing_on_node / push_to_node.
-		// Henry is on node only → missing_on_hub / pull_to_hub.
+		// Henry is on node only with a subscription → missing_on_hub / pull_to_hub.
 		// Iris has a status mismatch, hub has subscription → status_mismatch / push_to_node.
 		// Jane matches → no discrepancy.
 		$hub_lookup = [
@@ -271,7 +301,7 @@ class TestReconcileMemberships extends WP_UnitTestCase {
 				'email'            => 'henry@example.com',
 				'status'           => 'wcm-cancelled',
 				'network_id'       => 'plan-h',
-				'has_subscription' => false,
+				'has_subscription' => true,
 			],
 			[
 				'email'            => 'iris@example.com',

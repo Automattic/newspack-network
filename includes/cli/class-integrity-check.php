@@ -55,7 +55,11 @@ class Integrity_Check {
 	 *   For a dry run, omit --fix: the command will report discrepancies without dispatching.
 	 *
 	 * [--force]
-	 * : Skip the sync lag check and dispatch events even if nodes have unprocessed events.
+	 * : Skip the sync lag check and reconcile nodes even if they have unprocessed events or an
+	 *   unconfirmed sync status.
+	 *
+	 * [--yes]
+	 * : Answer yes to the confirmation prompt before dispatching events (for non-interactive runs).
 	 *
 	 * ## EXAMPLES
 	 *
@@ -235,18 +239,27 @@ class Integrity_Check {
 			WP_CLI::line( '' );
 
 			// Query sync status and plan availability from all nodes.
-			$node_plan_ids  = []; // Keyed by node URL.
-			$nodes_behind   = [];
+			$node_plan_ids        = []; // Keyed by node URL.
+			$nodes_behind         = [];
+			$nodes_unknown_status = []; // Node URLs whose sync status could not be confirmed.
 
 			foreach ( $discrepancies as $node ) {
 				$sync_status = self::get_node_sync_status( $node );
 				if ( null === $sync_status ) {
+					// Sync status could not be confirmed. Record it so reconciliation skips this node
+					// unless --force is used: without a confirmed status we cannot know whether the node
+					// is caught up, and dispatching could overwrite state that is merely unsynced.
+					$nodes_unknown_status[ $node->get_url() ] = true;
 					continue;
 				}
 				$node_plan_ids[ $node->get_url() ] = $sync_status['plan_network_ids'];
 
 				if ( ! $force ) {
-					$hub_latest_id = self::get_hub_latest_event_id();
+					// Exclude the node's own events from the hub's latest-event id: the hub /pull endpoint
+					// never returns a node its own events, so counting them here would report phantom lag
+					// that `sync-all` on the node can never clear. This is per-node, so it cannot be hoisted
+					// out of the loop.
+					$hub_latest_id = self::get_hub_latest_event_id( $node->get_id() );
 					$last_id       = $sync_status['last_processed_id'];
 					if ( null !== $last_id && $last_id < $hub_latest_id ) {
 						$pending = $hub_latest_id - $last_id;
@@ -266,6 +279,11 @@ class Integrity_Check {
 				return;
 			}
 
+			// Reconciliation dispatches membership create/update events across the network and mutates
+			// membership state on nodes. It is hard to reverse, so require explicit confirmation
+			// (pass --yes to skip the prompt in non-interactive runs).
+			WP_CLI::confirm( 'This will dispatch membership create/update events across the network, mutating membership state on nodes. Continue?', $assoc_args );
+
 			WP_CLI::line( 'Analyzing discrepancies for reconciliation...' );
 
 			$total_dispatched = 0;
@@ -282,6 +300,13 @@ class Integrity_Check {
 				$node_url = $node->get_url();
 				WP_CLI::line( '' );
 				WP_CLI::line( sprintf( 'Reconciling node: %s', $node_url ) );
+
+				// Skip nodes whose sync status could not be confirmed: we cannot know they are caught up,
+				// so dispatching could overwrite unsynced state. --force overrides this guard.
+				if ( isset( $nodes_unknown_status[ $node_url ] ) && ! $force ) {
+					WP_CLI::warning( sprintf( 'Skipping reconciliation for %s – sync status could not be confirmed. Use --force to reconcile anyway.', $node_url ) );
+					continue;
+				}
 
 				// Get managed memberships from node for timestamp comparison.
 				$node_managed = self::get_node_managed_memberships( $node );
@@ -328,30 +353,41 @@ class Integrity_Check {
 				// Dispatch events.
 				try {
 					foreach ( $classified as $item ) {
+						$is_actionable = in_array( $item['action'], [ 'push_to_node', 'push_transfer', 'pull_to_hub' ], true );
+
 						if ( 'push_to_node' === $item['action'] ) {
 							$key      = $item['email'] . '::' . $item['network_id'];
 							$hub_item = $hub_lookup[ $key ] ?? null;
 							if ( $hub_item ) {
 								self::dispatch_to_node( $hub_item );
 								$total_dispatched++;
-								$progress->tick();
+							} else {
+								$total_skipped++;
 							}
 						} elseif ( 'push_transfer' === $item['action'] ) {
 							$hub_item = $item['hub_data'] ?? null;
 							if ( $hub_item ) {
 								self::dispatch_to_node( $hub_item, $item['previous_email'] );
 								$total_dispatched++;
-								$progress->tick();
+							} else {
+								$total_skipped++;
 							}
 						} elseif ( 'pull_to_hub' === $item['action'] ) {
 							$node_item_data = $item['node_data'] ?? null;
 							if ( $node_item_data && ! empty( $node_item_data['membership_id'] ) ) {
 								self::dispatch_to_hub( $node_item_data, $node_url );
 								$total_dispatched++;
-								$progress->tick();
+							} else {
+								$total_skipped++;
 							}
 						} else {
 							$total_skipped++;
+						}
+
+						// Tick once per actionable item, whether or not it dispatched, so the bar
+						// always reaches 100% (its total is the count of actionable items).
+						if ( $is_actionable && $node_total > 0 ) {
+							$progress->tick();
 						}
 					}
 				} finally {
@@ -770,7 +806,9 @@ class Integrity_Check {
 	 *
 	 * Discrepancy types:
 	 *   - missing_on_node: Hub has the membership but the node does not → push_to_node.
-	 *   - missing_on_hub:  Node has the membership but the hub does not → pull_to_hub.
+	 *   - missing_on_hub:  Node has the membership but the hub does not.
+	 *       → pull_to_hub only when the node membership is backed by a subscription (authoritative source);
+	 *       otherwise skip_no_subscription (may be a stale mirror; flagged for manual review).
 	 *   - transfer:        Node has it under old email, hub has it under new email → push_transfer.
 	 *   - status_mismatch: Both have it with different statuses.
 	 *       Side with a subscription attached is authoritative.
@@ -805,14 +843,22 @@ class Integrity_Check {
 			$node_status = $node_item ? $node_item['status'] : '';
 
 			if ( null === $hub_item ) {
-				// Node has it, hub does not – pull from node to hub.
+				// Node has it, hub does not.
+				// Only pull to the hub when the node membership is backed by a local subscription, which
+				// makes the node an authoritative source. Pulling is dispatched as a hub-originated event,
+				// so every other node then pulls it too; a managed mirror with no subscription may be
+				// stale (e.g. cancelled elsewhere and never synced), and propagating it would resurrect the
+				// membership across the whole network. Flag those for manual review instead.
+				// A transfer (old email on node, new email on hub) is reclassified below regardless of this
+				// action, so genuine transfers are not affected.
+				$node_has_sub = ! empty( $node_item['has_subscription'] );
 				$discrepancies[] = [
 					'email'       => $email,
 					'network_id'  => $network_id,
 					'type'        => 'missing_on_hub',
 					'hub_status'  => '',
 					'node_status' => $node_status,
-					'action'      => 'pull_to_hub',
+					'action'      => $node_has_sub ? 'pull_to_hub' : 'skip_no_subscription',
 					'node_data'   => $node_item,
 				];
 				continue;
@@ -1014,11 +1060,19 @@ class Integrity_Check {
 	 * Get the latest pullable event ID from the hub event log,
 	 * avoiding false positives from non-pullable events like order_changed.
 	 *
+	 * @param int $excluded_node_id Optional node ID whose own events are excluded, mirroring the
+	 *                              hub /pull endpoint (a node never pulls its own events). Pass a
+	 *                              node's ID when computing sync lag for that node so events it
+	 *                              originated are not counted as unprocessed. 0 excludes nothing.
 	 * @return int The latest event ID, or 0 if the log is empty.
 	 */
-	private static function get_hub_latest_event_id() {
+	private static function get_hub_latest_event_id( $excluded_node_id = 0 ) {
+		$args = [ 'action_name_in' => \Newspack_Network\Accepted_Actions::ACTIONS_THAT_NODES_PULL ];
+		if ( $excluded_node_id > 0 ) {
+			$args['excluded_node_id'] = $excluded_node_id;
+		}
 		$events = \Newspack_Network\Hub\Stores\Event_Log::get(
-			[ 'action_name_in' => \Newspack_Network\Accepted_Actions::ACTIONS_THAT_NODES_PULL ],
+			$args,
 			1,
 			1,
 			'DESC'
@@ -1069,8 +1123,15 @@ class Integrity_Check {
 		if ( empty( $date_string ) ) {
 			return false;
 		}
-		$dt = \DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $date_string, new \DateTimeZone( 'UTC' ) );
-		return $dt ? $dt->getTimestamp() : false;
+		$dt     = \DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $date_string, new \DateTimeZone( 'UTC' ) );
+		$errors = \DateTimeImmutable::getLastErrors();
+		if ( false === $dt || ( is_array( $errors ) && ( $errors['warning_count'] > 0 || $errors['error_count'] > 0 ) ) ) {
+			return false;
+		}
+		$timestamp = $dt->getTimestamp();
+		// Reject WordPress zero-dates ('0000-00-00 00:00:00'), which parse to a large-negative
+		// timestamp rather than failing, so the caller's time() fallback engages instead.
+		return $timestamp > 0 ? $timestamp : false;
 	}
 
 	/**
