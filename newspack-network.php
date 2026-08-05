@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: Newspack Network
- * Description: The Newspack Network plugin.
- * Version: 2.20.1
+ * Plugin Name: Newspack Network (WRONG VERSION)
+ * Description: This plugin was downloaded from the legacy plugin repo. Please download the latest version from https://github.com/Automattic/newspack-workspace.
+ * Version: 2.20.2
  * Author: Automattic
  * Author URI: https://newspack.com/
  * License: GPL3
