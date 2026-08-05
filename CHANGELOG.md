@@ -1,3 +1,10 @@
+## [2.20.2](https://github.com/Automattic/newspack-network/compare/v2.20.1...v2.20.2) (2026-08-05)
+
+
+### Bug Fixes
+
+* trigger wrong version to sunset the repo ([f7117fd](https://github.com/Automattic/newspack-network/commit/f7117fd037fc250a42ae75bb69a47b7fd236e6ef))
+
 ## [2.20.1](https://github.com/Automattic/newspack-network/compare/v2.20.0...v2.20.1) (2026-05-18)
 
 
