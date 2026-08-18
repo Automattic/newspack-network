@@ -1,3 +1,10 @@
+## [2.20.3](https://github.com/Automattic/newspack-network/compare/v2.20.2...v2.20.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* soften sunset plugin name and add migration notice ([94bedb3](https://github.com/Automattic/newspack-network/commit/94bedb3771892e566d9617520377e648c3a81566))
+
 ## [2.20.2](https://github.com/Automattic/newspack-network/compare/v2.20.1...v2.20.2) (2026-08-05)
 
 

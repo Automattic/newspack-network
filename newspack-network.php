@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Newspack Network (final version, please migrate)
  * Description: Final version released from the legacy plugin repository. This copy will not receive further updates. Download the current version at https://newspack.com/download-center
- * Version: 2.20.2
+ * Version: 2.20.3
  * Author: Automattic
  * Author URI: https://newspack.com/
  * License: GPL3
